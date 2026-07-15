@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Air Register — POS for Modern Retail | Get Started</title>
+<meta name="description" content="Air Register is a cloud POS platform for retail brands in Pakistan. Multi-store, inventory, staff management, and customer app. Start from Rs.5,000/month.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        navy: { dark: '#0a1535', DEFAULT: '#1a2d6b', light: '#2a4494' },
+        brand: { blue: '#3366cc', green: '#2dd36f', orange: '#ff9800', red: '#eb445a', purple: '#7c4dff' },
+        page: '#f8fafc',
+        border: '#e8ecf1'
+      },
+      fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] }
+    }
+  }
+}
+</script>
+<script src="https://unpkg.com/ionicons@7.1.0/dist/ionicons.js"></script>
+<style>
+html { scroll-behavior: smooth; }
+body { font-family: 'Plus Jakarta Sans', sans-serif; }
+.reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.7s ease, transform 0.7s ease; }
+.reveal.visible { opacity: 1; transform: translateY(0); }
+.wizard-step { display: none; animation: slideIn 0.3s ease forwards; }
+.wizard-step.active { display: block; }
+@keyframes slideIn { from { opacity: 0; transform: translateX(16px); } to { opacity: 1; transform: translateX(0); } }
+.plan-card { transition: transform 0.2s, box-shadow 0.2s; }
+.plan-card:hover { transform: translateY(-4px); box-shadow: 0 20px 50px rgba(10,21,53,0.1); }
+.drop-zone { border: 2px dashed #e8ecf1; transition: border-color 0.2s, background 0.2s; }
+.drop-zone.dragover { border-color: #3366cc; background: #f0f4ff; }
+.modal-backdrop { background: rgba(10,21,53,0.5); backdrop-filter: blur(4px); }
+.copy-btn { position: relative; }
+.copy-btn::after { content: 'Copied!'; position: absolute; top: -26px; left: 50%; transform: translateX(-50%) scale(0); background: #0a1535; color: white; font-size: 10px; padding: 2px 7px; border-radius: 4px; transition: transform 0.2s; pointer-events: none; }
+.copy-btn.copied::after { transform: translateX(-50%) scale(1); }
+.animate-bounce-once { animation: bounceOnce 0.6s ease; }
+@keyframes bounceOnce { 0%{transform:scale(0.3);opacity:0}50%{transform:scale(1.1)}70%{transform:scale(0.95)}100%{transform:scale(1);opacity:1} }
+body.modal-open { overflow: hidden; }
+.whatsapp-float { position:fixed; bottom:24px; right:24px; z-index:90; width:56px; height:56px; background:#25d366; border-radius:50%; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 20px rgba(37,211,102,0.4); transition:transform 0.2s; }
+.whatsapp-float:hover { transform:scale(1.1); }
+</style>
+</head>
+<body class="bg-white text-gray-900">
+
+<!-- ══════════ NAVBAR ══════════ -->
+<nav class="fixed top-0 left-0 right-0 z-50 bg-navy-dark/95 backdrop-blur-lg border-b border-white/10">
+  <div class="max-w-7xl mx-auto px-5 lg:px-8 h-16 flex items-center justify-between">
+    <div class="flex items-center gap-2.5">
+      <div class="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
+        <ion-icon name="storefront" class="text-navy-dark" style="font-size:16px;"></ion-icon>
+      </div>
+      <span class="text-white font-bold text-lg">Air Register</span>
+    </div>
+    <div class="hidden md:flex items-center gap-8 text-[13px] font-medium text-white/60">
+      <a href="#features" class="hover:text-white transition">Features</a>
+      <a href="#pricing" class="hover:text-white transition">Pricing</a>
+      <a href="#faq" class="hover:text-white transition">FAQ</a>
+      <a href="#contact" class="hover:text-white transition">Contact</a>
+    </div>
+    <div class="flex items-center gap-3">
+      <button onclick="toggleMobileMenu()" class="md:hidden w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center text-white" aria-label="Menu">
+        <ion-icon name="menu-outline" style="font-size:18px;"></ion-icon>
+      </button>
+      <a href="#" class="text-[13px] font-medium text-white/60 hover:text-white transition hidden sm:block">Login</a>
+      <a href="#pricing" class="bg-brand-green text-white text-[13px] font-semibold px-4 py-2 rounded-lg hover:bg-brand-green/90 transition hidden sm:block">Get Started</a>
+    </div>
+  </div>
+  <div id="mobile-menu" class="hidden md:hidden bg-navy-dark border-t border-white/10 px-5 py-4 space-y-3">
+    <a href="#features" onclick="toggleMobileMenu()" class="block text-sm text-white/60 py-2">Features</a>
+    <a href="#pricing" onclick="toggleMobileMenu()" class="block text-sm text-white/60 py-2">Pricing</a>
+    <a href="#faq" onclick="toggleMobileMenu()" class="block text-sm text-white/60 py-2">FAQ</a>
+    <a href="#contact" onclick="toggleMobileMenu()" class="block text-sm text-white/60 py-2">Contact</a>
+    <a href="#pricing" onclick="toggleMobileMenu()" class="inline-block bg-brand-green text-white text-sm font-semibold px-4 py-2 rounded-lg mt-2">Get Started</a>
+  </div>
+</nav>
+
+<!-- ══════════ HERO ══════════ -->
+<section class="pt-28 pb-20 lg:pt-36 lg:pb-28 bg-gradient-to-br from-navy-dark via-navy to-navy-light relative overflow-hidden">
+  <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-white/5 rounded-full -translate-y-1/2 translate-x-1/3"></div>
+  <div class="absolute bottom-0 left-0 w-96 h-96 bg-brand-purple/10 rounded-full translate-y-1/2 -translate-x-1/3"></div>
+  <div class="absolute top-1/2 left-1/3 w-64 h-64 bg-brand-green/5 rounded-full"></div>
+  <div class="max-w-7xl mx-auto px-5 lg:px-8">
+    <div class="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+      <!-- Copy -->
+      <div class="max-w-xl">
+        <div class="inline-flex items-center gap-2 bg-white/10 border border-white/10 rounded-full px-4 py-1.5 mb-6">
+          <span class="w-1.5 h-1.5 rounded-full bg-brand-green animate-pulse"></span>
+          <span class="text-white/70 text-xs font-medium">Trusted by 200+ brands in Pakistan</span>
+        </div>
+        <h1 class="text-white text-[2.5rem] sm:text-5xl lg:text-[3.25rem] font-extrabold leading-[1.12] tracking-tight">
+          Revolutionize Your Business with Our POS System
+        </h1>
+        <p class="text-white/60 text-base sm:text-lg mt-5 leading-relaxed max-w-md">
+          Multi-store inventory, staff management, customer loyalty app & analytics — everything in one cloud platform.
+        </p>
+        <div class="flex flex-wrap gap-3 mt-8">
+          <a href="#pricing" class="bg-brand-green text-white font-semibold px-6 py-3 rounded-lg hover:bg-brand-green/90 hover:shadow-lg hover:shadow-brand-green/25 transition-all text-sm">
+            Explore Now
+          </a>
+          <a href="#how-it-works" class="bg-white/10 text-white font-medium px-6 py-3 rounded-lg border border-white/20 hover:bg-white/20 transition text-sm">
+            How it works
+          </a>
+        </div>
+        <!-- Stats row -->
+        <div class="flex items-center gap-8 mt-10 pt-8 border-t border-white/10">
+          <div><p class="text-2xl font-bold text-white">20k+</p><p class="text-xs text-white/40 mt-0.5">Transactions / Day</p></div>
+          <div><p class="text-2xl font-bold text-white">850+</p><p class="text-xs text-white/40 mt-0.5">Stores Connected</p></div>
+          <div><p class="text-2xl font-bold text-white">200+</p><p class="text-xs text-white/40 mt-0.5">Active Brands</p></div>
+        </div>
+      </div>
+      <!-- Mockup -->
+      <div class="hidden lg:block relative">
+        <div class="relative bg-white/5 backdrop-blur-sm rounded-2xl p-1 border border-white/10 shadow-2xl">
+          <div class="bg-page rounded-xl overflow-hidden">
+          <!-- POS Header -->
+          <div class="bg-navy-dark text-white px-5 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <div class="w-6 h-6 bg-white/15 rounded flex items-center justify-center"><ion-icon name="storefront" style="font-size:12px;"></ion-icon></div>
+              <span class="text-[11px] font-medium">Clifton Mart · Register 1</span>
+            </div>
+            <span class="text-[11px] text-white/50">14:32 PM</span>
+          </div>
+          <!-- POS Body -->
+          <div class="flex" style="height:300px;">
+            <div class="flex-1 p-4 space-y-2 border-r border-gray-100 overflow-hidden bg-white">
+              <div class="flex items-center gap-3 bg-gray-50 rounded-lg p-2.5"><div class="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center shrink-0"><ion-icon name="water-outline" class="text-brand-blue text-sm"></ion-icon></div><div class="flex-1"><p class="text-[11px] font-medium text-gray-800">Nestle Water 1.5L</p><p class="text-[10px] text-gray-400">Rs.40 × 2</p></div><p class="text-[11px] font-semibold text-navy">Rs.80</p></div>
+              <div class="flex items-center gap-3 bg-gray-50 rounded-lg p-2.5"><div class="w-8 h-8 bg-green-50 rounded-lg flex items-center justify-center shrink-0"><ion-icon name="nutrition-outline" class="text-brand-green text-sm"></ion-icon></div><div class="flex-1"><p class="text-[11px] font-medium text-gray-800">Olper's Milk 1L</p><p class="text-[10px] text-gray-400">Rs.180 × 1</p></div><p class="text-[11px] font-semibold text-navy">Rs.180</p></div>
+              <div class="flex items-center gap-3 bg-gray-50 rounded-lg p-2.5"><div class="w-8 h-8 bg-red-50 rounded-lg flex items-center justify-center shrink-0"><ion-icon name="heart-outline" class="text-brand-red text-sm"></ion-icon></div><div class="flex-1"><p class="text-[11px] font-medium text-gray-800">Dairy Milk Silk</p><p class="text-[10px] text-gray-400">Rs.100 × 3</p></div><p class="text-[11px] font-semibold text-navy">Rs.300</p></div>
+              <div class="flex items-center gap-3 bg-gray-50 rounded-lg p-2.5"><div class="w-8 h-8 bg-purple-50 rounded-lg flex items-center justify-center shrink-0"><ion-icon name="cafe-outline" class="text-brand-purple text-sm"></ion-icon></div><div class="flex-1"><p class="text-[11px] font-medium text-gray-800">Tapal Danedar 500g</p><p class="text-[10px] text-gray-400">Rs.480 × 1</p></div><p class="text-[11px] font-semibold text-navy">Rs.480</p></div>
+              <div class="flex items-center gap-3 bg-gray-50 rounded-lg p-2.5"><div class="w-8 h-8 bg-orange-50 rounded-lg flex items-center justify-center shrink-0"><ion-icon name="fast-food-outline" class="text-brand-orange text-sm"></ion-icon></div><div class="flex-1"><p class="text-[11px] font-medium text-gray-800">Lays Classic</p><p class="text-[10px] text-gray-400">Rs.50 × 2</p></div><p class="text-[11px] font-semibold text-navy">Rs.100</p></div>
+            </div>
+            <div class="w-[170px] p-4 flex flex-col bg-gray-50">
+              <div class="flex items-center gap-2 bg-white rounded-lg p-2 border border-gray-100 mb-4">
+                <div class="w-7 h-7 rounded-full bg-brand-green text-white flex items-center justify-center text-[9px] font-bold">A</div>
+                <div><p class="text-[10px] font-semibold text-gray-800">Ahmed H.</p><p class="text-[9px] text-gray-400">15 visits</p></div>
+              </div>
+              <div class="space-y-1.5 text-[10px] mt-auto">
+                <div class="flex justify-between"><span class="text-gray-400">Subtotal</span><span class="text-gray-700">Rs.1,140</span></div>
+                <div class="flex justify-between"><span class="text-gray-400">Tax (16%)</span><span class="text-gray-700">Rs.182</span></div>
+                <div class="flex justify-between border-t border-gray-200 pt-2 mt-2"><span class="font-bold text-navy">Total</span><span class="font-bold text-navy text-sm">Rs.1,322</span></div>
+              </div>
+              <button class="mt-3 w-full py-2 bg-navy text-white text-[10px] font-semibold rounded-lg">Complete · Show QR</button>
+            </div>
+          </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ HOW IT WORKS ══════════ -->
+<section id="how-it-works" class="py-20 lg:py-28 bg-white relative overflow-hidden">
+  <div class="max-w-7xl mx-auto px-5 lg:px-8 relative">
+    <div class="text-center mb-16 reveal">
+      <span class="inline-block bg-navy/5 text-navy text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider mb-4 border border-navy/10">How It Works</span>
+      <h2 class="text-3xl sm:text-4xl font-bold text-navy-dark leading-tight">Transform Your POS with a<br class="hidden sm:block"> Next-Level Experience</h2>
+      <p class="text-gray-500 mt-4 max-w-2xl mx-auto">From registration to your first sale in under 24 hours. No technical skills required.</p>
+    </div>
+
+    <!-- Alternating feature rows -->
+    <div class="space-y-20 lg:space-y-28 reveal">
+      <!-- Row 1: Text left, Image right -->
+      <div class="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+        <div>
+          <span class="text-brand-blue text-xs font-bold uppercase tracking-wider">Step 1</span>
+          <h3 class="text-2xl sm:text-3xl font-bold text-navy-dark mt-3 leading-snug">Register Your Brand in Under 5 Minutes</h3>
+          <p class="text-gray-500 mt-4 leading-relaxed">Choose a plan that fits your business, fill in basic details, and you're done. No paperwork, no waiting.</p>
+          <ul class="mt-6 space-y-3">
+            <li class="flex items-start gap-3"><ion-icon name="checkmark-circle" class="text-brand-green text-lg mt-0.5 shrink-0"></ion-icon><span class="text-sm text-gray-600">3 plans: Starter, Standard, Pro — pick what fits</span></li>
+            <li class="flex items-start gap-3"><ion-icon name="checkmark-circle" class="text-brand-green text-lg mt-0.5 shrink-0"></ion-icon><span class="text-sm text-gray-600">Only email + brand info needed to start</span></li>
+            <li class="flex items-start gap-3"><ion-icon name="checkmark-circle" class="text-brand-green text-lg mt-0.5 shrink-0"></ion-icon><span class="text-sm text-gray-600">Choose 1–12 month commitment upfront</span></li>
+          </ul>
+          <a href="#pricing" class="inline-flex items-center gap-2 mt-7 text-sm font-semibold text-brand-blue hover:text-navy transition">
+            <ion-icon name="play-circle" class="text-lg"></ion-icon> View Plans
+          </a>
+        </div>
+        <div class="bg-gradient-to-br from-navy-dark to-navy rounded-2xl p-8">
+          <div class="bg-white rounded-xl shadow-lg p-5">
+            <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Registration Form</p>
+            <div class="space-y-3">
+              <div class="h-10 bg-gray-50 rounded-lg border border-gray-100 px-3 flex items-center"><span class="text-xs text-gray-400">Brand Name: Clifton Mart</span></div>
+              <div class="h-10 bg-gray-50 rounded-lg border border-gray-100 px-3 flex items-center"><span class="text-xs text-gray-400">Industry: Grocery & Supermarket</span></div>
+              <div class="h-10 bg-gray-50 rounded-lg border border-gray-100 px-3 flex items-center"><span class="text-xs text-gray-400">Email: owner@cliftonmart.pk</span></div>
+              <div class="h-10 bg-brand-green rounded-lg flex items-center justify-center"><span class="text-xs text-white font-semibold">Submit Registration →</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Row 2: Image left, Text right -->
+      <div class="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+        <div class="order-2 lg:order-1 bg-gradient-to-br from-navy-dark to-navy rounded-2xl p-8">
+          <div class="bg-white rounded-xl shadow-lg p-5">
+            <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Bank Transfer Details</p>
+            <div class="space-y-2.5 text-sm">
+              <div class="flex justify-between py-2 border-b border-gray-100"><span class="text-gray-400">Bank</span><span class="font-medium text-navy-dark">HBL</span></div>
+              <div class="flex justify-between py-2 border-b border-gray-100"><span class="text-gray-400">Account</span><span class="font-mono text-xs text-navy-dark">1234-5678-9012</span></div>
+              <div class="flex justify-between py-2 border-b border-gray-100"><span class="text-gray-400">IBAN</span><span class="font-mono text-xs text-navy-dark">PK36HABB001234...</span></div>
+              <div class="flex justify-between py-2"><span class="text-gray-400">Amount</span><span class="font-bold text-brand-green text-base">Rs.120,000</span></div>
+            </div>
+            <div class="mt-4 flex items-center gap-2 bg-brand-green/5 border border-brand-green/10 rounded-lg px-3 py-2">
+              <ion-icon name="shield-checkmark" class="text-brand-green"></ion-icon>
+              <span class="text-xs text-brand-green font-medium">Verified within 24 hours</span>
+            </div>
+          </div>
+        </div>
+        <div class="order-1 lg:order-2">
+          <span class="text-brand-green text-xs font-bold uppercase tracking-wider">Step 2</span>
+          <h3 class="text-2xl sm:text-3xl font-bold text-navy-dark mt-3 leading-snug">Transfer & Submit Payment Proof</h3>
+          <p class="text-gray-500 mt-4 leading-relaxed">Make a bank transfer to our account, then upload your receipt. We handle the verification.</p>
+          <ul class="mt-6 space-y-3">
+            <li class="flex items-start gap-3"><ion-icon name="checkmark-circle" class="text-brand-green text-lg mt-0.5 shrink-0"></ion-icon><span class="text-sm text-gray-600">One-click copy for IBAN & account number</span></li>
+            <li class="flex items-start gap-3"><ion-icon name="checkmark-circle" class="text-brand-green text-lg mt-0.5 shrink-0"></ion-icon><span class="text-sm text-gray-600">Upload receipt image (PNG, JPG, PDF)</span></li>
+            <li class="flex items-start gap-3"><ion-icon name="checkmark-circle" class="text-brand-green text-lg mt-0.5 shrink-0"></ion-icon><span class="text-sm text-gray-600">Supports HBL, Meezan, UBL & more</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Row 3: Text left, Image right -->
+      <div class="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+        <div>
+          <span class="text-brand-orange text-xs font-bold uppercase tracking-wider">Step 3</span>
+          <h3 class="text-2xl sm:text-3xl font-bold text-navy-dark mt-3 leading-snug">Start Selling — Your Brand Goes Live</h3>
+          <p class="text-gray-500 mt-4 leading-relaxed">The moment admin verifies your payment, you get full access. Set up stores, add products, invite staff.</p>
+          <ul class="mt-6 space-y-3">
+            <li class="flex items-start gap-3"><ion-icon name="checkmark-circle" class="text-brand-green text-lg mt-0.5 shrink-0"></ion-icon><span class="text-sm text-gray-600">Configure stores & register devices</span></li>
+            <li class="flex items-start gap-3"><ion-icon name="checkmark-circle" class="text-brand-green text-lg mt-0.5 shrink-0"></ion-icon><span class="text-sm text-gray-600">Add products, categories & barcodes</span></li>
+            <li class="flex items-start gap-3"><ion-icon name="checkmark-circle" class="text-brand-green text-lg mt-0.5 shrink-0"></ion-icon><span class="text-sm text-gray-600">Invite staff with role-based permissions</span></li>
+          </ul>
+        </div>
+        <div class="bg-gradient-to-br from-navy-dark to-navy rounded-2xl p-8">
+          <div class="grid grid-cols-2 gap-3">
+            <div class="bg-white rounded-xl p-4 border border-gray-100 text-center">
+              <ion-icon name="storefront-outline" class="text-brand-blue text-2xl"></ion-icon>
+              <p class="text-xs font-semibold text-navy-dark mt-2">Multi-Store</p>
+              <p class="text-[10px] text-gray-400 mt-0.5">5 locations</p>
+            </div>
+            <div class="bg-white rounded-xl p-4 border border-gray-100 text-center">
+              <ion-icon name="people-outline" class="text-brand-purple text-2xl"></ion-icon>
+              <p class="text-xs font-semibold text-navy-dark mt-2">Staff</p>
+              <p class="text-[10px] text-gray-400 mt-0.5">Role-based</p>
+            </div>
+            <div class="bg-white rounded-xl p-4 border border-gray-100 text-center">
+              <ion-icon name="cube-outline" class="text-brand-green text-2xl"></ion-icon>
+              <p class="text-xs font-semibold text-navy-dark mt-2">Inventory</p>
+              <p class="text-[10px] text-gray-400 mt-0.5">Real-time sync</p>
+            </div>
+            <div class="bg-white rounded-xl p-4 border border-gray-100 text-center">
+              <ion-icon name="bar-chart-outline" class="text-brand-orange text-2xl"></ion-icon>
+              <p class="text-xs font-semibold text-navy-dark mt-2">Analytics</p>
+              <p class="text-[10px] text-gray-400 mt-0.5">Live reports</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ FEATURES GRID ══════════ -->
+<section id="features" class="py-20 lg:py-28 bg-gradient-to-b from-navy-dark to-[#0d1a3a]">
+  <div class="max-w-7xl mx-auto px-5 lg:px-8">
+    <div class="text-center mb-14 reveal">
+      <span class="inline-block bg-white/10 text-brand-green text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider mb-4 border border-white/10">Features</span>
+      <h2 class="text-3xl sm:text-4xl font-bold text-white">Our Software Capable for Wide<br class="hidden sm:block"> Range of Business and Industries</h2>
+      <p class="text-white/50 mt-4 max-w-2xl mx-auto">Powerful, self-serve product and growth analytics to help you manage, engage, and retain users.</p>
+    </div>
+    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 reveal">
+      <div class="bg-white/5 backdrop-blur-sm rounded-2xl p-7 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all duration-300">
+        <div class="w-12 h-12 bg-brand-blue/20 rounded-xl flex items-center justify-center mb-5"><ion-icon name="storefront-outline" class="text-brand-blue text-2xl"></ion-icon></div>
+        <h3 class="font-bold text-white mb-2">Multi-Store</h3>
+        <p class="text-white/50 text-sm leading-relaxed">Manage multiple locations from one dashboard with real-time sync.</p>
+      </div>
+      <div class="bg-white/5 backdrop-blur-sm rounded-2xl p-7 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all duration-300">
+        <div class="w-12 h-12 bg-brand-green/20 rounded-xl flex items-center justify-center mb-5"><ion-icon name="cube-outline" class="text-brand-green text-2xl"></ion-icon></div>
+        <h3 class="font-bold text-white mb-2">Inventory</h3>
+        <p class="text-white/50 text-sm leading-relaxed">Track stock, set low-stock alerts, manage SKUs. Barcode scanning built in.</p>
+      </div>
+      <div class="bg-white/5 backdrop-blur-sm rounded-2xl p-7 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all duration-300">
+        <div class="w-12 h-12 bg-brand-purple/20 rounded-xl flex items-center justify-center mb-5"><ion-icon name="people-outline" class="text-brand-purple text-2xl"></ion-icon></div>
+        <h3 class="font-bold text-white mb-2">Staff Management</h3>
+        <p class="text-white/50 text-sm leading-relaxed">Role-based access, shift tracking, performance reports per member.</p>
+      </div>
+      <div class="bg-white/5 backdrop-blur-sm rounded-2xl p-7 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all duration-300">
+        <div class="w-12 h-12 bg-brand-orange/20 rounded-xl flex items-center justify-center mb-5"><ion-icon name="phone-portrait-outline" class="text-brand-orange text-2xl"></ion-icon></div>
+        <h3 class="font-bold text-white mb-2">Customer App</h3>
+        <p class="text-white/50 text-sm leading-relaxed">Branded QR payments, order history, and loyalty program tracking.</p>
+      </div>
+      <div class="bg-white/5 backdrop-blur-sm rounded-2xl p-7 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all duration-300">
+        <div class="w-12 h-12 bg-brand-red/20 rounded-xl flex items-center justify-center mb-5"><ion-icon name="bar-chart-outline" class="text-brand-red text-2xl"></ion-icon></div>
+        <h3 class="font-bold text-white mb-2">Reports & Analytics</h3>
+        <p class="text-white/50 text-sm leading-relaxed">Sales trends, top products, peak hours. Export to Excel.</p>
+      </div>
+      <div class="bg-white/5 backdrop-blur-sm rounded-2xl p-7 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all duration-300 relative">
+        <span class="absolute top-4 right-4 bg-brand-green text-white text-[9px] font-bold px-2 py-0.5 rounded-full">PRO</span>
+        <div class="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center mb-5"><ion-icon name="globe-outline" class="text-white text-2xl"></ion-icon></div>
+        <h3 class="font-bold text-white mb-2">E-Commerce</h3>
+        <p class="text-white/50 text-sm leading-relaxed">Integrated online storefront. Same inventory, unified orders.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ PRICING ══════════ -->
+<section id="pricing" class="py-20 lg:py-28 bg-white">
+  <div class="max-w-7xl mx-auto px-5 lg:px-8">
+    <div class="text-center mb-10 reveal">
+      <span class="inline-block bg-brand-blue/5 text-brand-blue text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider mb-4">Pricing</span>
+      <h2 class="text-3xl sm:text-4xl font-bold text-navy-dark">Discover Flexible Pricing Options<br class="hidden sm:block"> for Our Exceptional Services</h2>
+      <p class="text-gray-500 mt-4 max-w-lg mx-auto">Each package includes premium features and competitive deliverables to guarantee our clients satisfaction.</p>
+    </div>
+
+    <!-- Period toggle -->
+    <div class="flex justify-center mb-12 reveal">
+      <div class="inline-flex items-center bg-page rounded-full p-1 border border-border">
+        <button onclick="setPeriod(1)" data-period="1" class="period-btn px-5 py-2 rounded-full text-sm font-medium transition">Monthly</button>
+        <button onclick="setPeriod(12)" data-period="12" class="period-btn px-5 py-2 rounded-full text-sm font-medium transition bg-navy text-white">Yearly <span class="text-brand-green text-[10px] font-bold ml-1">Save 20%</span></button>
+      </div>
+    </div>
+
+    <!-- Cards -->
+    <div class="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto reveal">
+      <!-- Starter -->
+      <div class="plan-card bg-white rounded-2xl border border-border p-7 flex flex-col">
+        <p class="text-sm font-bold text-navy-dark">Starter Plan</p>
+        <p class="text-xs text-gray-400 mt-1">For single store businesses</p>
+        <div class="mt-5 mb-6">
+          <span class="text-4xl font-extrabold text-navy-dark">Rs.<span data-plan-price="starter">5,000</span></span>
+          <span class="text-gray-400 text-sm">/month</span>
+          <p class="text-xs text-gray-400 mt-1">Total: <strong data-plan-total="starter" class="text-gray-600">Rs.60,000</strong> for <span data-plan-period-label>12 months</span></p>
+        </div>
+        <ul class="space-y-3 text-sm text-gray-600 flex-1 mb-7">
+          <li class="flex items-center gap-2.5"><ion-icon name="checkmark-circle" class="text-brand-green shrink-0"></ion-icon> 1 Store</li>
+          <li class="flex items-center gap-2.5"><ion-icon name="checkmark-circle" class="text-brand-green shrink-0"></ion-icon> 3 Staff / store</li>
+          <li class="flex items-center gap-2.5"><ion-icon name="checkmark-circle" class="text-brand-green shrink-0"></ion-icon> 200 Products</li>
+          <li class="flex items-center gap-2.5"><ion-icon name="checkmark-circle" class="text-brand-green shrink-0"></ion-icon> 1 Register</li>
+          <li class="flex items-center gap-2.5 text-gray-300"><ion-icon name="close-circle" class="shrink-0"></ion-icon> Customer App QR</li>
+          <li class="flex items-center gap-2.5 text-gray-300"><ion-icon name="close-circle" class="shrink-0"></ion-icon> E-Commerce</li>
+        </ul>
+        <button onclick="openWizard('starter')" class="w-full py-3 bg-page text-navy font-semibold rounded-xl border border-border hover:bg-navy hover:text-white hover:border-navy transition-all text-sm">Select Plan</button>
+      </div>
+
+      <!-- Standard -->
+      <div class="plan-card bg-navy rounded-2xl p-7 flex flex-col text-white relative shadow-xl">
+        <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-brand-green text-white text-[10px] font-bold px-4 py-1 rounded-full shadow">Most Popular</div>
+        <p class="text-sm font-bold">Growth Plan</p>
+        <p class="text-xs text-white/50 mt-1">For growing multi-store brands</p>
+        <div class="mt-5 mb-6">
+          <span class="text-4xl font-extrabold">Rs.<span data-plan-price="standard">10,000</span></span>
+          <span class="text-white/50 text-sm">/month</span>
+          <p class="text-xs text-white/40 mt-1">Total: <strong data-plan-total="standard" class="text-white/70">Rs.120,000</strong> for <span data-plan-period-label>12 months</span></p>
+        </div>
+        <ul class="space-y-3 text-sm text-white/80 flex-1 mb-7">
+          <li class="flex items-center gap-2.5"><ion-icon name="checkmark-circle" class="text-brand-green shrink-0"></ion-icon> <strong>5</strong> Stores</li>
+          <li class="flex items-center gap-2.5"><ion-icon name="checkmark-circle" class="text-brand-green shrink-0"></ion-icon> <strong>10</strong> Staff / store</li>
+          <li class="flex items-center gap-2.5"><ion-icon name="checkmark-circle" class="text-brand-green shrink-0"></ion-icon> <strong>1,000</strong> Products</li>
+          <li class="flex items-center gap-2.5"><ion-icon name="checkmark-circle" class="text-brand-green shrink-0"></ion-icon> <strong>3</strong> Registers</li>
+          <li class="flex items-center gap-2.5"><ion-icon name="checkmark-circle" class="text-brand-green shrink-0"></ion-icon> Customer App QR</li>
+          <li class="flex items-center gap-2.5 text-white/30"><ion-icon name="close-circle" class="shrink-0"></ion-icon> E-Commerce</li>
+        </ul>
+        <button onclick="openWizard('standard')" class="w-full py-3 bg-brand-green text-white font-semibold rounded-xl hover:bg-brand-green/90 transition-all text-sm">Select Plan</button>
+      </div>
+
+      <!-- Pro -->
+      <div class="plan-card bg-white rounded-2xl border border-border p-7 flex flex-col">
+        <p class="text-sm font-bold text-navy-dark">Business Plan</p>
+        <p class="text-xs text-gray-400 mt-1">For enterprise operations</p>
+        <div class="mt-5 mb-6">
+          <span class="text-4xl font-extrabold text-navy-dark">Rs.<span data-plan-price="pro">15,000</span></span>
+          <span class="text-gray-400 text-sm">/month</span>
+          <p class="text-xs text-gray-400 mt-1">Total: <strong data-plan-total="pro" class="text-gray-600">Rs.180,000</strong> for <span data-plan-period-label>12 months</span></p>
+        </div>
+        <ul class="space-y-3 text-sm text-gray-600 flex-1 mb-7">
+          <li class="flex items-center gap-2.5"><ion-icon name="checkmark-circle" class="text-brand-green shrink-0"></ion-icon> <strong>Unlimited</strong> Stores</li>
+          <li class="flex items-center gap-2.5"><ion-icon name="checkmark-circle" class="text-brand-green shrink-0"></ion-icon> <strong>Unlimited</strong> Staff</li>
+          <li class="flex items-center gap-2.5"><ion-icon name="checkmark-circle" class="text-brand-green shrink-0"></ion-icon> <strong>Unlimited</strong> Products</li>
+          <li class="flex items-center gap-2.5"><ion-icon name="checkmark-circle" class="text-brand-green shrink-0"></ion-icon> <strong>Unlimited</strong> Registers</li>
+          <li class="flex items-center gap-2.5"><ion-icon name="checkmark-circle" class="text-brand-green shrink-0"></ion-icon> Customer App QR</li>
+          <li class="flex items-center gap-2.5"><ion-icon name="checkmark-circle" class="text-brand-green shrink-0"></ion-icon> <strong>E-Commerce</strong></li>
+        </ul>
+        <button onclick="openWizard('pro')" class="w-full py-3 bg-page text-navy font-semibold rounded-xl border border-border hover:bg-navy hover:text-white hover:border-navy transition-all text-sm">Select Plan</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ FAQ ══════════ -->
+<section id="faq" class="py-20 lg:py-28 bg-page border-t border-gray-100">
+  <div class="max-w-3xl mx-auto px-5 lg:px-8">
+    <div class="text-center mb-14 reveal">
+      <span class="inline-block bg-brand-blue/5 text-brand-blue text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider mb-4">FAQ</span>
+      <h2 class="text-3xl sm:text-4xl font-bold text-navy-dark">Frequently Asked Questions</h2>
+      <p class="text-gray-500 mt-3">Can't find what you're looking for? <a href="#contact" class="text-brand-blue font-medium hover:underline">Contact us</a></p>
+    </div>
+    <div class="space-y-3 reveal">
+      <details class="bg-white border border-gray-100 rounded-xl overflow-hidden group shadow-sm" open>
+        <summary class="flex items-center justify-between cursor-pointer list-none px-6 py-5 hover:bg-gray-50/50 transition">
+          <span class="font-semibold text-navy-dark text-[15px] pr-4">How long does verification take?</span>
+          <ion-icon name="chevron-down-outline" class="text-gray-400 group-open:text-brand-blue group-open:rotate-180 transition-all shrink-0"></ion-icon>
+        </summary>
+        <div class="px-6 pb-5"><p class="text-gray-500 text-sm leading-relaxed">Typically within 24 hours. Our admin team verifies your bank transfer and activates your brand once confirmed.</p></div>
+      </details>
+      <details class="bg-white border border-gray-100 rounded-xl overflow-hidden group shadow-sm">
+        <summary class="flex items-center justify-between cursor-pointer list-none px-6 py-5 hover:bg-gray-50/50 transition">
+          <span class="font-semibold text-navy-dark text-[15px] pr-4">Can I upgrade my plan later?</span>
+          <ion-icon name="chevron-down-outline" class="text-gray-400 group-open:text-brand-blue group-open:rotate-180 transition-all shrink-0"></ion-icon>
+        </summary>
+        <div class="px-6 pb-5"><p class="text-gray-500 text-sm leading-relaxed">Yes! Request a plan change anytime. Submit a new payment and our admin will switch you immediately.</p></div>
+      </details>
+      <details class="bg-white border border-gray-100 rounded-xl overflow-hidden group shadow-sm">
+        <summary class="flex items-center justify-between cursor-pointer list-none px-6 py-5 hover:bg-gray-50/50 transition">
+          <span class="font-semibold text-navy-dark text-[15px] pr-4">What payment methods do you accept?</span>
+          <ion-icon name="chevron-down-outline" class="text-gray-400 group-open:text-brand-blue group-open:rotate-180 transition-all shrink-0"></ion-icon>
+        </summary>
+        <div class="px-6 pb-5"><p class="text-gray-500 text-sm leading-relaxed">Bank transfers (HBL, Meezan, UBL, and others). Online payment gateway coming soon.</p></div>
+      </details>
+      <details class="bg-white border border-gray-100 rounded-xl overflow-hidden group shadow-sm">
+        <summary class="flex items-center justify-between cursor-pointer list-none px-6 py-5 hover:bg-gray-50/50 transition">
+          <span class="font-semibold text-navy-dark text-[15px] pr-4">What happens when my subscription expires?</span>
+          <ion-icon name="chevron-down-outline" class="text-gray-400 group-open:text-brand-blue group-open:rotate-180 transition-all shrink-0"></ion-icon>
+        </summary>
+        <div class="px-6 pb-5"><p class="text-gray-500 text-sm leading-relaxed">You'll get reminders at 30, 7, and 1 day before. After expiry your portal is read-only until you renew.</p></div>
+      </details>
+      <details class="bg-white border border-gray-100 rounded-xl overflow-hidden group shadow-sm">
+        <summary class="flex items-center justify-between cursor-pointer list-none px-6 py-5 hover:bg-gray-50/50 transition">
+          <span class="font-semibold text-navy-dark text-[15px] pr-4">Is my data safe?</span>
+          <ion-icon name="chevron-down-outline" class="text-gray-400 group-open:text-brand-blue group-open:rotate-180 transition-all shrink-0"></ion-icon>
+        </summary>
+        <div class="px-6 pb-5"><p class="text-gray-500 text-sm leading-relaxed">All data is encrypted at rest and in transit. AWS infrastructure with daily backups. Payment receipts stored in secure, private storage.</p></div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ CTA / CONTACT ══════════ -->
+<section id="contact" class="py-20 lg:py-24 bg-gradient-to-br from-navy-dark via-navy to-navy-light text-white relative overflow-hidden">
+  <div class="absolute -top-20 -right-20 w-96 h-96 bg-white/5 rounded-full"></div>
+  <div class="absolute -bottom-20 -left-20 w-80 h-80 bg-brand-purple/10 rounded-full"></div>
+  <div class="max-w-4xl mx-auto px-5 lg:px-8 text-center reveal">
+    <h2 class="text-3xl sm:text-4xl font-bold mb-4">Ready to modernize your store?</h2>
+    <p class="text-white/60 max-w-md mx-auto mb-8 text-base">Join 200+ brands already using Air Register. Setup takes less than 24 hours.</p>
+    <div class="flex flex-wrap justify-center gap-4 mb-10">
+      <a href="#pricing" class="bg-brand-green text-white font-semibold px-7 py-3.5 rounded-xl text-sm hover:bg-brand-green/90 transition">Get Started Now</a>
+      <a href="https://wa.me/923001234567" target="_blank" class="bg-white/10 text-white font-medium px-7 py-3.5 rounded-xl text-sm border border-white/20 hover:bg-white/20 transition flex items-center gap-2">
+        <ion-icon name="logo-whatsapp"></ion-icon> Chat on WhatsApp
+      </a>
+    </div>
+    <div class="flex flex-wrap justify-center gap-8 text-sm text-white/40">
+      <span class="flex items-center gap-2"><ion-icon name="call-outline"></ion-icon> +92 300 123 4567</span>
+      <span class="flex items-center gap-2"><ion-icon name="mail-outline"></ion-icon> hello@airregister.pk</span>
+      <span class="flex items-center gap-2"><ion-icon name="location-outline"></ion-icon> Karachi, Pakistan</span>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ FOOTER ══════════ -->
+<footer class="bg-navy-dark border-t border-white/5 py-8">
+  <div class="max-w-7xl mx-auto px-5 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+    <div class="flex items-center gap-2.5">
+      <div class="w-6 h-6 bg-white rounded flex items-center justify-center"><ion-icon name="storefront" class="text-navy-dark" style="font-size:11px;"></ion-icon></div>
+      <span class="text-white/40 text-sm">© 2026 Air Register. All rights reserved.</span>
+    </div>
+    <div class="flex items-center gap-6 text-sm text-white/30">
+      <a href="#" class="hover:text-white/60 transition">Privacy</a>
+      <a href="#" class="hover:text-white/60 transition">Terms</a>
+      <a href="#" class="hover:text-white/60 transition">Support</a>
+    </div>
+  </div>
+</footer>
+
+<!-- WhatsApp Float -->
+<a href="https://wa.me/923001234567" target="_blank" class="whatsapp-float" aria-label="Chat on WhatsApp"><ion-icon name="logo-whatsapp" style="font-size:28px;color:white;"></ion-icon></a>
+
+<!-- ══════════ REGISTRATION WIZARD ══════════ -->
+<div id="wizard-modal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="wizard-plan-name">
+  <div class="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col">
+    <div class="bg-navy text-white px-6 py-4 flex items-center justify-between shrink-0">
+      <div><p class="text-xs text-white/50">Registering for</p><p class="font-semibold" id="wizard-plan-name">Standard Plan</p></div>
+      <div class="flex items-center gap-4">
+        <a href="#" class="text-xs text-white/40 hover:text-white/70 hidden sm:block">Already registered?</a>
+        <div class="flex items-center gap-2"><div data-dot="1" class="w-2.5 h-2.5 rounded-full bg-brand-green"></div><div class="w-3 h-px bg-white/20"></div><div data-dot="2" class="w-2.5 h-2.5 rounded-full bg-white/20"></div><div class="w-3 h-px bg-white/20"></div><div data-dot="3" class="w-2.5 h-2.5 rounded-full bg-white/20"></div></div>
+        <button onclick="closeWizard()" class="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20" aria-label="Close"><ion-icon name="close-outline" style="font-size:16px;"></ion-icon></button>
+      </div>
+    </div>
+    <div class="flex-1 overflow-y-auto"><div class="flex">
+      <div class="flex-1 p-6">
+        <!-- Step 1 -->
+        <div id="step-1" class="wizard-step active">
+          <h3 class="text-lg font-bold text-navy-dark mb-1">Brand & Owner Info</h3>
+          <p class="text-sm text-gray-500 mb-6">Tell us about your business.</p>
+          <div class="space-y-4">
+            <div><label class="block text-sm font-medium text-gray-700 mb-1">Brand Name *</label><input id="f-brand" type="text" placeholder="e.g. Clifton Mart" autocomplete="organization" class="w-full h-11 px-4 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-brand-blue transition"></div>
+            <div><label class="block text-sm font-medium text-gray-700 mb-1">Industry *</label><select id="f-industry" class="w-full h-11 px-4 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-brand-blue transition bg-white"><option value="">Select...</option><option value="grocery">Grocery</option><option value="fashion">Fashion</option><option value="electronics">Electronics</option><option value="pharmacy">Pharmacy</option><option value="restaurant">Restaurant</option><option value="bakery">Bakery</option><option value="other">Other</option></select></div>
+            <div class="grid grid-cols-2 gap-4"><div><label class="block text-sm font-medium text-gray-700 mb-1">Owner Name *</label><input id="f-owner" type="text" placeholder="Full name" autocomplete="name" class="w-full h-11 px-4 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-brand-blue transition"></div><div><label class="block text-sm font-medium text-gray-700 mb-1">Phone</label><input id="f-phone" type="tel" placeholder="+92 3XX..." autocomplete="tel" class="w-full h-11 px-4 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-brand-blue transition"></div></div>
+            <div><label class="block text-sm font-medium text-gray-700 mb-1">Email *</label><div class="relative"><input id="f-email" type="email" placeholder="owner@brand.com" autocomplete="email" oninput="validateEmailLive(this)" class="w-full h-11 px-4 pr-10 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-brand-blue transition"><span id="email-check" class="absolute right-3 top-1/2 -translate-y-1/2 hidden"><ion-icon name="checkmark-circle" class="text-brand-green text-lg"></ion-icon></span></div><p class="text-xs text-gray-400 mt-1">Login credentials will be sent here</p></div>
+          </div>
+          <div class="flex justify-end mt-8"><button onclick="goToStep(2)" class="bg-navy text-white font-semibold px-6 py-2.5 rounded-lg hover:bg-navy-dark transition text-sm">Next →</button></div>
+        </div>
+        <!-- Step 2 -->
+        <div id="step-2" class="wizard-step">
+          <h3 class="text-lg font-bold text-navy-dark mb-1">Payment</h3>
+          <p class="text-sm text-gray-500 mb-6">Transfer the amount, then submit proof.</p>
+          <div class="bg-page border border-border rounded-xl p-5 mb-6">
+            <p class="text-xs text-gray-400 uppercase tracking-wider font-semibold mb-3">Transfer to</p>
+            <div class="space-y-2 text-sm"><div class="flex justify-between"><span class="text-gray-400">Bank</span><span class="font-medium text-navy-dark">HBL</span></div><div class="flex justify-between"><span class="text-gray-400">Account</span><span class="font-mono text-navy-dark">1234-5678-9012-3456 <button onclick="copyText('1234567890123456',this)" class="copy-btn text-brand-blue ml-1" aria-label="Copy"><ion-icon name="copy-outline" style="font-size:14px;"></ion-icon></button></span></div><div class="flex justify-between"><span class="text-gray-400">IBAN</span><span class="font-mono text-navy-dark text-xs">PK36HABB0012345678901234 <button onclick="copyText('PK36HABB0012345678901234',this)" class="copy-btn text-brand-blue ml-1" aria-label="Copy"><ion-icon name="copy-outline" style="font-size:14px;"></ion-icon></button></span></div></div>
+            <div class="mt-4 pt-3 border-t border-border flex justify-between items-center"><span class="text-sm font-semibold text-navy-dark">Amount</span><span class="text-lg font-bold text-brand-green" id="wizard-amount">Rs.120,000</span></div>
+            <p class="text-xs text-gray-400 mt-1" id="wizard-amount-desc">Standard × 12 months</p>
+          </div>
+          <div class="space-y-4">
+            <div><label class="block text-sm font-medium text-gray-700 mb-1">Upfront Period *</label><div class="grid grid-cols-4 gap-2"><button onclick="setWizardPeriod(1)" data-wperiod="1" class="wperiod-btn py-2.5 border border-gray-200 rounded-lg text-sm font-medium text-gray-500 hover:border-navy transition text-center">1 mo</button><button onclick="setWizardPeriod(3)" data-wperiod="3" class="wperiod-btn py-2.5 border border-gray-200 rounded-lg text-sm font-medium text-gray-500 hover:border-navy transition text-center">3 mo</button><button onclick="setWizardPeriod(6)" data-wperiod="6" class="wperiod-btn py-2.5 border border-gray-200 rounded-lg text-sm font-medium text-gray-500 hover:border-navy transition text-center">6 mo</button><button onclick="setWizardPeriod(12)" data-wperiod="12" class="wperiod-btn py-2.5 border-2 border-navy bg-navy/5 rounded-lg text-sm font-semibold text-navy transition text-center">12 mo</button></div><p class="text-xs text-gray-400 mt-1.5">Expires: <strong id="wizard-expiry" class="text-navy-dark">Jun 5, 2027</strong></p></div>
+            <div class="grid grid-cols-2 gap-4"><div><label class="block text-sm font-medium text-gray-700 mb-1">Amount *</label><input id="f-amount" type="number" placeholder="120000" class="w-full h-11 px-4 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-brand-blue transition"></div><div><label class="block text-sm font-medium text-gray-700 mb-1">Bank *</label><select id="f-bank" class="w-full h-11 px-4 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-brand-blue transition bg-white"><option value="">Select...</option><option>HBL</option><option>Meezan</option><option>UBL</option><option>Alfalah</option><option>MCB</option><option>JazzCash</option><option>EasyPaisa</option><option>Other</option></select></div></div>
+            <div class="grid grid-cols-2 gap-4"><div><label class="block text-sm font-medium text-gray-700 mb-1">Reference *</label><input id="f-ref" type="text" placeholder="TRX-HBL-0601" class="w-full h-11 px-4 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-brand-blue transition"></div><div><label class="block text-sm font-medium text-gray-700 mb-1">Date *</label><input id="f-date" type="date" class="w-full h-11 px-4 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-brand-blue transition"></div></div>
+            <div><label class="block text-sm font-medium text-gray-700 mb-1">Receipt <span class="text-gray-400 font-normal">(optional)</span></label><div id="drop-zone" class="drop-zone rounded-xl p-5 text-center cursor-pointer" onclick="document.getElementById('f-receipt').click()" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="handleDrop(event)"><div id="upload-placeholder"><ion-icon name="cloud-upload-outline" class="text-gray-300 text-2xl"></ion-icon><p class="text-xs text-gray-400 mt-1">Drop receipt here · PNG, JPG, PDF (max 5MB)</p></div><div id="upload-preview" class="hidden flex items-center justify-center gap-3"><div id="upload-thumb-wrap" class="w-10 h-10 bg-brand-green/10 rounded-lg flex items-center justify-center overflow-hidden"><img id="upload-thumb-img" class="hidden w-full h-full object-cover rounded-lg" alt=""><ion-icon id="upload-thumb-icon" name="document-attach-outline" class="text-brand-green text-lg"></ion-icon></div><div class="text-left"><p id="upload-filename" class="text-sm font-medium text-navy-dark">file.jpg</p><p id="upload-filesize" class="text-xs text-gray-400">1.2 MB</p></div><button onclick="event.stopPropagation();clearUpload()" class="text-gray-300 hover:text-brand-red" aria-label="Remove"><ion-icon name="close-circle" style="font-size:18px;"></ion-icon></button></div></div><input id="f-receipt" type="file" accept=".png,.jpg,.jpeg,.pdf" class="hidden" onchange="handleFileSelect(event)"></div>
+          </div>
+          <div class="flex justify-between mt-8"><button onclick="goToStep(1)" class="text-gray-500 font-medium px-4 py-2.5 rounded-lg hover:bg-gray-100 transition text-sm">← Back</button><button onclick="goToStep(3)" class="bg-navy text-white font-semibold px-6 py-2.5 rounded-lg hover:bg-navy-dark transition text-sm">Submit →</button></div>
+        </div>
+        <!-- Step 3 -->
+        <div id="step-3" class="wizard-step">
+          <canvas id="confetti-canvas" class="absolute inset-0 pointer-events-none z-10" style="width:100%;height:100%;"></canvas>
+          <div class="text-center py-10 relative z-20">
+            <div class="w-16 h-16 bg-brand-green/10 rounded-full flex items-center justify-center mx-auto mb-5 animate-bounce-once"><ion-icon name="checkmark-circle" class="text-brand-green" style="font-size:40px;"></ion-icon></div>
+            <h3 class="text-xl font-bold text-navy-dark mb-2">Registration Submitted!</h3>
+            <p class="text-gray-500 text-sm max-w-sm mx-auto">Awaiting admin verification. Typically <strong class="text-navy-dark">less than 24 hours</strong>.</p>
+            <div class="bg-page border border-border rounded-xl p-5 mt-6 text-left max-w-xs mx-auto text-sm space-y-2">
+              <div class="flex justify-between"><span class="text-gray-400">Brand</span><span id="sum-brand" class="font-medium text-navy-dark">—</span></div>
+              <div class="flex justify-between"><span class="text-gray-400">Plan</span><span id="sum-plan" class="font-medium text-navy-dark">—</span></div>
+              <div class="flex justify-between"><span class="text-gray-400">Period</span><span id="sum-period" class="font-medium text-navy-dark">—</span></div>
+              <div class="flex justify-between"><span class="text-gray-400">Amount</span><span id="sum-amount" class="font-medium text-brand-green">—</span></div>
+              <div class="flex justify-between"><span class="text-gray-400">Ref</span><span id="sum-ref" class="font-mono text-navy-dark">—</span></div>
+              <div class="flex justify-between"><span class="text-gray-400">Email</span><span id="sum-email" class="font-medium text-navy-dark">—</span></div>
+            </div>
+            <button onclick="closeWizard()" class="mt-6 bg-navy text-white font-semibold px-6 py-2.5 rounded-lg text-sm">Done</button>
+          </div>
+        </div>
+      </div>
+      <div id="wizard-sidebar" class="hidden lg:block w-56 bg-page border-l border-border p-5 shrink-0">
+        <p class="text-xs text-gray-400 uppercase tracking-wider font-semibold mb-4">Summary</p>
+        <div class="space-y-3 text-sm"><div><p class="text-xs text-gray-400">Plan</p><p id="side-plan" class="font-semibold text-navy-dark">Standard</p></div><div><p class="text-xs text-gray-400">Price</p><p id="side-price" class="font-semibold text-navy-dark">Rs.10,000/mo</p></div><div><p class="text-xs text-gray-400">Period</p><p id="side-period" class="font-semibold text-navy-dark">12 months</p></div><div class="border-t border-border pt-3"><p class="text-xs text-gray-400">Total</p><p id="side-total" class="font-bold text-lg text-brand-green">Rs.120,000</p></div><div><p class="text-xs text-gray-400">Expires</p><p id="side-expiry" class="font-semibold text-navy-dark">Jun 5, 2027</p></div></div>
+      </div>
+    </div></div>
+  </div>
+</div>
+
+<script>
+const PLANS={starter:{name:'Starter',price:5000},standard:{name:'Standard',price:10000},pro:{name:'Pro',price:15000}};
+let selectedPeriod=12,wizardPlan='standard',wizardPeriod=12,uploadedFile=null;
+function toggleMobileMenu(){document.getElementById('mobile-menu').classList.toggle('hidden')}
+function setPeriod(m){selectedPeriod=m;document.querySelectorAll('.period-btn').forEach(b=>{const a=parseInt(b.dataset.period)===m;b.classList.toggle('bg-navy',a);b.classList.toggle('text-white',a);b.classList.toggle('text-gray-600',!a)});Object.keys(PLANS).forEach(k=>{const t=PLANS[k].price*m;document.querySelectorAll(`[data-plan-total="${k}"]`).forEach(e=>e.textContent=`Rs.${t.toLocaleString()}`)});document.querySelectorAll('[data-plan-period-label]').forEach(e=>e.textContent=`${m} month${m>1?'s':''}`)}
+function openWizard(p){wizardPlan=p;wizardPeriod=selectedPeriod;const pl=PLANS[p];document.getElementById('wizard-plan-name').textContent=`${pl.name} Plan`;document.getElementById('side-plan').textContent=pl.name;document.getElementById('side-price').textContent=`Rs.${pl.price.toLocaleString()}/mo`;updateWizardCalc();goToStep(1);document.getElementById('wizard-modal').classList.remove('hidden');document.getElementById('wizard-modal').classList.add('flex');document.body.classList.add('modal-open');const d=document.getElementById('f-date');d.setAttribute('max',new Date().toISOString().split('T')[0]);d.valueAsDate=new Date();setWizardPeriod(wizardPeriod)}
+function closeWizard(){document.getElementById('wizard-modal').classList.add('hidden');document.getElementById('wizard-modal').classList.remove('flex');document.body.classList.remove('modal-open')}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){const m=document.getElementById('wizard-modal');if(m&&!m.classList.contains('hidden'))closeWizard()}});
+document.getElementById('wizard-modal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeWizard()});
+function goToStep(n){if(n===2&&!validateStep1())return;if(n===3){if(!validateStep2())return;populateSummary();setTimeout(()=>launchConfetti(),300)}const s=document.getElementById('wizard-sidebar');s.classList.toggle('hidden',n===3);s.classList.toggle('lg:block',n!==3);document.querySelectorAll('.wizard-step').forEach(s=>s.classList.remove('active'));document.getElementById(`step-${n}`).classList.add('active');document.querySelectorAll('[data-dot]').forEach(d=>{const dn=parseInt(d.dataset.dot);d.classList.toggle('bg-brand-green',dn<=n);d.classList.toggle('bg-white/20',dn>n)})}
+function setWizardPeriod(m){wizardPeriod=m;document.querySelectorAll('.wperiod-btn').forEach(b=>{const a=parseInt(b.dataset.wperiod)===m;b.classList.toggle('border-2',a);b.classList.toggle('border-navy',a);b.classList.toggle('bg-navy/5',a);b.classList.toggle('text-navy',a);b.classList.toggle('font-semibold',a);b.classList.toggle('border-gray-200',!a);b.classList.toggle('text-gray-500',!a);b.classList.toggle('font-medium',!a)});updateWizardCalc()}
+function updateWizardCalc(){const p=PLANS[wizardPlan],t=p.price*wizardPeriod,exp=new Date();exp.setMonth(exp.getMonth()+wizardPeriod);const es=exp.toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'});document.getElementById('wizard-amount').textContent=`Rs.${t.toLocaleString()}`;document.getElementById('wizard-amount-desc').textContent=`${p.name} × ${wizardPeriod} mo`;document.getElementById('wizard-expiry').textContent=es;document.getElementById('side-period').textContent=`${wizardPeriod} months`;document.getElementById('side-total').textContent=`Rs.${t.toLocaleString()}`;document.getElementById('side-expiry').textContent=es}
+function validateEmailLive(i){const v=i.value.trim(),c=document.getElementById('email-check'),ok=/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);if(v.length>3&&ok){c.classList.remove('hidden');i.classList.add('border-brand-green')}else{c.classList.add('hidden');i.classList.remove('border-brand-green')}}
+function validateStep1(){const fs=[{el:'f-brand',val:document.getElementById('f-brand').value.trim()},{el:'f-industry',val:document.getElementById('f-industry').value},{el:'f-owner',val:document.getElementById('f-owner').value.trim()},{el:'f-email',val:document.getElementById('f-email').value.trim()}];let v=true;fs.forEach(f=>{const el=document.getElementById(f.el);if(!f.val){el.classList.add('border-brand-red');v=false;setTimeout(()=>el.classList.remove('border-brand-red'),2000)}});const em=document.getElementById('f-email').value.trim();if(em&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)){document.getElementById('f-email').classList.add('border-brand-red');v=false}return v}
+function validateStep2(){const fs=[{el:'f-amount',val:document.getElementById('f-amount').value.trim()},{el:'f-bank',val:document.getElementById('f-bank').value},{el:'f-ref',val:document.getElementById('f-ref').value.trim()},{el:'f-date',val:document.getElementById('f-date').value}];let v=true;fs.forEach(f=>{const el=document.getElementById(f.el);if(!f.val){el.classList.add('border-brand-red');v=false;setTimeout(()=>el.classList.remove('border-brand-red'),2000)}});const d=document.getElementById('f-date').value;if(d&&new Date(d)>new Date()){document.getElementById('f-date').classList.add('border-brand-red');v=false}return v}
+function populateSummary(){const p=PLANS[wizardPlan];document.getElementById('sum-brand').textContent=document.getElementById('f-brand').value;document.getElementById('sum-plan').textContent=p.name;document.getElementById('sum-period').textContent=`${wizardPeriod} mo`;document.getElementById('sum-amount').textContent=`Rs.${(parseInt(document.getElementById('f-amount').value)||0).toLocaleString()}`;document.getElementById('sum-ref').textContent=document.getElementById('f-ref').value;document.getElementById('sum-email').textContent=document.getElementById('f-email').value}
+function handleFileSelect(e){const f=e.target.files[0];if(f)showUploadPreview(f)}
+function handleDrop(e){e.preventDefault();e.target.closest('.drop-zone').classList.remove('dragover');const f=e.dataTransfer.files[0];if(f)showUploadPreview(f)}
+function showUploadPreview(f){if(f.size>5*1024*1024){alert('Max 5MB');return}uploadedFile=f;document.getElementById('upload-placeholder').classList.add('hidden');document.getElementById('upload-preview').classList.remove('hidden');document.getElementById('upload-filename').textContent=f.name;document.getElementById('upload-filesize').textContent=(f.size/(1024*1024)).toFixed(1)+' MB';const ti=document.getElementById('upload-thumb-img'),ic=document.getElementById('upload-thumb-icon');if(f.type.startsWith('image/')){const r=new FileReader();r.onload=e=>{ti.src=e.target.result;ti.classList.remove('hidden');ic.classList.add('hidden')};r.readAsDataURL(f)}else{ti.classList.add('hidden');ic.classList.remove('hidden')}}
+function clearUpload(){uploadedFile=null;document.getElementById('f-receipt').value='';document.getElementById('upload-placeholder').classList.remove('hidden');document.getElementById('upload-preview').classList.add('hidden');document.getElementById('upload-thumb-img').classList.add('hidden');document.getElementById('upload-thumb-icon').classList.remove('hidden')}
+function copyText(t,b){navigator.clipboard.writeText(t).then(()=>{b.classList.add('copied');setTimeout(()=>b.classList.remove('copied'),1500)})}
+function launchConfetti(){const c=document.getElementById('confetti-canvas');if(!c)return;const ctx=c.getContext('2d');c.width=c.offsetWidth*2;c.height=c.offsetHeight*2;ctx.scale(2,2);const cols=['#2dd36f','#3366cc','#ff9800','#7c4dff','#eb445a'],W=c.offsetWidth,H=c.offsetHeight,ps=[];for(let i=0;i<60;i++)ps.push({x:W/2+(Math.random()-0.5)*80,y:H/2,vx:(Math.random()-0.5)*10,vy:Math.random()*-10-3,c:cols[Math.floor(Math.random()*cols.length)],s:Math.random()*5+2,o:1,g:0.3});let fr=0;function draw(){ctx.clearRect(0,0,W,H);let alive=false;ps.forEach(p=>{p.x+=p.vx;p.vy+=p.g;p.y+=p.vy;p.o-=0.014;if(p.o<=0)return;alive=true;ctx.globalAlpha=p.o;ctx.fillStyle=p.c;ctx.fillRect(p.x,p.y,p.s,p.s*0.6)});fr++;if(alive&&fr<100)requestAnimationFrame(draw);else ctx.clearRect(0,0,W,H)}draw()}
+function initReveal(){const o=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible')})},{threshold:0.1});document.querySelectorAll('.reveal').forEach(e=>o.observe(e))}
+document.addEventListener('DOMContentLoaded',()=>{setPeriod(12);initReveal()});
+</script>
+</body>
+</html>

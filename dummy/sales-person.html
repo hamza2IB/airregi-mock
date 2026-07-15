@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Air Register — Sales Person</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        navy: { dark: '#0a1535', DEFAULT: '#1a2d6b', light: '#2a4494' },
+        brand: { blue: '#3366cc', green: '#2dd36f', orange: '#ff9800', red: '#eb445a', purple: '#7c4dff' },
+        page: '#f4f6f9',
+        border: '#e8ecf1'
+      },
+      fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] }
+    }
+  }
+}
+</script>
+<script src="https://unpkg.com/ionicons@7.1.0/dist/ionicons.js"></script>
+<style>
+  html, body { margin:0; padding:0; background:#f4f6f9; color:#111; }
+  body { min-height:100vh; font-family:'Plus Jakarta Sans',sans-serif; max-width:430px; margin:0 auto; }
+
+  /* Safe area handling */
+  .safe-top { padding-top: env(safe-area-inset-top, 0); }
+  .safe-bottom { padding-bottom: env(safe-area-inset-bottom, 0); }
+
+  /* Bottom nav */
+  .bottom-nav {
+    position:fixed; bottom:0; left:50%; transform:translateX(-50%);
+    width:100%; max-width:430px;
+    background:#fff; border-top:1px solid #e8ecf1;
+    z-index:100; padding:8px 0;
+    padding-bottom: max(8px, env(safe-area-inset-bottom));
+  }
+  .bottom-nav button {
+    flex:1; display:flex; flex-direction:column; align-items:center; gap:2px;
+    padding:6px 0; background:none; border:none; cursor:pointer;
+    color:#94a3b8; font-size:10px; font-family:inherit; transition:color 0.15s;
+  }
+  .bottom-nav button.active { color:#1a2d6b; font-weight:600; }
+  .bottom-nav button ion-icon { font-size:22px; }
+
+  /* Search input */
+  .search-input {
+    width:100%; background:#fff; border:1.5px solid #e8ecf1;
+    border-radius:12px; padding:14px 16px 14px 44px;
+    font-size:14px; font-family:inherit; transition:all 0.2s;
+  }
+  .search-input:focus { border-color:#1a2d6b; box-shadow:0 0 0 3px rgba(26,45,107,0.08); }
+  .search-input::placeholder { color:#94a3b8; }
+
+  /* Product card */
+  .product-card {
+    background:#fff; border-radius:14px; border:1px solid #e8ecf1;
+    padding:16px; transition:all 0.2s; cursor:pointer;
+  }
+  .product-card:active { transform:scale(0.98); }
+
+  /* Availability pill */
+  .avail-pill {
+    display:inline-flex; align-items:center; gap:4px;
+    padding:3px 8px; border-radius:20px; font-size:10px; font-weight:600;
+  }
+  .avail-pill.in-stock { background:rgba(45,211,111,0.1); color:#2dd36f; }
+  .avail-pill.low-stock { background:rgba(255,152,0,0.1); color:#ff9800; }
+  .avail-pill.out-of-stock { background:rgba(235,68,90,0.1); color:#eb445a; }
+
+  /* Stock location row */
+  .stock-row {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:12px 0; border-bottom:1px solid #f1f5f9;
+  }
+  .stock-row:last-child { border-bottom:none; }
+
+  /* Barcode scanner overlay */
+  .scanner-overlay {
+    position:fixed; inset:0; background:rgba(0,0,0,0.92);
+    z-index:200; display:none; flex-direction:column;
+    align-items:center; justify-content:center;
+  }
+  .scanner-overlay.active { display:flex; }
+  .scanner-frame {
+    width:260px; height:260px; border:3px solid rgba(255,255,255,0.3);
+    border-radius:20px; position:relative;
+  }
+  .scanner-frame::before, .scanner-frame::after {
+    content:''; position:absolute; width:40px; height:40px;
+    border:3px solid #2dd36f; border-radius:4px;
+  }
+  .scanner-frame::before { top:-2px; left:-2px; border-right:none; border-bottom:none; }
+  .scanner-frame::after { bottom:-2px; right:-2px; border-left:none; border-top:none; }
+  .scan-line {
+    position:absolute; left:10%; right:10%; height:2px;
+    background:linear-gradient(90deg, transparent, #2dd36f, transparent);
+    animation:scanMove 2s ease-in-out infinite;
+  }
+  @keyframes scanMove { 0%,100%{top:20%} 50%{top:80%} }
+
+  /* Page transitions */
+  .page { display:none; padding-bottom:80px; }
+  .page.active { display:block; }
+
+  /* Hide scrollbar */
+  ::-webkit-scrollbar { display:none; }
+  body { -ms-overflow-style:none; scrollbar-width:none; }
+
+  /* Pull to refresh indicator */
+  .refresh-hint { text-align:center; padding:8px; font-size:10px; color:#94a3b8; }
+
+  /* Suppress outlines */
+  *:focus-visible { outline:none; }
+  input:focus, textarea:focus, select:focus { outline:none; }
+</style>
+</head>
+<body class="safe-top">
+
+<!-- ━━━━ STATUS BAR (simulated) ━━━━ -->
+<div class="bg-navy-dark px-5 pt-2 pb-3 flex items-center justify-between sticky top-0 z-50">
+  <div class="flex items-center gap-2">
+    <div class="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center">
+      <ion-icon name="storefront" class="text-white text-sm"></ion-icon>
+    </div>
+    <div>
+      <p class="text-white text-[13px] font-semibold leading-tight">Clifton Branch</p>
+      <p class="text-white/40 text-[10px]">Sales Staff</p>
+    </div>
+  </div>
+  <div class="flex items-center gap-3">
+    <div class="w-8 h-8 rounded-full bg-brand-blue/30 text-white flex items-center justify-center text-[10px] font-bold border border-white/20">AK</div>
+  </div>
+</div>
+
+<!-- ━━━━ PAGE: SEARCH (Home) ━━━━ -->
+<div id="page-search" class="page active">
+  <!-- Search Header -->
+  <div class="px-4 pt-5 pb-4">
+    <h1 class="text-[22px] font-bold text-navy-dark mb-1">Product Search</h1>
+    <p class="text-[12px] text-gray-500">Find products by name, SKU, barcode, or brand</p>
+  </div>
+
+  <!-- Search Box -->
+  <div class="px-4 mb-4">
+    <div class="relative">
+      <ion-icon name="search-outline" class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg"></ion-icon>
+      <input id="sp-search-input" type="text" class="search-input" placeholder="Search product, SKU, barcode..." oninput="spSearch(this.value)" autocomplete="off" autocorrect="off" spellcheck="false">
+      <button id="sp-clear-btn" onclick="clearSearch()" class="absolute right-14 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-gray-200 items-center justify-center hidden">
+        <ion-icon name="close-outline" class="text-gray-500 text-sm"></ion-icon>
+      </button>
+      <button id="sp-scan-btn" onclick="openScanner()" class="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-lg bg-navy/5 flex items-center justify-center">
+        <ion-icon name="scan-outline" class="text-navy text-lg"></ion-icon>
+      </button>
+    </div>
+  </div>
+
+  <!-- Quick Filters -->
+  <div class="px-4 mb-4 overflow-x-auto">
+    <div class="flex gap-2 pb-1" id="sp-category-filters">
+      <button onclick="spFilterCategory('')" class="sp-cat-btn shrink-0 px-3.5 py-2 rounded-full text-[11px] font-semibold bg-navy text-white transition">All</button>
+      <button onclick="spFilterCategory('Grocery')" class="sp-cat-btn shrink-0 px-3.5 py-2 rounded-full text-[11px] font-medium bg-white text-gray-600 border border-gray-200 transition">Grocery</button>
+      <button onclick="spFilterCategory('Clothing')" class="sp-cat-btn shrink-0 px-3.5 py-2 rounded-full text-[11px] font-medium bg-white text-gray-600 border border-gray-200 transition">Clothing</button>
+      <button onclick="spFilterCategory('Electronics')" class="sp-cat-btn shrink-0 px-3.5 py-2 rounded-full text-[11px] font-medium bg-white text-gray-600 border border-gray-200 transition">Electronics</button>
+      <button onclick="spFilterCategory('Beverages')" class="sp-cat-btn shrink-0 px-3.5 py-2 rounded-full text-[11px] font-medium bg-white text-gray-600 border border-gray-200 transition">Beverages</button>
+      <button onclick="spFilterCategory('Dairy')" class="sp-cat-btn shrink-0 px-3.5 py-2 rounded-full text-[11px] font-medium bg-white text-gray-600 border border-gray-200 transition">Dairy</button>
+      <button onclick="spFilterCategory('Snacks')" class="sp-cat-btn shrink-0 px-3.5 py-2 rounded-full text-[11px] font-medium bg-white text-gray-600 border border-gray-200 transition">Snacks</button>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div class="px-4">
+    <div class="flex items-center justify-between mb-3">
+      <p id="sp-results-count" class="text-[11px] text-gray-500 font-medium">Showing all products</p>
+      <button onclick="spToggleView()" class="text-[11px] text-navy font-medium flex items-center gap-1">
+        <ion-icon id="sp-view-icon" name="grid-outline" class="text-sm"></ion-icon>
+        <span id="sp-view-label">Grid</span>
+      </button>
+    </div>
+    <div id="sp-results-container" class="space-y-3">
+      <!-- Rendered dynamically -->
+    </div>
+  </div>
+
+  <!-- Empty state -->
+  <div id="sp-empty-state" class="hidden px-4 py-16 text-center">
+    <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+      <ion-icon name="search-outline" class="text-gray-300 text-4xl"></ion-icon>
+    </div>
+    <p class="text-[14px] font-semibold text-gray-600 mb-1">No products found</p>
+    <p class="text-[12px] text-gray-400">Try a different search term or scan a barcode</p>
+  </div>
+
+  <!-- Recent Searches -->
+  <div id="sp-recent-searches" class="px-4 mt-4 hidden">
+    <div class="flex items-center justify-between mb-2">
+      <p class="text-[11px] text-gray-400 uppercase tracking-wider font-semibold">Recent Searches</p>
+      <button onclick="clearRecentSearches()" class="text-[10px] text-brand-red font-medium">Clear</button>
+    </div>
+    <div id="sp-recent-list" class="flex flex-wrap gap-2">
+      <!-- Rendered dynamically -->
+    </div>
+  </div>
+</div>
+
+<!-- ━━━━ PAGE: PRODUCT DETAIL ━━━━ -->
+<div id="page-detail" class="page">
+  <div id="sp-detail-content">
+    <!-- Rendered dynamically -->
+  </div>
+</div>
+
+<!-- ━━━━ PAGE: AVAILABILITY ━━━━ -->
+<div id="page-availability" class="page">
+  <div class="px-4 pt-5 pb-4">
+    <h1 class="text-[22px] font-bold text-navy-dark mb-1">Check Availability</h1>
+    <p class="text-[12px] text-gray-500">See stock across all locations</p>
+  </div>
+  <!-- Quick scan -->
+  <div class="px-4 mb-4">
+    <div class="relative">
+      <ion-icon name="search-outline" class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg"></ion-icon>
+      <input id="sp-avail-search" type="text" class="search-input" placeholder="Search or scan to check stock..." oninput="spAvailSearch(this.value)" autocomplete="off">
+      <button onclick="openScanner()" class="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-lg bg-navy/5 flex items-center justify-center">
+        <ion-icon name="scan-outline" class="text-navy text-lg"></ion-icon>
+      </button>
+    </div>
+  </div>
+  <div id="sp-avail-results" class="px-4 space-y-3">
+    <!-- Rendered dynamically -->
+  </div>
+  <div id="sp-avail-empty" class="px-4 py-12 text-center">
+    <div class="w-16 h-16 bg-navy/5 rounded-full flex items-center justify-center mx-auto mb-3">
+      <ion-icon name="location-outline" class="text-navy text-3xl"></ion-icon>
+    </div>
+    <p class="text-[13px] font-medium text-gray-600 mb-1">Search to check stock levels</p>
+    <p class="text-[11px] text-gray-400 max-w-[240px] mx-auto">Enter a product name, SKU, or scan a barcode to see availability across all locations</p>
+  </div>
+</div>
+
+<!-- ━━━━ PAGE: PROFILE ━━━━ -->
+<div id="page-profile" class="page">
+  <div class="px-4 pt-5 pb-4">
+    <h1 class="text-[22px] font-bold text-navy-dark mb-1">My Profile</h1>
+    <p class="text-[12px] text-gray-500">Account settings</p>
+  </div>
+  <div class="px-4 space-y-4">
+    <!-- Profile Card -->
+    <div class="bg-white rounded-2xl border border-border p-5 text-center">
+      <div class="w-16 h-16 rounded-full bg-gradient-to-br from-navy to-brand-blue text-white flex items-center justify-center text-xl font-bold mx-auto mb-3">AK</div>
+      <p class="text-[16px] font-bold text-navy-dark">Ahmad Khan</p>
+      <p class="text-[12px] text-gray-500 mt-0.5">Sales Staff · Clifton Branch</p>
+      <div class="flex items-center justify-center gap-1.5 mt-2">
+        <span class="w-2 h-2 rounded-full bg-brand-green"></span>
+        <span class="text-[11px] font-medium text-brand-green">On Duty</span>
+      </div>
+    </div>
+    <!-- Info -->
+    <div class="bg-white rounded-xl border border-border overflow-hidden">
+      <div class="px-4 py-3 border-b border-gray-100 flex items-center gap-3">
+        <ion-icon name="call-outline" class="text-gray-400 text-lg"></ion-icon>
+        <div>
+          <p class="text-[10px] text-gray-400 uppercase tracking-wider font-medium">Phone</p>
+          <p class="text-[13px] text-black font-medium">0345-1234567</p>
+        </div>
+      </div>
+      <div class="px-4 py-3 border-b border-gray-100 flex items-center gap-3">
+        <ion-icon name="storefront-outline" class="text-gray-400 text-lg"></ion-icon>
+        <div>
+          <p class="text-[10px] text-gray-400 uppercase tracking-wider font-medium">Store</p>
+          <p class="text-[13px] text-black font-medium">Clifton Branch — Shop 4, Block 5</p>
+        </div>
+      </div>
+      <div class="px-4 py-3 border-b border-gray-100 flex items-center gap-3">
+        <ion-icon name="time-outline" class="text-gray-400 text-lg"></ion-icon>
+        <div>
+          <p class="text-[10px] text-gray-400 uppercase tracking-wider font-medium">Shift</p>
+          <p class="text-[13px] text-black font-medium">9:00 AM – 6:00 PM</p>
+        </div>
+      </div>
+      <div class="px-4 py-3 flex items-center gap-3">
+        <ion-icon name="calendar-outline" class="text-gray-400 text-lg"></ion-icon>
+        <div>
+          <p class="text-[10px] text-gray-400 uppercase tracking-wider font-medium">Joined</p>
+          <p class="text-[13px] text-black font-medium">Mar 15, 2026</p>
+        </div>
+      </div>
+    </div>
+    <!-- Actions -->
+    <div class="space-y-2">
+      <button onclick="signOut()" class="w-full flex items-center gap-3 bg-white rounded-xl border border-brand-red/20 px-4 py-3.5">
+        <ion-icon name="log-out-outline" class="text-brand-red text-lg"></ion-icon>
+        <span class="text-[13px] text-brand-red font-medium flex-1 text-left">Sign Out</span>
+      </button>
+    </div>
+    <!-- App version -->
+    <p class="text-center text-[10px] text-gray-400 pt-4 pb-8">Air Register v1.0.0 · Sales App</p>
+  </div>
+</div>
+
+<!-- ━━━━ TOAST NOTIFICATION ━━━━ -->
+<div id="sp-toast" class="fixed top-16 left-1/2 -translate-x-1/2 z-[300] w-[90%] max-w-[380px] pointer-events-none">
+  <div id="sp-toast-inner" class="bg-navy-dark text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 text-[12px] font-medium transition-all duration-300 opacity-0 -translate-y-4">
+    <ion-icon id="sp-toast-icon" name="checkmark-circle" class="text-brand-green text-lg shrink-0"></ion-icon>
+    <span id="sp-toast-msg"></span>
+  </div>
+</div>
+
+<!-- ━━━━ SIGN OUT CONFIRMATION ━━━━ -->
+<div id="sp-signout-modal" class="fixed inset-0 bg-black/50 z-[250] hidden items-center justify-center p-6">
+  <div class="bg-white rounded-2xl w-full max-w-[320px] shadow-2xl overflow-hidden text-center p-6">
+    <div class="w-14 h-14 rounded-full bg-brand-red/10 flex items-center justify-center mx-auto mb-4">
+      <ion-icon name="log-out-outline" class="text-brand-red text-2xl"></ion-icon>
+    </div>
+    <h3 class="text-[16px] font-bold text-navy-dark mb-1">Sign Out?</h3>
+    <p class="text-[12px] text-gray-500 mb-5">You'll need to log in again to access the app.</p>
+    <div class="flex gap-3">
+      <button onclick="closeSignOut()" class="flex-1 h-[42px] bg-gray-100 text-gray-700 text-[12px] font-medium rounded-xl">Cancel</button>
+      <button onclick="confirmSignOut()" class="flex-1 h-[42px] bg-brand-red text-white text-[12px] font-semibold rounded-xl">Sign Out</button>
+    </div>
+  </div>
+</div>
+
+<!-- ━━━━ BARCODE SCANNER OVERLAY ━━━━ -->
+<div id="scanner-overlay" class="scanner-overlay">
+  <button onclick="closeScanner()" class="absolute top-12 right-5 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center z-10">
+    <ion-icon name="close-outline" class="text-white text-2xl"></ion-icon>
+  </button>
+  <p class="text-white/60 text-[12px] mb-6 font-medium">Point camera at barcode</p>
+  <div class="scanner-frame">
+    <div class="scan-line"></div>
+  </div>
+  <p class="text-white/40 text-[11px] mt-6">Or enter code manually below</p>
+  <div class="mt-3 w-[260px]">
+    <input id="scanner-manual-input" type="text" placeholder="Type barcode number..." class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white text-[13px] text-center placeholder:text-white/30 focus:border-brand-green" onkeydown="if(event.key==='Enter')scanBarcode(this.value)">
+  </div>
+  <button onclick="scanBarcode(document.getElementById('scanner-manual-input').value)" class="mt-3 px-6 py-2.5 bg-brand-green text-white text-[12px] font-semibold rounded-lg">Search</button>
+  <!-- Simulated scan (demo) -->
+  <button onclick="simulateScan()" class="mt-6 px-4 py-2 bg-white/5 border border-white/10 text-white/50 text-[10px] rounded-lg">Demo: Simulate Scan</button>
+</div>
+
+<!-- ━━━━ BOTTOM NAVIGATION ━━━━ -->
+<nav class="bottom-nav flex">
+  <button class="active" onclick="spNavTo('search')">
+    <ion-icon name="search-outline"></ion-icon>
+    <span>Search</span>
+  </button>
+  <button onclick="spNavTo('availability')">
+    <ion-icon name="layers-outline"></ion-icon>
+    <span>Availability</span>
+  </button>
+  <button onclick="spNavTo('profile')">
+    <ion-icon name="person-outline"></ion-icon>
+    <span>Profile</span>
+  </button>
+</nav>
+
+<script>
+// ━━━━ PRODUCT CATALOG ━━━━
+const catalog = [
+  {
+    sku:'NW-001', barcode:'8964000100011', name:'Nestle Water 1.5L',
+    brand:'Nestle', category:'Grocery', subcategory:'Beverages',
+    price:40, description:'Premium mineral water, 1.5L bottle.',
+    image:'https://picsum.photos/seed/water/400/300',
+    attributes:{Unit:'Piece','Pack Size':'1.5L',Storage:'Room Temp'},
+    variants:null,
+    stock:{ 'Clifton Branch':180, 'Warehouse':520, 'DHA Branch':95, 'Gulshan Branch':42, 'Bahadurabad':0 }
+  },
+  {
+    sku:'OM-002', barcode:'8964000100028', name:"Olper's Milk 1L",
+    brand:"Olper's", category:'Grocery', subcategory:'Dairy',
+    price:180, description:'Full cream UHT milk, 1L tetra pack.',
+    image:'https://picsum.photos/seed/milk/400/300',
+    attributes:{Unit:'Piece','Pack Size':'1L',Storage:'Room Temp',Perishable:'Yes'},
+    variants:null,
+    stock:{ 'Clifton Branch':5, 'Warehouse':340, 'DHA Branch':28, 'Gulshan Branch':15, 'Bahadurabad':22 }
+  },
+  {
+    sku:'TT-003', barcode:'8964000100080', name:'Tapal Tea 500g',
+    brand:'Tapal', category:'Grocery', subcategory:'Beverages',
+    price:480, description:'Premium black tea, 500g economy pack.',
+    image:'https://picsum.photos/seed/tea/400/300',
+    attributes:{Unit:'Pack','Pack Size':'500g',Storage:'Dry'},
+    variants:null,
+    stock:{ 'Clifton Branch':42, 'Warehouse':280, 'DHA Branch':55, 'Gulshan Branch':38, 'Bahadurabad':12 }
+  },
+  {
+    sku:'PS-004', barcode:'8964000100035', name:'Pepsi 500ml',
+    brand:'PepsiCo', category:'Grocery', subcategory:'Beverages',
+    price:80, description:'Carbonated soft drink, 500ml PET bottle.',
+    image:'https://picsum.photos/seed/pepsi/400/300',
+    attributes:{Unit:'Piece','Pack Size':'500ml',Storage:'Refrigerated'},
+    variants:null,
+    stock:{ 'Clifton Branch':78, 'Warehouse':600, 'DHA Branch':120, 'Gulshan Branch':85, 'Bahadurabad':45 }
+  },
+  {
+    sku:'DM-005', barcode:'8964000100066', name:'Dairy Milk',
+    brand:'Cadbury', category:'Grocery', subcategory:'Snacks',
+    price:100, description:'Classic milk chocolate bar, 38g.',
+    image:'https://picsum.photos/seed/chocolate/400/300',
+    attributes:{Unit:'Piece','Pack Size':'38g',Storage:'Cool & Dry'},
+    variants:null,
+    stock:{ 'Clifton Branch':9, 'Warehouse':150, 'DHA Branch':32, 'Gulshan Branch':18, 'Bahadurabad':0 }
+  },
+  {
+    sku:'SB-006', barcode:'8964000100042', name:'Sooper Biscuits',
+    brand:'Peek Freans', category:'Grocery', subcategory:'Snacks',
+    price:30, description:'Chocolate chip biscuits, snack pack.',
+    image:'https://picsum.photos/seed/biscuit/400/300',
+    attributes:{Unit:'Pack','Pack Size':'12 pcs',Storage:'Dry'},
+    variants:null,
+    stock:{ 'Clifton Branch':11, 'Warehouse':400, 'DHA Branch':60, 'Gulshan Branch':44, 'Bahadurabad':30 }
+  },
+  {
+    sku:'CL-101', barcode:'8964000200015', name:"Men's Slim Fit Kurta — Navy",
+    brand:'Alkaram Studio', category:'Clothing', subcategory:'Men',
+    price:2450, description:'Premium cotton lawn kurta, slim fit. Band collar.',
+    image:'https://picsum.photos/seed/kurta/400/300',
+    attributes:{Material:'Cotton Lawn',Fit:'Slim',Season:'Summer 2026'},
+    variants:[
+      {size:'S', colour:'Navy', stock:4},
+      {size:'M', colour:'Navy', stock:8},
+      {size:'L', colour:'Navy', stock:6},
+      {size:'M', colour:'White', stock:3},
+      {size:'L', colour:'White', stock:3}
+    ],
+    stock:{ 'Clifton Branch':24, 'Warehouse':80, 'DHA Branch':12, 'Gulshan Branch':6, 'Bahadurabad':0 }
+  },
+  {
+    sku:'CL-102', barcode:'8964000200022', name:'Lawn Printed Dupatta',
+    brand:'Gul Ahmed', category:'Clothing', subcategory:'Women',
+    price:890, description:'Printed lawn dupatta, 2.5m. Fine finish edges.',
+    image:'https://picsum.photos/seed/dupatta/400/300',
+    attributes:{Material:'Lawn',Length:'2.5m',Season:'Summer 2026'},
+    variants:[
+      {size:'Free', colour:'Pink Floral', stock:2},
+      {size:'Free', colour:'Blue Block', stock:2}
+    ],
+    stock:{ 'Clifton Branch':4, 'Warehouse':35, 'DHA Branch':8, 'Gulshan Branch':5, 'Bahadurabad':3 }
+  },
+  {
+    sku:'EL-201', barcode:'8964000300012', name:'Samsung 55" Crystal UHD TV',
+    brand:'Samsung', category:'Electronics', subcategory:'Home Appliances',
+    price:142000, description:'55-inch Crystal UHD 4K Smart TV, HDR10+, Tizen OS.',
+    image:'https://picsum.photos/seed/tv/400/300',
+    attributes:{Model:'UA55CU7000',Resolution:'4K UHD',Screen:'55"',Warranty:'2 Years'},
+    variants:null,
+    stock:{ 'Clifton Branch':2, 'Warehouse':18, 'DHA Branch':4, 'Gulshan Branch':0, 'Bahadurabad':1 }
+  },
+  {
+    sku:'EL-202', barcode:'8964000300029', name:'Samsung Refrigerator 350L',
+    brand:'Samsung', category:'Electronics', subcategory:'Home Appliances',
+    price:185000, description:'Double door refrigerator, 350L capacity, Digital Inverter.',
+    image:'https://picsum.photos/seed/fridge/400/300',
+    attributes:{Model:'RT35CG5420S9',Capacity:'350L',Type:'Double Door',Warranty:'10 Years (Compressor)'},
+    variants:[
+      {size:'350L', colour:'Silver', stock:3},
+      {size:'350L', colour:'Black', stock:1},
+      {size:'420L', colour:'Silver', stock:2}
+    ],
+    stock:{ 'Clifton Branch':6, 'Warehouse':22, 'DHA Branch':3, 'Gulshan Branch':1, 'Bahadurabad':0 }
+  }
+];
+
+// ━━━━ STATE ━━━━
+let currentPage = 'search';
+let currentCategory = '';
+let viewMode = 'list'; // 'list' or 'grid'
+let recentSearches = JSON.parse(localStorage.getItem('sp_recent') || '[]');
+let searchTimeout = null;
+
+// ━━━━ NAVIGATION ━━━━
+function spNavTo(page) {
+  currentPage = page;
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+
+  // Update bottom nav
+  document.querySelectorAll('.bottom-nav button').forEach(btn => btn.classList.remove('active'));
+  const navMap = { search:0, availability:1, detail:0, profile:2 };
+  const idx = navMap[page];
+  if (idx !== undefined) document.querySelectorAll('.bottom-nav button')[idx].classList.add('active');
+
+  window.scrollTo(0, 0);
+}
+
+// ━━━━ SEARCH ━━━━
+function spSearch(query) {
+  const q = query.trim();
+  // Show/hide clear button
+  document.getElementById('sp-clear-btn').style.display = q ? 'flex' : 'none';
+
+  // Hide recent searches when typing
+  document.getElementById('sp-recent-searches').classList.add('hidden');
+
+  // Debounce
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(() => {
+    const results = filterProducts(q, currentCategory);
+    renderSearchResults(results, q);
+
+    // Save to recent if meaningful
+    if (q.length >= 2) {
+      addRecentSearch(q);
+    }
+  }, 150);
+}
+
+function clearSearch() {
+  const input = document.getElementById('sp-search-input');
+  input.value = '';
+  input.focus();
+  document.getElementById('sp-clear-btn').style.display = 'none';
+  renderSearchResults(catalog.filter(p => !currentCategory || p.category === currentCategory || p.subcategory === currentCategory), '');
+  showRecentSearches();
+}
+
+function spFilterCategory(cat) {
+  currentCategory = cat;
+  document.querySelectorAll('.sp-cat-btn').forEach(btn => {
+    btn.classList.remove('bg-navy', 'text-white', 'font-semibold');
+    btn.classList.add('bg-white', 'text-gray-600', 'font-medium', 'border', 'border-gray-200');
+  });
+  event.currentTarget.classList.remove('bg-white', 'text-gray-600', 'font-medium', 'border', 'border-gray-200');
+  event.currentTarget.classList.add('bg-navy', 'text-white', 'font-semibold');
+
+  const query = document.getElementById('sp-search-input').value;
+  const results = filterProducts(query, cat);
+  renderSearchResults(results, query);
+}
+
+function filterProducts(query, category) {
+  const q = (query || '').toLowerCase().trim();
+  return catalog.filter(p => {
+    const matchesCategory = !category || p.category === category || p.subcategory === category;
+    if (!matchesCategory) return false;
+    if (!q) return true;
+    return (
+      p.name.toLowerCase().includes(q) ||
+      p.sku.toLowerCase().includes(q) ||
+      p.barcode.includes(q) ||
+      p.brand.toLowerCase().includes(q) ||
+      p.category.toLowerCase().includes(q) ||
+      p.subcategory.toLowerCase().includes(q)
+    );
+  });
+}
+
+function renderSearchResults(products, query) {
+  const container = document.getElementById('sp-results-container');
+  const emptyState = document.getElementById('sp-empty-state');
+  const countEl = document.getElementById('sp-results-count');
+
+  if (products.length === 0) {
+    container.innerHTML = '';
+    emptyState.classList.remove('hidden');
+    countEl.textContent = 'No results';
+    return;
+  }
+
+  emptyState.classList.add('hidden');
+  countEl.textContent = query ? `${products.length} result${products.length > 1 ? 's' : ''}` : `All ${products.length} products`;
+
+  if (viewMode === 'grid') {
+    container.className = 'grid grid-cols-2 gap-3';
+    container.innerHTML = products.map(p => {
+      const myStock = p.stock['Clifton Branch'] || 0;
+      const stockColor = myStock === 0 ? 'brand-red' : myStock <= 10 ? 'brand-orange' : 'brand-green';
+      const stockLabel = myStock === 0 ? 'Out' : myStock <= 10 ? 'Low' : myStock + '';
+      return `<div class="product-card !p-0 overflow-hidden" onclick="openProductDetail('${p.sku}')">
+        <div class="w-full h-[100px] bg-gray-100 overflow-hidden">
+          <img src="${p.image}" class="w-full h-full object-cover" alt="${p.name}" loading="lazy">
+        </div>
+        <div class="p-3">
+          <p class="text-[12px] font-semibold text-navy-dark truncate">${p.name}</p>
+          <p class="text-[10px] text-gray-400 mt-0.5 truncate">${p.brand}</p>
+          <div class="flex items-center justify-between mt-2">
+            <p class="text-[13px] font-bold text-navy-dark">Rs.${p.price.toLocaleString()}</p>
+            <span class="text-[9px] font-bold text-${stockColor} bg-${stockColor}/10 px-1.5 py-0.5 rounded">${stockLabel}</span>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  } else {
+    container.className = 'space-y-3';
+    container.innerHTML = products.map(p => {
+      const myStock = p.stock['Clifton Branch'] || 0;
+      const stockStatus = myStock === 0 ? 'out-of-stock' : myStock <= 10 ? 'low-stock' : 'in-stock';
+      const stockLabel = myStock === 0 ? 'Out of Stock' : myStock <= 10 ? 'Low Stock' : 'In Stock';
+      const stockColor = myStock === 0 ? 'brand-red' : myStock <= 10 ? 'brand-orange' : 'brand-green';
+      return `<div class="product-card" onclick="openProductDetail('${p.sku}')">
+        <div class="flex gap-3">
+          <div class="w-16 h-16 rounded-xl bg-gray-100 overflow-hidden shrink-0">
+            <img src="${p.image}" class="w-full h-full object-cover" alt="${p.name}" loading="lazy">
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-start justify-between gap-2">
+              <div class="min-w-0">
+                <p class="text-[13px] font-semibold text-navy-dark truncate">${p.name}</p>
+                <p class="text-[10px] text-gray-400 mt-0.5">${p.brand} · ${p.subcategory}</p>
+              </div>
+              <p class="text-[14px] font-bold text-navy-dark shrink-0">Rs.${p.price.toLocaleString()}</p>
+            </div>
+            <div class="flex items-center justify-between mt-2.5">
+              <div class="flex items-center gap-2">
+                <span class="avail-pill ${stockStatus}">
+                  <span class="w-1.5 h-1.5 rounded-full bg-${stockColor}"></span>
+                  ${stockLabel}
+                </span>
+                <span class="text-[10px] text-gray-400">Here: ${myStock}</span>
+              </div>
+              <span class="text-[10px] text-gray-400 font-mono">${p.sku}</span>
+            </div>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+}
+
+function spToggleView() {
+  viewMode = viewMode === 'list' ? 'grid' : 'list';
+  document.getElementById('sp-view-icon').name = viewMode === 'grid' ? 'list-outline' : 'grid-outline';
+  document.getElementById('sp-view-label').textContent = viewMode === 'grid' ? 'List' : 'Grid';
+  spSearch(document.getElementById('sp-search-input').value);
+}
+
+// ━━━━ RECENT SEARCHES ━━━━
+function addRecentSearch(term) {
+  const normalized = term.toLowerCase().trim();
+  recentSearches = recentSearches.filter(s => s.toLowerCase() !== normalized);
+  recentSearches.unshift(term.trim());
+  if (recentSearches.length > 8) recentSearches = recentSearches.slice(0, 8);
+  localStorage.setItem('sp_recent', JSON.stringify(recentSearches));
+}
+
+function showRecentSearches() {
+  if (recentSearches.length === 0) {
+    document.getElementById('sp-recent-searches').classList.add('hidden');
+    return;
+  }
+  document.getElementById('sp-recent-searches').classList.remove('hidden');
+  document.getElementById('sp-recent-list').innerHTML = recentSearches.map(s =>
+    `<button onclick="applyRecentSearch('${s.replace(/'/g, "\\'")}')" class="px-3 py-1.5 bg-white border border-gray-200 rounded-full text-[11px] text-gray-600 font-medium flex items-center gap-1.5 hover:border-navy/30 transition">
+      <ion-icon name="time-outline" class="text-gray-400 text-xs"></ion-icon>${s}
+    </button>`
+  ).join('');
+}
+
+function applyRecentSearch(term) {
+  document.getElementById('sp-search-input').value = term;
+  document.getElementById('sp-recent-searches').classList.add('hidden');
+  spSearch(term);
+}
+
+function clearRecentSearches() {
+  recentSearches = [];
+  localStorage.removeItem('sp_recent');
+  document.getElementById('sp-recent-searches').classList.add('hidden');
+  showToast('Recent searches cleared', 'trash-outline');
+}
+
+// ━━━━ PRODUCT DETAIL ━━━━
+function openProductDetail(sku) {
+  const p = catalog.find(x => x.sku === sku);
+  if (!p) return;
+
+  const myStock = p.stock['Clifton Branch'] || 0;
+  const totalStock = Object.values(p.stock).reduce((a, b) => a + b, 0);
+  const stockStatus = myStock === 0 ? 'out-of-stock' : myStock <= 10 ? 'low-stock' : 'in-stock';
+  const stockLabel = myStock === 0 ? 'Out of Stock' : myStock <= 10 ? 'Low Stock' : 'In Stock';
+  const stockColor = myStock === 0 ? 'brand-red' : myStock <= 10 ? 'brand-orange' : 'brand-green';
+
+  // Attributes
+  const attrsHtml = Object.entries(p.attributes || {}).map(([k, v]) =>
+    `<div class="flex justify-between items-center py-3 border-b border-gray-100/80 last:border-0">
+      <span class="text-[12px] text-gray-500">${k}</span>
+      <span class="text-[12px] text-navy-dark font-semibold">${v}</span>
+    </div>`
+  ).join('');
+
+  // Variants
+  let variantsHtml = '';
+  if (p.variants && p.variants.length) {
+    const variantCards = p.variants.map(v => {
+      const low = v.stock <= 3;
+      const outOfStock = v.stock === 0;
+      const bgClass = outOfStock ? 'bg-gray-50 opacity-60' : low ? 'bg-brand-orange/[0.03]' : 'bg-white';
+      const borderClass = outOfStock ? 'border-gray-200' : low ? 'border-brand-orange/20' : 'border-gray-100';
+      return `<div class="flex items-center justify-between p-3 ${bgClass} border ${borderClass} rounded-xl">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center">
+            <span class="text-[10px] font-bold text-gray-500">${v.size}</span>
+          </div>
+          <div>
+            <p class="text-[12px] font-medium text-navy-dark">${v.colour}</p>
+            <p class="text-[10px] text-gray-400">Size ${v.size}</p>
+          </div>
+        </div>
+        <div class="text-right">
+          <p class="text-[14px] font-bold ${outOfStock ? 'text-brand-red' : low ? 'text-brand-orange' : 'text-navy-dark'}">${v.stock}</p>
+          <p class="text-[9px] ${outOfStock ? 'text-brand-red' : low ? 'text-brand-orange' : 'text-gray-400'}">${outOfStock ? 'Out' : low ? 'Low' : 'In Stock'}</p>
+        </div>
+      </div>`;
+    }).join('');
+    variantsHtml = `
+      <div class="bg-white rounded-2xl border border-border p-4 mb-3">
+        <div class="flex items-center gap-2 mb-3">
+          <div class="w-7 h-7 rounded-lg bg-brand-purple/10 flex items-center justify-center">
+            <ion-icon name="color-palette-outline" class="text-brand-purple text-sm"></ion-icon>
+          </div>
+          <p class="text-[13px] font-semibold text-navy-dark">Variants</p>
+          <span class="ml-auto text-[10px] text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">${p.variants.length} options</span>
+        </div>
+        <div class="space-y-2">${variantCards}</div>
+      </div>`;
+  }
+
+  // Stock locations with bars
+  const maxStock = Math.max(...Object.values(p.stock));
+  const locationsHtml = Object.entries(p.stock).map(([loc, qty]) => {
+    const isCurrent = loc === 'Clifton Branch';
+    const qtyColor = qty === 0 ? 'text-brand-red' : qty <= 10 ? 'text-brand-orange' : 'text-brand-green';
+    const barColor = qty === 0 ? 'bg-brand-red' : qty <= 10 ? 'bg-brand-orange' : 'bg-brand-green';
+    const barWidth = maxStock > 0 ? Math.max(2, Math.round((qty / maxStock) * 100)) : 0;
+    const iconName = isCurrent ? 'storefront' : loc === 'Warehouse' ? 'business' : 'location';
+    return `<div class="flex items-center gap-3 py-3 ${isCurrent ? '' : 'border-t border-gray-100/80'}">
+      <div class="w-9 h-9 rounded-xl ${isCurrent ? 'bg-navy/10 ring-2 ring-navy/20' : 'bg-gray-50'} flex items-center justify-center shrink-0">
+        <ion-icon name="${iconName}-outline" class="${isCurrent ? 'text-navy' : 'text-gray-400'} text-base"></ion-icon>
+      </div>
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center justify-between mb-1">
+          <div class="flex items-center gap-1.5">
+            <p class="text-[12px] ${isCurrent ? 'font-semibold text-navy-dark' : 'font-medium text-gray-700'}">${loc}</p>
+            ${isCurrent ? '<span class="text-[8px] bg-navy/10 text-navy px-1.5 py-0.5 rounded font-bold uppercase">You</span>' : ''}
+          </div>
+          <p class="text-[13px] font-bold ${qtyColor}">${qty}</p>
+        </div>
+        <div class="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+          <div class="h-1.5 ${barColor} rounded-full transition-all" style="width:${qty === 0 ? 0 : barWidth}%"></div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('sp-detail-content').innerHTML = `
+    <div class="relative">
+      <div class="w-full h-[220px] bg-gray-100 overflow-hidden">
+        <img src="${p.image}" class="w-full h-full object-cover" alt="${p.name}">
+        <div class="absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-black/40 to-transparent"></div>
+      </div>
+      <button onclick="spNavTo('search')" class="absolute top-4 left-4 w-9 h-9 rounded-full bg-white/90 backdrop-blur flex items-center justify-center shadow-sm">
+        <ion-icon name="arrow-back-outline" class="text-navy-dark text-lg"></ion-icon>
+      </button>
+      <div class="absolute top-4 right-4 bg-white/90 backdrop-blur rounded-xl px-3 py-1.5 shadow-sm">
+        <p class="text-[16px] font-extrabold text-navy-dark">Rs.${p.price.toLocaleString()}</p>
+      </div>
+      <div class="absolute bottom-3 left-4">
+        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-semibold shadow-sm backdrop-blur
+          ${myStock === 0 ? 'bg-brand-red/90 text-white' : myStock <= 10 ? 'bg-brand-orange/90 text-white' : 'bg-brand-green/90 text-white'}">
+          <span class="w-2 h-2 rounded-full bg-white/80"></span>
+          ${stockLabel} · ${myStock} here
+        </span>
+      </div>
+    </div>
+    <div class="px-4 pt-5 pb-6">
+      <div class="mb-4">
+        <h2 class="text-[20px] font-bold text-navy-dark leading-tight">${p.name}</h2>
+        <div class="flex items-center gap-2 mt-1.5">
+          <span class="text-[11px] text-gray-500 font-medium">${p.brand}</span>
+          <span class="w-1 h-1 rounded-full bg-gray-300"></span>
+          <span class="text-[11px] text-gray-500">${p.category} / ${p.subcategory}</span>
+        </div>
+      </div>
+      <div class="grid grid-cols-3 gap-2.5 mb-5">
+        <div class="bg-white border border-border rounded-xl p-3 text-center">
+          <div class="w-7 h-7 rounded-lg bg-navy/5 flex items-center justify-center mx-auto mb-1.5">
+            <ion-icon name="pricetag-outline" class="text-navy text-sm"></ion-icon>
+          </div>
+          <p class="text-[14px] font-bold text-navy-dark">Rs.${p.price.toLocaleString()}</p>
+          <p class="text-[9px] text-gray-400 mt-0.5">Price</p>
+        </div>
+        <div class="bg-white border border-border rounded-xl p-3 text-center">
+          <div class="w-7 h-7 rounded-lg bg-${stockColor}/10 flex items-center justify-center mx-auto mb-1.5">
+            <ion-icon name="cube-outline" class="text-${stockColor} text-sm"></ion-icon>
+          </div>
+          <p class="text-[14px] font-bold text-${stockColor}">${myStock}</p>
+          <p class="text-[9px] text-gray-400 mt-0.5">Your Stock</p>
+        </div>
+        <div class="bg-white border border-border rounded-xl p-3 text-center">
+          <div class="w-7 h-7 rounded-lg bg-brand-blue/10 flex items-center justify-center mx-auto mb-1.5">
+            <ion-icon name="globe-outline" class="text-brand-blue text-sm"></ion-icon>
+          </div>
+          <p class="text-[14px] font-bold text-navy-dark">${totalStock}</p>
+          <p class="text-[9px] text-gray-400 mt-0.5">Total Stock</p>
+        </div>
+      </div>
+      <div class="bg-white rounded-2xl border border-border p-4 mb-3">
+        <div class="flex items-center gap-2 mb-3">
+          <div class="w-7 h-7 rounded-lg bg-gray-100 flex items-center justify-center"><ion-icon name="finger-print-outline" class="text-gray-500 text-sm"></ion-icon></div>
+          <p class="text-[13px] font-semibold text-navy-dark">Identification</p>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="bg-gray-50 rounded-xl p-3"><p class="text-[9px] text-gray-400 uppercase tracking-wider font-medium mb-0.5">SKU</p><p class="text-[13px] font-bold text-navy-dark font-mono">${p.sku}</p></div>
+          <div class="bg-gray-50 rounded-xl p-3"><p class="text-[9px] text-gray-400 uppercase tracking-wider font-medium mb-0.5">Barcode</p><p class="text-[12px] font-semibold text-navy-dark font-mono">${p.barcode}</p></div>
+        </div>
+      </div>
+      <div class="bg-white rounded-2xl border border-border p-4 mb-3">
+        <div class="flex items-center gap-2 mb-2.5">
+          <div class="w-7 h-7 rounded-lg bg-gray-100 flex items-center justify-center"><ion-icon name="document-text-outline" class="text-gray-500 text-sm"></ion-icon></div>
+          <p class="text-[13px] font-semibold text-navy-dark">Description</p>
+        </div>
+        <p class="text-[12px] text-gray-600 leading-relaxed">${p.description}</p>
+      </div>
+      <div class="bg-white rounded-2xl border border-border p-4 mb-3">
+        <div class="flex items-center gap-2 mb-2.5">
+          <div class="w-7 h-7 rounded-lg bg-brand-blue/10 flex items-center justify-center"><ion-icon name="list-outline" class="text-brand-blue text-sm"></ion-icon></div>
+          <p class="text-[13px] font-semibold text-navy-dark">Specifications</p>
+        </div>
+        ${attrsHtml}
+      </div>
+      ${variantsHtml}
+      <div class="bg-white rounded-2xl border border-border p-4 mb-3">
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-2">
+            <div class="w-7 h-7 rounded-lg bg-brand-green/10 flex items-center justify-center"><ion-icon name="location-outline" class="text-brand-green text-sm"></ion-icon></div>
+            <p class="text-[13px] font-semibold text-navy-dark">Availability</p>
+          </div>
+          <span class="text-[10px] text-gray-400 bg-gray-100 px-2.5 py-1 rounded-full font-medium">Total: <strong class="text-navy-dark">${totalStock}</strong></span>
+        </div>
+        ${locationsHtml}
+      </div>
+    </div>`;
+
+  spNavTo('detail');
+}
+
+// ━━━━ AVAILABILITY PAGE ━━━━
+function spAvailSearch(query) {
+  const q = (query || '').toLowerCase().trim();
+  const container = document.getElementById('sp-avail-results');
+  const emptyState = document.getElementById('sp-avail-empty');
+
+  if (!q) {
+    container.innerHTML = '';
+    emptyState.classList.remove('hidden');
+    return;
+  }
+
+  const results = catalog.filter(p =>
+    p.name.toLowerCase().includes(q) ||
+    p.sku.toLowerCase().includes(q) ||
+    p.barcode.includes(q) ||
+    p.brand.toLowerCase().includes(q)
+  );
+
+  if (results.length === 0) {
+    container.innerHTML = `<div class="text-center py-8">
+      <ion-icon name="alert-circle-outline" class="text-gray-300 text-3xl mb-2"></ion-icon>
+      <p class="text-[12px] text-gray-500">No products match "${query}"</p>
+    </div>`;
+    emptyState.classList.add('hidden');
+    return;
+  }
+
+  emptyState.classList.add('hidden');
+  container.innerHTML = results.map(p => {
+    const myStock = p.stock['Clifton Branch'] || 0;
+    const totalStock = Object.values(p.stock).reduce((a, b) => a + b, 0);
+    const locRows = Object.entries(p.stock).map(([loc, qty]) => {
+      const isCurrent = loc === 'Clifton Branch';
+      const barWidth = totalStock > 0 ? Math.round((qty / totalStock) * 100) : 0;
+      const qtyColor = qty === 0 ? 'brand-red' : qty <= 10 ? 'brand-orange' : 'brand-green';
+      const barColor = qty === 0 ? 'bg-brand-red' : qty <= 10 ? 'bg-brand-orange' : 'bg-brand-green';
+      return `<div class="flex items-center gap-3 py-2 ${isCurrent ? '' : 'opacity-80'}">
+        <div class="w-[100px] shrink-0">
+          <p class="text-[11px] ${isCurrent ? 'font-semibold text-navy-dark' : 'text-gray-600'} truncate">${loc}</p>
+          ${isCurrent ? '<p class="text-[8px] text-navy font-bold uppercase">YOU</p>' : ''}
+        </div>
+        <div class="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+          <div class="h-2 ${barColor} rounded-full transition-all" style="width:${barWidth}%"></div>
+        </div>
+        <p class="text-[12px] font-bold ${qty === 0 ? 'text-' + qtyColor : 'text-navy-dark'} w-8 text-right">${qty}</p>
+      </div>`;
+    }).join('');
+
+    return `<div class="bg-white rounded-xl border border-border p-4 cursor-pointer active:scale-[0.98] transition" onclick="openProductDetail('${p.sku}')">
+      <div class="flex items-center gap-3 mb-3 pb-3 border-b border-gray-100">
+        <div class="w-12 h-12 rounded-xl bg-gray-100 overflow-hidden shrink-0">
+          <img src="${p.image}" class="w-full h-full object-cover" loading="lazy">
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-[13px] font-semibold text-navy-dark truncate">${p.name}</p>
+          <p class="text-[10px] text-gray-400">${p.brand} · ${p.sku} · Rs.${p.price.toLocaleString()}</p>
+        </div>
+        <div class="text-right shrink-0">
+          <p class="text-[16px] font-bold text-navy-dark">${totalStock}</p>
+          <p class="text-[9px] text-gray-400">TOTAL</p>
+        </div>
+      </div>
+      <div class="space-y-0.5">${locRows}</div>
+    </div>`;
+  }).join('');
+}
+
+// ━━━━ SCANNER ━━━━
+function openScanner() {
+  document.getElementById('scanner-overlay').classList.add('active');
+  document.getElementById('scanner-manual-input').value = '';
+  setTimeout(() => document.getElementById('scanner-manual-input').focus(), 300);
+}
+
+function closeScanner() {
+  document.getElementById('scanner-overlay').classList.remove('active');
+}
+
+function scanBarcode(code) {
+  if (!code.trim()) return;
+  closeScanner();
+  const product = catalog.find(p => p.barcode === code.trim() || p.sku.toLowerCase() === code.trim().toLowerCase());
+  if (product) {
+    showToast('Product found: ' + product.name, 'checkmark-circle');
+    openProductDetail(product.sku);
+  } else {
+    showToast('No product matches "' + code.trim() + '"', 'alert-circle-outline', true);
+    document.getElementById('sp-search-input').value = code.trim();
+    spNavTo('search');
+    spSearch(code.trim());
+  }
+}
+
+function simulateScan() {
+  const randomProduct = catalog[Math.floor(Math.random() * catalog.length)];
+  // Simulate scan delay
+  const scanLine = document.querySelector('.scan-line');
+  scanLine.style.background = 'linear-gradient(90deg, transparent, #2dd36f, transparent)';
+  setTimeout(() => scanBarcode(randomProduct.barcode), 800);
+}
+
+// ━━━━ TOAST ━━━━
+let toastTimer = null;
+function showToast(message, icon, isError) {
+  clearTimeout(toastTimer);
+  const inner = document.getElementById('sp-toast-inner');
+  const iconEl = document.getElementById('sp-toast-icon');
+  const msgEl = document.getElementById('sp-toast-msg');
+  
+  iconEl.name = icon || 'checkmark-circle';
+  iconEl.className = `text-${isError ? 'brand-red' : 'brand-green'} text-lg shrink-0`;
+  msgEl.textContent = message;
+  
+  inner.classList.remove('opacity-0', '-translate-y-4');
+  inner.classList.add('opacity-100', 'translate-y-0');
+  
+  toastTimer = setTimeout(() => {
+    inner.classList.add('opacity-0', '-translate-y-4');
+    inner.classList.remove('opacity-100', 'translate-y-0');
+  }, 2500);
+}
+
+// ━━━━ SIGN OUT ━━━━
+function signOut() {
+  document.getElementById('sp-signout-modal').classList.remove('hidden');
+  document.getElementById('sp-signout-modal').classList.add('flex');
+}
+
+function closeSignOut() {
+  document.getElementById('sp-signout-modal').classList.add('hidden');
+  document.getElementById('sp-signout-modal').classList.remove('flex');
+}
+
+function confirmSignOut() {
+  closeSignOut();
+  showToast('Signed out successfully', 'log-out-outline');
+  // Simulate redirect after delay
+  setTimeout(() => {
+    document.body.innerHTML = `
+      <div class="flex items-center justify-center min-h-screen bg-page p-6">
+        <div class="bg-white rounded-2xl border border-border p-8 text-center w-full max-w-[320px]">
+          <div class="w-16 h-16 rounded-full bg-navy/10 flex items-center justify-center mx-auto mb-4">
+            <ion-icon name="storefront" class="text-navy text-3xl"></ion-icon>
+          </div>
+          <h2 class="text-[18px] font-bold text-navy-dark mb-2">Air Register</h2>
+          <p class="text-[12px] text-gray-500 mb-6">Sales Person App</p>
+          <button onclick="location.reload()" class="w-full h-[44px] bg-navy text-white text-[13px] font-semibold rounded-xl">Sign In Again</button>
+        </div>
+      </div>`;
+  }, 1000);
+}
+
+// ━━━━ INIT ━━━━
+document.addEventListener('DOMContentLoaded', function() {
+  renderSearchResults(catalog, '');
+  
+  // Show recent searches on focus if input is empty
+  document.getElementById('sp-search-input').addEventListener('focus', function() {
+    if (!this.value.trim()) showRecentSearches();
+  });
+});
+</script>
+
+</body>
+</html>

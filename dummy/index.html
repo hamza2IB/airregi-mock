@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>IDENBRID — Login</title>
+<!-- PWA Meta Tags -->
+<meta name="theme-color" content="#0a1535">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="IDENBRID">
+<meta name="description" content="IDENBRID Ecosystem Demo — Air Register">
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%230a1535'/%3E%3Ctext x='90' y='124' font-size='100' text-anchor='middle' fill='white' font-family='Arial,sans-serif' font-weight='bold'%3EI%3C/text%3E%3C/svg%3E">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        navy: { dark: '#0a1535', DEFAULT: '#1a2d6b', light: '#2a4494' },
+        blue: { DEFAULT: '#3366cc', light: '#e8f4fd' },
+        green: { DEFAULT: '#2dd36f', light: '#e6f9ee' },
+        orange: { DEFAULT: '#ff9800', light: '#fff3e0' },
+        red: { DEFAULT: '#eb445a', light: '#fce4ec' },
+        purple: { DEFAULT: '#7c4dff', light: '#ede7f6' },
+        page: '#f4f6f9',
+        border: '#e8ecf1',
+      },
+      fontFamily: { sans: ['Helvetica Neue', 'sans-serif'] },
+    }
+  }
+}
+</script>
+</head>
+<body class="m-0 font-sans bg-page flex items-center justify-center min-h-screen">
+<div class="w-full max-w-[430px] mx-auto">
+  <div class="bg-white rounded-2xl p-8 shadow-sm mx-4">
+    <div class="text-center mb-6">
+      <h1 class="text-[22px] font-light tracking-[4px] text-navy m-0">IDENBRID</h1>
+      <p class="text-[11px] text-gray-400 tracking-wider mt-1">ECOSYSTEM DEMO</p>
+    </div>
+    <p class="text-center text-[13px] text-gray-500 mb-5">Select a role to explore the demo</p>
+    <!-- Landing Page Link -->
+    <a href="landing-page.html" class="block bg-gradient-to-r from-navy-dark to-navy rounded-[14px] p-4 text-center border-2 border-transparent hover:border-green transition-all no-underline mb-3">
+      <div class="flex items-center justify-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">
+          <svg class="w-5 h-5 text-green" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9"/></svg>
+        </div>
+        <div class="text-left">
+          <div class="text-[13px] font-medium text-white">Landing Page</div>
+          <div class="text-[11px] text-white/50">Brand Registration & Plans</div>
+        </div>
+      </div>
+    </a>
+
+    <div class="grid grid-cols-2 gap-2.5">
+      <a href="pos-v3-register.html" class="bg-page rounded-[14px] p-4 text-center border-2 border-transparent hover:border-navy hover:bg-blue-light transition-all block no-underline">
+        <div class="w-12 h-12 rounded-xl bg-blue-light flex items-center justify-center mx-auto mb-2.5">
+          <svg class="w-6 h-6 text-blue" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 9V7a5 5 0 00-10 0v2M3 11h18v10a2 2 0 01-2 2H5a2 2 0 01-2-2V11zm5 4h8"/></svg>
+        </div>
+        <div class="text-[13px] font-medium text-gray-800">POS Staff</div>
+        <div class="text-[11px] text-gray-400 mt-0.5">Cashier (Tablet)</div>
+      </a>
+      <a href="pos-v4-display.html" class="bg-page rounded-[14px] p-4 text-center border-2 border-transparent hover:border-navy hover:bg-purple-light transition-all block no-underline">
+        <div class="w-12 h-12 rounded-xl bg-purple-light flex items-center justify-center mx-auto mb-2.5">
+          <svg class="w-6 h-6 text-purple" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2M12 11a4 4 0 100-8 4 4 0 000 8"/></svg>
+        </div>
+        <div class="text-[13px] font-medium text-gray-800">Customer Display</div>
+        <div class="text-[11px] text-gray-400 mt-0.5">POS Secondary Screen</div>
+      </a>
+      <a href="user-4.html" class="bg-page rounded-[14px] p-4 text-center border-2 border-transparent hover:border-navy hover:bg-green-light transition-all block no-underline">
+        <div class="w-12 h-12 rounded-xl bg-green-light flex items-center justify-center mx-auto mb-2.5">
+          <svg class="w-6 h-6 text-green" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="7" y="2" width="10" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18.01"/></svg>
+        </div>
+        <div class="text-[13px] font-medium text-gray-800">User App</div>
+        <div class="text-[11px] text-gray-400 mt-0.5">EC Demo (latest)</div>
+      </a>
+      <a href="store-manager.html" class="bg-page rounded-[14px] p-4 text-center border-2 border-transparent hover:border-navy hover:bg-orange-light transition-all block no-underline">
+        <div class="w-12 h-12 rounded-xl bg-orange-light flex items-center justify-center mx-auto mb-2.5">
+          <svg class="w-6 h-6 text-orange" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        </div>
+        <div class="text-[13px] font-medium text-gray-800">Store Manager</div>
+        <div class="text-[11px] text-gray-400 mt-0.5">Mobile</div>
+      </a>
+      <a href="store-inventory-manager.html" class="bg-page rounded-[14px] p-4 text-center border-2 border-transparent hover:border-navy hover:bg-green-light transition-all block no-underline">
+        <div class="w-12 h-12 rounded-xl bg-green-light flex items-center justify-center mx-auto mb-2.5">
+          <svg class="w-6 h-6 text-green" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+        </div>
+        <div class="text-[13px] font-medium text-gray-800">Store Inventory</div>
+        <div class="text-[11px] text-gray-400 mt-0.5">Store Manager</div>
+      </a>
+      <a href="warehouse-inventory-manager.html" class="bg-page rounded-[14px] p-4 text-center border-2 border-transparent hover:border-navy hover:bg-purple-light transition-all block no-underline">
+        <div class="w-12 h-12 rounded-xl bg-purple-light flex items-center justify-center mx-auto mb-2.5">
+          <svg class="w-6 h-6 text-purple" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 7V4h16v3M9 20h6M12 4v16"/><path d="M2 7h20v4H2zM6 11v5a2 2 0 002 2h8a2 2 0 002-2v-5"/></svg>
+        </div>
+        <div class="text-[13px] font-medium text-gray-800">Warehouse</div>
+        <div class="text-[11px] text-gray-400 mt-0.5">Inventory Manager</div>
+      </a>
+      <a href="business-owner.html" class="bg-page rounded-[14px] p-4 text-center border-2 border-transparent hover:border-navy hover:bg-red-light transition-all block no-underline">
+        <div class="w-12 h-12 rounded-xl bg-red-light flex items-center justify-center mx-auto mb-2.5">
+          <svg class="w-6 h-6 text-red" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 21h18M3 7v1a3 3 0 006 0V7m0 0v1a3 3 0 006 0V7m0 0v1a3 3 0 006 0V7M3 7l1-4h16l1 4M5 21V10m14 11V10"/></svg>
+        </div>
+        <div class="text-[13px] font-medium text-gray-800">Business Owner</div>
+        <div class="text-[11px] text-gray-400 mt-0.5">Mobile</div>
+      </a>
+      <a href="admin.html" class="bg-page rounded-[14px] p-4 text-center border-2 border-transparent hover:border-navy hover:bg-blue-light transition-all block no-underline">
+        <div class="w-12 h-12 rounded-xl bg-blue-light flex items-center justify-center mx-auto mb-2.5">
+          <svg class="w-6 h-6 text-navy" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <div class="text-[13px] font-medium text-gray-800">Platform Admin</div>
+        <div class="text-[11px] text-gray-400 mt-0.5">PC Dashboard</div>
+      </a>
+    </div>
+  </div>
+  <p class="text-center text-[11px] text-gray-300 py-4">IDENBRID Ecosystem v1.0 — Demo</p>
+</div>
+<script>
+// Register Service Worker for PWA
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then(reg => console.log('SW registered:', reg.scope))
+      .catch(err => console.warn('SW registration failed:', err));
+  });
+}
+</script>
+</body>
+</html>

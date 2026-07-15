@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Air Register — Store Inventory Manager</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        navy: { dark: '#0a1535', DEFAULT: '#1a2d6b', light: '#2a4494' },
+        brand: { blue: '#3366cc', green: '#2dd36f', orange: '#ff9800', red: '#eb445a', purple: '#7c4dff' },
+        page: '#f4f6f9',
+        border: '#e8ecf1'
+      },
+      fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] }
+    }
+  }
+}
+</script>
+<script src="https://unpkg.com/ionicons@7.1.0/dist/ionicons.js"></script>
+<style>
+html,body{margin:0;padding:0;background:#f4f6f9;color:#111;font-family:'Plus Jakarta Sans',sans-serif;min-height:100vh;}
+.sidebar-link{display:flex;align-items:center;gap:12px;padding:10px 16px;border-radius:8px;font-size:13px;font-weight:500;color:rgba(255,255,255,0.65);transition:all 0.15s;cursor:pointer;}
+.sidebar-link:hover{background:rgba(255,255,255,0.08);color:#fff;}
+.sidebar-link.active{background:rgba(255,255,255,0.12);color:#fff;font-weight:600;}
+.sidebar-link ion-icon{font-size:20px;}
+.page-section{display:none;}.page-section.active{display:block;}
+.stat-card{background:#fff;border-radius:12px;padding:20px;border:1px solid #e8ecf1;transition:box-shadow 0.2s,transform 0.2s;}
+.stat-card:hover{box-shadow:0 8px 24px rgba(26,45,107,0.08);transform:translateY(-2px);}
+.btn-primary{background:#1a2d6b;color:#fff;font-size:12px;font-weight:600;padding:10px 20px;border-radius:8px;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:background 0.15s;}
+.btn-primary:hover{background:#2a4494;}
+.btn-secondary{background:#f4f6f9;color:#1a2d6b;font-size:12px;font-weight:600;padding:10px 20px;border-radius:8px;border:1px solid #e8ecf1;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all 0.15s;}
+.btn-secondary:hover{background:#e8ecf1;}
+.btn-success{background:#2dd36f;color:#fff;font-size:12px;font-weight:600;padding:10px 20px;border-radius:8px;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
+.btn-danger{background:#eb445a;color:#fff;font-size:12px;font-weight:600;padding:10px 20px;border-radius:8px;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
+.btn-warning{background:#ff9800;color:#fff;font-size:12px;font-weight:600;padding:10px 20px;border-radius:8px;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
+.input-field{width:100%;background:#fff;border:1.5px solid #e8ecf1;border-radius:8px;padding:10px 14px;font-size:13px;font-family:inherit;transition:border-color 0.2s;}
+.input-field:focus{outline:none;border-color:#1a2d6b;box-shadow:0 0 0 3px rgba(26,45,107,0.06);}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:80;display:none;align-items:center;justify-content:center;padding:16px;}
+.modal-overlay.open{display:flex;}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:600;}
+.badge-green{background:rgba(45,211,111,0.1);color:#2dd36f;}
+.badge-orange{background:rgba(255,152,0,0.1);color:#ff9800;}
+.badge-red{background:rgba(235,68,90,0.1);color:#eb445a;}
+.badge-blue{background:rgba(51,102,204,0.1);color:#3366cc;}
+.badge-purple{background:rgba(124,77,255,0.1);color:#7c4dff;}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#0a1535;color:#fff;padding:12px 20px;border-radius:12px;font-size:12px;font-weight:500;z-index:300;display:flex;align-items:center;gap:8px;opacity:0;transition:opacity 0.3s,transform 0.3s;pointer-events:none;}
+.toast.show{opacity:1;pointer-events:auto;}
+@media(max-width:768px){
+  aside{display:none!important;}
+  .mobile-nav{display:flex!important;}
+  main{padding-bottom:80px!important;}
+  .sm-hide{display:none!important;}
+  .sm-full{grid-template-columns:1fr!important;}
+  .sm-stack{flex-direction:column!important;align-items:stretch!important;}
+}
+.mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #e8ecf1;z-index:100;padding:8px 0 env(safe-area-inset-bottom,8px);}
+.mobile-nav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0;background:none;border:none;cursor:pointer;color:#94a3b8;font-size:10px;font-family:inherit;}
+.mobile-nav button.active{color:#1a2d6b;font-weight:600;}
+.mobile-nav button ion-icon{font-size:22px;}
+*:focus-visible{outline:none;}input:focus,select:focus,textarea:focus{outline:none;}
+</style>
+</head>
+<body>
+<div class="flex min-h-screen">
+
+<!-- ━━━━ SIDEBAR ━━━━ -->
+<aside class="w-[250px] bg-navy-dark flex flex-col shrink-0 sticky top-0 h-screen overflow-y-auto">
+  <div class="px-5 py-5 flex items-center gap-3 border-b border-white/10">
+    <div class="w-9 h-9 bg-white rounded-xl flex items-center justify-center shadow-sm">
+      <ion-icon name="storefront" class="text-navy" style="font-size:20px;"></ion-icon>
+    </div>
+    <div>
+      <p class="text-white font-bold text-[14px] leading-tight">Store Inventory</p>
+      <p class="text-white/40 text-[10px] uppercase tracking-wider">Store Manager</p>
+    </div>
+  </div>
+  <nav class="flex-1 px-3 py-4 space-y-1">
+    <div class="sidebar-link active" onclick="navTo('dashboard')">
+      <ion-icon name="grid-outline"></ion-icon><span>Dashboard</span>
+    </div>
+    <div class="sidebar-link" onclick="navTo('products')">
+      <ion-icon name="cube-outline"></ion-icon><span>Products</span>
+    </div>
+    <div class="sidebar-link" onclick="navTo('receive-stock')">
+      <ion-icon name="archive-outline"></ion-icon><span>Receive Stock</span>
+      <span id="receive-badge" class="ml-auto w-5 h-5 bg-brand-blue text-white text-[9px] font-bold rounded-full flex items-center justify-center">2</span>
+    </div>
+    <div class="sidebar-link" onclick="navTo('request-stock')">
+      <ion-icon name="paper-plane-outline"></ion-icon><span>Request Stock</span>
+    </div>
+    <div class="sidebar-link" onclick="navTo('stock-adjust')">
+      <ion-icon name="swap-vertical-outline"></ion-icon><span>Stock Adjustments</span>
+    </div>
+    <div class="sidebar-link" onclick="navTo('stock-count')">
+      <ion-icon name="clipboard-outline"></ion-icon><span>Stock Count</span>
+    </div>
+    <div class="sidebar-link" onclick="navTo('expiry-monitor')">
+      <ion-icon name="time-outline"></ion-icon><span>Expiry Monitor</span>
+      <span id="expiry-badge" class="ml-auto w-5 h-5 bg-brand-orange text-white text-[9px] font-bold rounded-full flex items-center justify-center">4</span>
+    </div>
+  </nav>
+  <div class="px-4 py-4 border-t border-white/10">
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 rounded-full bg-brand-purple text-white flex items-center justify-center font-bold text-[10px]">SM</div>
+      <div class="flex-1 min-w-0">
+        <p class="text-white text-[11px] font-semibold truncate">Store Manager</p>
+        <p class="text-white/40 text-[10px]">Clifton Branch</p>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- ━━━━ MAIN ━━━━ -->
+<main class="flex-1 min-w-0">
+
+<!-- Header -->
+<header class="bg-white border-b border-border px-6 py-4 flex items-center justify-between sticky top-0 z-40">
+  <div>
+    <h1 id="page-title" class="text-[18px] font-bold text-navy-dark">Dashboard</h1>
+    <p id="page-subtitle" class="text-[11px] text-gray-500 mt-0.5">Store inventory overview & alerts</p>
+  </div>
+  <div class="flex items-center gap-3 sm-hide">
+    <span class="text-[11px] text-gray-400">Jul 6, 2026 · Clifton Branch</span>
+  </div>
+</header>
+
+<!-- ━━━━ DASHBOARD ━━━━ -->
+<div id="sec-dashboard" class="page-section active p-6">
+  <div class="grid grid-cols-4 sm-full gap-4 mb-6">
+    <div class="stat-card">
+      <div class="flex items-center gap-2 mb-2">
+        <div class="w-8 h-8 rounded-lg bg-navy/5 flex items-center justify-center"><ion-icon name="cube-outline" class="text-navy text-base"></ion-icon></div>
+        <p class="text-[10px] text-gray-500 uppercase tracking-wider font-medium">Store Products</p>
+      </div>
+      <p id="dash-total" class="text-[26px] font-extrabold text-navy-dark">10</p>
+      <p class="text-[10px] text-gray-400 mt-1">Active in this branch</p>
+    </div>
+    <div class="stat-card">
+      <div class="flex items-center gap-2 mb-2">
+        <div class="w-8 h-8 rounded-lg bg-brand-orange/10 flex items-center justify-center"><ion-icon name="alert-circle-outline" class="text-brand-orange text-base"></ion-icon></div>
+        <p class="text-[10px] text-gray-500 uppercase tracking-wider font-medium">Low Stock</p>
+      </div>
+      <p id="dash-low" class="text-[26px] font-extrabold text-brand-orange">0</p>
+      <p class="text-[10px] text-gray-400 mt-1">Below min threshold</p>
+    </div>
+    <div class="stat-card">
+      <div class="flex items-center gap-2 mb-2">
+        <div class="w-8 h-8 rounded-lg bg-brand-red/10 flex items-center justify-center"><ion-icon name="close-circle-outline" class="text-brand-red text-base"></ion-icon></div>
+        <p class="text-[10px] text-gray-500 uppercase tracking-wider font-medium">Out of Stock</p>
+      </div>
+      <p id="dash-out" class="text-[26px] font-extrabold text-brand-red">0</p>
+      <p class="text-[10px] text-gray-400 mt-1">Need restock request</p>
+    </div>
+    <div class="stat-card">
+      <div class="flex items-center gap-2 mb-2">
+        <div class="w-8 h-8 rounded-lg bg-brand-blue/10 flex items-center justify-center"><ion-icon name="archive-outline" class="text-brand-blue text-base"></ion-icon></div>
+        <p class="text-[10px] text-gray-500 uppercase tracking-wider font-medium">Pending Transfers</p>
+      </div>
+      <p id="dash-pending" class="text-[26px] font-extrabold text-brand-blue">2</p>
+      <p class="text-[10px] text-gray-400 mt-1">Incoming from warehouse</p>
+    </div>
+  </div>
+
+  <!-- Low Stock Alerts -->
+  <div class="bg-white rounded-xl border border-border p-5 mb-6">
+    <div class="flex items-center justify-between mb-4">
+      <div class="flex items-center gap-2">
+        <ion-icon name="warning-outline" class="text-brand-orange text-lg"></ion-icon>
+        <p class="text-[14px] font-semibold text-navy-dark">Low Stock Alerts</p>
+      </div>
+      <button onclick="navTo('request-stock')" class="text-[11px] text-brand-blue font-medium hover:underline">Request Stock →</button>
+    </div>
+    <div class="space-y-2" id="dash-low-stock"></div>
+  </div>
+
+  <!-- Recent Activity -->
+  <div class="bg-white rounded-xl border border-border p-5">
+    <p class="text-[14px] font-semibold text-navy-dark mb-4">Recent Activity</p>
+    <div id="dash-activity" class="space-y-3">
+      <div class="flex items-center gap-3 py-2 border-b border-gray-100">
+        <div class="w-8 h-8 rounded-lg bg-brand-green/10 flex items-center justify-center"><ion-icon name="checkmark-circle-outline" class="text-brand-green text-sm"></ion-icon></div>
+        <div class="flex-1"><p class="text-[12px] text-gray-700">Received transfer <strong>#TRF-2041</strong> — 120 items verified</p><p class="text-[10px] text-gray-400">2 hrs ago</p></div>
+      </div>
+      <div class="flex items-center gap-3 py-2 border-b border-gray-100">
+        <div class="w-8 h-8 rounded-lg bg-brand-blue/10 flex items-center justify-center"><ion-icon name="swap-vertical-outline" class="text-brand-blue text-sm"></ion-icon></div>
+        <div class="flex-1"><p class="text-[12px] text-gray-700">Stock adjusted: <strong>Nestle Water</strong> −3 (damaged)</p><p class="text-[10px] text-gray-400">3 hrs ago</p></div>
+      </div>
+      <div class="flex items-center gap-3 py-2 border-b border-gray-100">
+        <div class="w-8 h-8 rounded-lg bg-brand-purple/10 flex items-center justify-center"><ion-icon name="paper-plane-outline" class="text-brand-purple text-sm"></ion-icon></div>
+        <div class="flex-1"><p class="text-[12px] text-gray-700">Stock request sent: <strong>5 items</strong> to warehouse</p><p class="text-[10px] text-gray-400">5 hrs ago</p></div>
+      </div>
+      <div class="flex items-center gap-3 py-2">
+        <div class="w-8 h-8 rounded-lg bg-brand-orange/10 flex items-center justify-center"><ion-icon name="time-outline" class="text-brand-orange text-sm"></ion-icon></div>
+        <div class="flex-1"><p class="text-[12px] text-gray-700"><strong>4 items</strong> expiring within 7 days</p><p class="text-[10px] text-gray-400">Today</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ━━━━ PRODUCTS (Read-Only) ━━━━ -->
+<div id="sec-products" class="page-section p-6">
+  <div class="flex items-center justify-between mb-5 sm-stack gap-3">
+    <div class="flex items-center gap-3">
+      <div class="relative">
+        <ion-icon name="search-outline" class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></ion-icon>
+        <input id="prod-search" type="text" placeholder="Search products..." class="input-field pl-9 w-[240px]" oninput="renderProducts()">
+      </div>
+      <select id="prod-cat-filter" class="input-field w-[140px]" onchange="renderProducts()">
+        <option value="">All Categories</option>
+        <option value="Grocery">Grocery</option>
+        <option value="Clothing">Clothing</option>
+        <option value="Electronics">Electronics</option>
+      </select>
+      <select id="prod-stock-filter" class="input-field w-[130px]" onchange="renderProducts()">
+        <option value="">All Status</option>
+        <option value="low">Low Stock</option>
+        <option value="out">Out of Stock</option>
+        <option value="in">In Stock</option>
+      </select>
+    </div>
+    <div class="flex items-center gap-2">
+      <span class="text-[10px] text-gray-400 bg-gray-100 px-3 py-1.5 rounded-lg"><ion-icon name="lock-closed-outline" class="text-xs mr-1"></ion-icon>Read-only · Managed by warehouse</span>
+    </div>
+  </div>
+  <div class="bg-white rounded-xl border border-border overflow-hidden">
+    <table class="w-full">
+      <thead>
+        <tr class="bg-gray-50 border-b border-border">
+          <th class="text-left px-4 py-3 text-[10px] uppercase tracking-wider text-gray-500 font-semibold">Product</th>
+          <th class="text-left px-4 py-3 text-[10px] uppercase tracking-wider text-gray-500 font-semibold sm-hide">SKU</th>
+          <th class="text-left px-4 py-3 text-[10px] uppercase tracking-wider text-gray-500 font-semibold sm-hide">Barcode</th>
+          <th class="text-left px-4 py-3 text-[10px] uppercase tracking-wider text-gray-500 font-semibold sm-hide">Category</th>
+          <th class="text-left px-4 py-3 text-[10px] uppercase tracking-wider text-gray-500 font-semibold">Price</th>
+          <th class="text-left px-4 py-3 text-[10px] uppercase tracking-wider text-gray-500 font-semibold">Stock</th>
+          <th class="text-left px-4 py-3 text-[10px] uppercase tracking-wider text-gray-500 font-semibold">Status</th>
+        </tr>
+      </thead>
+      <tbody id="prod-table-body" class="divide-y divide-gray-100"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ━━━━ RECEIVE STOCK ━━━━ -->
+<div id="sec-receive-stock" class="page-section p-6">
+  <div class="space-y-4" id="transfers-list"></div>
+</div>
+
+<!-- ━━━━ REQUEST STOCK ━━━━ -->
+<div id="sec-request-stock" class="page-section p-6">
+  <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+    <div class="lg:col-span-3">
+      <div class="bg-white rounded-xl border border-border p-6">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-10 h-10 rounded-xl bg-brand-purple/10 flex items-center justify-center">
+            <ion-icon name="paper-plane-outline" class="text-brand-purple text-xl"></ion-icon>
+          </div>
+          <div>
+            <h2 class="text-[16px] font-bold text-navy-dark">Request Stock from Warehouse</h2>
+            <p class="text-[11px] text-gray-400">Select products and quantities needed</p>
+          </div>
+        </div>
+        <form onsubmit="return submitStockRequest(event)" class="space-y-5">
+          <div>
+            <label class="block text-[11px] text-gray-600 font-semibold mb-1.5">Search Product *</label>
+            <div class="relative">
+              <ion-icon name="search-outline" class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-base"></ion-icon>
+              <input type="text" id="req-search" class="input-field pl-10" placeholder="Search by name, SKU or barcode..." oninput="renderRequestSuggestions(this.value)" autocomplete="off">
+            </div>
+            <div id="req-suggestions" class="hidden mt-1 bg-white border border-border rounded-xl shadow-xl max-h-[200px] overflow-y-auto z-50 relative"></div>
+          </div>
+          <!-- Request Items List -->
+          <div id="req-items-container">
+            <div class="flex items-center justify-between mb-2">
+              <label class="text-[11px] text-gray-600 font-semibold">Items to Request</label>
+              <span id="req-item-count" class="text-[9px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">0 items</span>
+            </div>
+            <div id="req-items-list" class="space-y-2"></div>
+            <p id="req-items-empty" class="text-[11px] text-gray-400 py-4 text-center border-2 border-dashed border-gray-200 rounded-lg">Search and add products above</p>
+          </div>
+          <div>
+            <label class="block text-[11px] text-gray-600 font-medium mb-1.5">Notes (optional)</label>
+            <textarea id="req-notes" class="input-field" rows="2" placeholder="e.g. Urgent — running low for weekend sale"></textarea>
+          </div>
+          <button type="submit" class="btn-primary w-full justify-center py-3 text-[13px]"><ion-icon name="paper-plane-outline" class="text-base"></ion-icon>Submit Request to Warehouse</button>
+        </form>
+      </div>
+    </div>
+    <div class="lg:col-span-2">
+      <div class="bg-white rounded-xl border border-border p-5 sticky top-[80px]">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-2">
+            <ion-icon name="time-outline" class="text-gray-400 text-base"></ion-icon>
+            <p class="text-[13px] font-semibold text-navy-dark">Recent Requests</p>
+          </div>
+        </div>
+        <div id="req-history" class="space-y-2"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ━━━━ STOCK ADJUSTMENTS ━━━━ -->
+<div id="sec-stock-adjust" class="page-section p-6">
+  <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+    <div class="lg:col-span-3">
+      <div class="bg-white rounded-xl border border-border p-6">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-10 h-10 rounded-xl bg-navy/10 flex items-center justify-center">
+            <ion-icon name="swap-vertical-outline" class="text-navy text-xl"></ion-icon>
+          </div>
+          <div>
+            <h2 class="text-[16px] font-bold text-navy-dark">Adjust Stock</h2>
+            <p class="text-[11px] text-gray-400">Record damages, returns, or corrections</p>
+          </div>
+        </div>
+        <form onsubmit="return adjustStock(event)" class="space-y-5">
+          <div>
+            <label class="block text-[11px] text-gray-600 font-semibold mb-1.5">Scan / Enter SKU or Barcode *</label>
+            <div class="relative">
+              <ion-icon name="barcode-outline" class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-base"></ion-icon>
+              <input type="text" id="sa-search" class="input-field pl-10 font-mono text-[13px] tracking-wide" placeholder="e.g. NW-001 or 8964000100011" oninput="renderStockSuggestions(this.value)" autocomplete="off">
+              <kbd class="absolute right-3 top-1/2 -translate-y-1/2 text-[9px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded font-sans">SCAN</kbd>
+            </div>
+            <div id="sa-suggestions" class="hidden mt-1 bg-white border border-border rounded-xl shadow-xl max-h-[240px] overflow-y-auto z-50 relative"></div>
+          </div>
+          <div id="sa-selected" class="hidden">
+            <div class="bg-gradient-to-r from-brand-blue/5 to-brand-purple/5 border border-brand-blue/20 rounded-xl p-4">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-lg bg-white border border-brand-blue/20 flex items-center justify-center">
+                    <ion-icon name="cube" class="text-brand-blue text-lg"></ion-icon>
+                  </div>
+                  <div>
+                    <p id="sa-selected-name" class="text-[13px] font-bold text-navy-dark"></p>
+                    <p id="sa-selected-info" class="text-[10px] text-gray-500 mt-0.5"></p>
+                  </div>
+                </div>
+                <div class="text-right">
+                  <p id="sa-selected-stock" class="text-[20px] font-extrabold text-navy-dark"></p>
+                  <p class="text-[9px] text-gray-400 uppercase tracking-wider">Current</p>
+                </div>
+              </div>
+              <button type="button" onclick="clearStockSelection()" class="mt-3 text-[10px] text-brand-red font-medium hover:underline flex items-center gap-1"><ion-icon name="close-circle-outline" class="text-xs"></ion-icon>Clear selection</button>
+            </div>
+          </div>
+          <div class="bg-gray-50 rounded-xl border border-gray-100 p-4">
+            <p class="text-[10px] uppercase tracking-wider font-semibold text-gray-500 mb-3">Adjustment Details</p>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-[11px] text-gray-600 font-medium mb-1.5">Type</label>
+                <select id="sa-type" class="input-field font-semibold" onchange="updateStockPreview()">
+                  <option value="remove">➖ Remove (damage/loss)</option>
+                  <option value="add">➕ Add (return/found)</option>
+                  <option value="set">🎯 Set Exact Count</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-[11px] text-gray-600 font-medium mb-1.5">Quantity</label>
+                <input type="number" id="sa-qty" class="input-field text-[16px] font-bold text-center" min="0" value="0" required oninput="updateStockPreview()">
+              </div>
+            </div>
+            <div id="sa-preview" class="hidden mt-3 bg-white rounded-lg border border-gray-200 p-3 flex items-center justify-center gap-4">
+              <div class="text-center"><p class="text-[9px] text-gray-400 uppercase">Before</p><p id="sa-preview-before" class="text-[14px] font-bold text-gray-600">0</p></div>
+              <ion-icon name="arrow-forward-outline" class="text-gray-300 text-lg"></ion-icon>
+              <div class="text-center"><p class="text-[9px] text-gray-400 uppercase">After</p><p id="sa-preview-after" class="text-[14px] font-bold text-brand-green">0</p></div>
+            </div>
+          </div>
+          <div>
+            <label class="block text-[11px] text-gray-600 font-medium mb-1.5">Reason *</label>
+            <select id="sa-reason" class="input-field">
+              <option>Damaged goods</option>
+              <option>Expired item</option>
+              <option>Customer return</option>
+              <option>Theft / shrinkage</option>
+              <option>Stock count correction</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <button type="submit" class="btn-primary w-full justify-center py-3 text-[13px]"><ion-icon name="checkmark-circle-outline" class="text-base"></ion-icon>Apply Adjustment</button>
+        </form>
+      </div>
+    </div>
+    <div class="lg:col-span-2">
+      <div class="bg-white rounded-xl border border-border p-5 sticky top-[80px]">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-2">
+            <ion-icon name="time-outline" class="text-gray-400 text-base"></ion-icon>
+            <p class="text-[13px] font-semibold text-navy-dark">Recent Adjustments</p>
+          </div>
+          <span class="text-[9px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full font-medium">Last 10</span>
+        </div>
+        <div id="sa-history" class="space-y-2"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ━━━━ STOCK COUNT ━━━━ -->
+<div id="sec-stock-count" class="page-section p-6">
+  <div class="bg-white rounded-xl border border-border p-6 max-w-4xl">
+    <div class="flex items-center justify-between mb-6">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-navy/10 flex items-center justify-center">
+          <ion-icon name="clipboard-outline" class="text-navy text-xl"></ion-icon>
+        </div>
+        <div>
+          <h2 class="text-[16px] font-bold text-navy-dark">Physical Stock Count</h2>
+          <p class="text-[11px] text-gray-400">Compare physical counts against system records</p>
+        </div>
+      </div>
+      <button onclick="startNewCount()" class="btn-primary"><ion-icon name="add-outline"></ion-icon>New Count Session</button>
+    </div>
+    <div id="count-session" class="hidden">
+      <div class="bg-brand-blue/5 border border-brand-blue/20 rounded-xl p-4 mb-5">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <ion-icon name="radio-button-on" class="text-brand-blue text-sm animate-pulse"></ion-icon>
+            <p class="text-[12px] font-semibold text-navy-dark">Count Session Active</p>
+          </div>
+          <span id="count-progress" class="text-[10px] text-gray-500">0 / 0 counted</span>
+        </div>
+      </div>
+      <div class="overflow-hidden rounded-xl border border-border">
+        <table class="w-full">
+          <thead>
+            <tr class="bg-gray-50 border-b border-border">
+              <th class="text-left px-4 py-3 text-[10px] uppercase tracking-wider text-gray-500 font-semibold">Product</th>
+              <th class="text-left px-4 py-3 text-[10px] uppercase tracking-wider text-gray-500 font-semibold">System Qty</th>
+              <th class="text-left px-4 py-3 text-[10px] uppercase tracking-wider text-gray-500 font-semibold">Counted Qty</th>
+              <th class="text-left px-4 py-3 text-[10px] uppercase tracking-wider text-gray-500 font-semibold">Variance</th>
+            </tr>
+          </thead>
+          <tbody id="count-table-body" class="divide-y divide-gray-100"></tbody>
+        </table>
+      </div>
+      <div class="mt-4 flex items-center justify-between">
+        <button onclick="cancelCount()" class="btn-secondary"><ion-icon name="close-outline"></ion-icon>Cancel</button>
+        <button onclick="submitCount()" class="btn-success"><ion-icon name="checkmark-circle-outline"></ion-icon>Submit Count & Reconcile</button>
+      </div>
+    </div>
+    <div id="count-empty" class="text-center py-12">
+      <ion-icon name="clipboard-outline" class="text-gray-300 text-4xl mb-2"></ion-icon>
+      <p class="text-[13px] text-gray-500 font-medium">No active count session</p>
+      <p class="text-[11px] text-gray-400 mt-1">Start a new session to begin physical stock count</p>
+    </div>
+  </div>
+</div>
+
+<!-- ━━━━ EXPIRY MONITOR ━━━━ -->
+<div id="sec-expiry-monitor" class="page-section p-6">
+  <div class="bg-white rounded-xl border border-border p-6 max-w-4xl">
+    <div class="flex items-center justify-between mb-6">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-brand-orange/10 flex items-center justify-center">
+          <ion-icon name="time-outline" class="text-brand-orange text-xl"></ion-icon>
+        </div>
+        <div>
+          <h2 class="text-[16px] font-bold text-navy-dark">Expiry Monitor</h2>
+          <p class="text-[11px] text-gray-400">Track perishable items approaching expiry</p>
+        </div>
+      </div>
+    </div>
+    <div id="expiry-list" class="space-y-3"></div>
+  </div>
+</div>
+
+</main>
+</div>
+
+<!-- Mobile Nav -->
+<nav class="mobile-nav">
+  <button class="active" onclick="navTo('dashboard')"><ion-icon name="grid-outline"></ion-icon><span>Home</span></button>
+  <button onclick="navTo('products')"><ion-icon name="cube-outline"></ion-icon><span>Products</span></button>
+  <button onclick="navTo('receive-stock')"><ion-icon name="archive-outline"></ion-icon><span>Receive</span></button>
+  <button onclick="navTo('stock-adjust')"><ion-icon name="swap-vertical-outline"></ion-icon><span>Adjust</span></button>
+</nav>
+
+<!-- Toast -->
+<div id="app-toast" class="toast"><ion-icon id="toast-icon" name="checkmark-circle" class="text-brand-green text-lg"></ion-icon><span id="toast-msg"></span></div>
+
+<script>
+// ━━━━ DATA STORE ━━━━
+let products = [
+  {id:1,name:'Nestle Water 1.5L',sku:'NW-001',barcode:'8964000100011',brand:'Nestle',category:'Grocery',subcategory:'Beverages',price:40,stock:180,minStock:20,expiry:'2026-08-15'},
+  {id:2,name:"Olper's Milk 1L",sku:'OM-002',barcode:'8964000100028',brand:"Olper's",category:'Grocery',subcategory:'Dairy',price:180,stock:5,minStock:20,expiry:'2026-07-10'},
+  {id:3,name:'Tapal Tea 500g',sku:'TT-003',barcode:'8964000100080',brand:'Tapal',category:'Grocery',subcategory:'Beverages',price:480,stock:42,minStock:15,expiry:'2027-03-01'},
+  {id:4,name:'Pepsi 500ml',sku:'PS-004',barcode:'8964000100035',brand:'PepsiCo',category:'Grocery',subcategory:'Beverages',price:80,stock:78,minStock:30,expiry:'2026-12-01'},
+  {id:5,name:'Dairy Milk',sku:'DM-005',barcode:'8964000100066',brand:'Cadbury',category:'Grocery',subcategory:'Snacks',price:100,stock:9,minStock:15,expiry:'2026-07-12'},
+  {id:6,name:'Sooper Biscuits',sku:'SB-006',barcode:'8964000100042',brand:'Peek Freans',category:'Grocery',subcategory:'Snacks',price:30,stock:11,minStock:20,expiry:'2026-07-08'},
+  {id:7,name:"Men's Slim Fit Kurta",sku:'CL-101',barcode:'8964000200015',brand:'Alkaram Studio',category:'Clothing',subcategory:'Men',price:2450,stock:24,minStock:5,expiry:null},
+  {id:8,name:'Samsung 55" Crystal TV',sku:'EL-201',barcode:'8964000300012',brand:'Samsung',category:'Electronics',subcategory:'Home Appliances',price:142000,stock:2,minStock:3,expiry:null},
+  {id:9,name:'Samsung Refrigerator 350L',sku:'EL-202',barcode:'8964000300029',brand:'Samsung',category:'Electronics',subcategory:'Home Appliances',price:185000,stock:0,minStock:2,expiry:null},
+  {id:10,name:'Lawn Printed Dupatta',sku:'CL-102',barcode:'8964000200022',brand:'Gul Ahmed',category:'Clothing',subcategory:'Women',price:890,stock:4,minStock:5,expiry:null}
+];
+
+let incomingTransfers = [
+  {id:'TRF-2043',from:'Main Warehouse',status:'in_transit',items:[{name:'Nestle Water 1.5L',sku:'NW-001',expectedQty:100},{name:"Olper's Milk 1L",sku:'OM-002',expectedQty:50},{name:'Dairy Milk',sku:'DM-005',expectedQty:30}],sentDate:'2026-07-05',expectedDate:'2026-07-06'},
+  {id:'TRF-2042',from:'Main Warehouse',status:'in_transit',items:[{name:'Samsung Refrigerator 350L',sku:'EL-202',expectedQty:3},{name:'Samsung 55" Crystal TV',sku:'EL-201',expectedQty:2}],sentDate:'2026-07-04',expectedDate:'2026-07-07'}
+];
+
+let stockRequests = [
+  {id:'REQ-501',items:[{name:'Sooper Biscuits',qty:100},{name:"Olper's Milk 1L",qty:60}],status:'approved',date:'2026-07-04',notes:'Running low before weekend'},
+  {id:'REQ-500',items:[{name:'Samsung Refrigerator 350L',qty:5}],status:'fulfilled',date:'2026-07-02',notes:'Customer demand increasing'}
+];
+
+let stockHistory = [
+  {product:'Nestle Water 1.5L',type:'remove',qty:3,reason:'Damaged goods',time:Date.now()-3*3600000},
+  {product:'Dairy Milk',type:'remove',qty:5,reason:'Expired item',time:Date.now()-6*3600000},
+  {product:'Pepsi 500ml',type:'add',qty:2,reason:'Customer return',time:Date.now()-8*3600000}
+];
+
+let requestItems = [];
+let selectedStockProduct = null;
+let countActive = false;
+
+// ━━━━ NAVIGATION ━━━━
+function navTo(page) {
+  document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+  document.querySelectorAll('.mobile-nav button').forEach(b => b.classList.remove('active'));
+
+  const secMap = {dashboard:'sec-dashboard',products:'sec-products','receive-stock':'sec-receive-stock','request-stock':'sec-request-stock','stock-adjust':'sec-stock-adjust','stock-count':'sec-stock-count','expiry-monitor':'sec-expiry-monitor'};
+  const titleMap = {dashboard:['Dashboard','Store inventory overview & alerts'],products:['Products','View store product catalog (read-only)'],'receive-stock':['Receive Stock','Verify incoming transfers from warehouse'],'request-stock':['Request Stock','Request items from warehouse'],'stock-adjust':['Stock Adjustments','Record damages, returns & corrections'],'stock-count':['Stock Count','Physical count & reconciliation'],'expiry-monitor':['Expiry Monitor','Track items approaching expiry']};
+  const sidebarIdx = {dashboard:0,products:1,'receive-stock':2,'request-stock':3,'stock-adjust':4,'stock-count':5,'expiry-monitor':6};
+  const mobileIdx = {dashboard:0,products:1,'receive-stock':2,'stock-adjust':3};
+
+  document.getElementById(secMap[page]).classList.add('active');
+  const links = document.querySelectorAll('.sidebar-link');
+  if (sidebarIdx[page] !== undefined && links[sidebarIdx[page]]) links[sidebarIdx[page]].classList.add('active');
+  const mBtns = document.querySelectorAll('.mobile-nav button');
+  if (mobileIdx[page] !== undefined && mBtns[mobileIdx[page]]) mBtns[mobileIdx[page]].classList.add('active');
+
+  const t = titleMap[page] || ['',''];
+  document.getElementById('page-title').textContent = t[0];
+  document.getElementById('page-subtitle').textContent = t[1];
+
+  if (page === 'dashboard') renderDashboard();
+  if (page === 'products') renderProducts();
+  if (page === 'receive-stock') renderTransfers();
+  if (page === 'request-stock') renderRequestHistory();
+  if (page === 'stock-adjust') renderStockHistory();
+  if (page === 'expiry-monitor') renderExpiry();
+  window.scrollTo(0,0);
+}
+
+// ━━━━ DASHBOARD ━━━━
+function renderDashboard() {
+  const low = products.filter(p => p.stock > 0 && p.stock <= p.minStock);
+  const out = products.filter(p => p.stock === 0);
+  const pending = incomingTransfers.filter(t => t.status === 'in_transit').length;
+
+  document.getElementById('dash-total').textContent = products.length;
+  document.getElementById('dash-low').textContent = low.length;
+  document.getElementById('dash-out').textContent = out.length;
+  document.getElementById('dash-pending').textContent = pending;
+
+  document.getElementById('dash-low-stock').innerHTML = low.length === 0
+    ? '<p class="text-[12px] text-gray-400 py-4 text-center">All products well stocked 👍</p>'
+    : low.concat(out).map(p => `<div class="flex items-center justify-between py-2 px-3 ${p.stock === 0 ? 'bg-brand-red/5 border-brand-red/10' : 'bg-brand-orange/5 border-brand-orange/10'} rounded-lg border">
+        <div class="flex items-center gap-3"><div class="w-8 h-8 rounded-lg ${p.stock === 0 ? 'bg-brand-red/10' : 'bg-brand-orange/10'} flex items-center justify-center text-[9px] font-bold ${p.stock === 0 ? 'text-brand-red' : 'text-brand-orange'}">${p.stock}</div>
+        <div><p class="text-[12px] font-medium text-navy-dark">${p.name}</p><p class="text-[10px] text-gray-400">${p.sku} · Min: ${p.minStock}</p></div></div>
+        <button onclick="navTo('request-stock')" class="text-[10px] text-brand-blue font-semibold hover:underline">Request →</button>
+      </div>`).join('');
+}
+
+// ━━━━ PRODUCTS (Read-Only) ━━━━
+function renderProducts() {
+  const search = (document.getElementById('prod-search')?.value || '').toLowerCase();
+  const catFilter = document.getElementById('prod-cat-filter')?.value || '';
+  const stockFilter = document.getElementById('prod-stock-filter')?.value || '';
+
+  let filtered = products.filter(p => {
+    if (search && !p.name.toLowerCase().includes(search) && !p.sku.toLowerCase().includes(search) && !p.barcode.includes(search)) return false;
+    if (catFilter && p.category !== catFilter) return false;
+    if (stockFilter === 'low' && !(p.stock > 0 && p.stock <= p.minStock)) return false;
+    if (stockFilter === 'out' && p.stock !== 0) return false;
+    if (stockFilter === 'in' && p.stock <= p.minStock) return false;
+    return true;
+  });
+
+  document.getElementById('prod-table-body').innerHTML = filtered.length === 0
+    ? '<tr><td colspan="7" class="px-4 py-12 text-center text-[12px] text-gray-400">No products match your filters</td></tr>'
+    : filtered.map(p => {
+      const statusClass = p.stock === 0 ? 'badge-red' : p.stock <= p.minStock ? 'badge-orange' : 'badge-green';
+      const statusLabel = p.stock === 0 ? 'Out of Stock' : p.stock <= p.minStock ? 'Low Stock' : 'In Stock';
+      return `<tr class="hover:bg-gray-50/50 transition">
+        <td class="px-4 py-3"><p class="text-[12px] font-semibold text-navy-dark">${p.name}</p><p class="text-[10px] text-gray-400">${p.brand}</p></td>
+        <td class="px-4 py-3 sm-hide"><span class="text-[11px] font-mono text-gray-600">${p.sku}</span></td>
+        <td class="px-4 py-3 sm-hide"><span class="text-[11px] font-mono text-gray-600">${p.barcode}</span></td>
+        <td class="px-4 py-3 sm-hide"><span class="text-[10px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">${p.category}</span></td>
+        <td class="px-4 py-3"><span class="text-[12px] font-medium">Rs.${p.price.toLocaleString()}</span></td>
+        <td class="px-4 py-3"><span class="text-[13px] font-bold text-navy-dark">${p.stock}</span></td>
+        <td class="px-4 py-3"><span class="badge ${statusClass}">${statusLabel}</span></td>
+      </tr>`;
+    }).join('');
+}
+
+// ━━━━ RECEIVE STOCK (Incoming Transfers) ━━━━
+function renderTransfers() {
+  const list = document.getElementById('transfers-list');
+  if (incomingTransfers.length === 0) {
+    list.innerHTML = '<div class="text-center py-12"><ion-icon name="archive-outline" class="text-gray-300 text-4xl mb-2"></ion-icon><p class="text-[13px] text-gray-400">No incoming transfers</p></div>';
+    return;
+  }
+  list.innerHTML = incomingTransfers.map(t => {
+    const isTransit = t.status === 'in_transit';
+    return `<div class="bg-white rounded-xl border border-border p-5">
+      <div class="flex items-start justify-between mb-4">
+        <div>
+          <div class="flex items-center gap-2 mb-1">
+            <p class="text-[14px] font-bold text-navy-dark font-mono">#${t.id}</p>
+            <span class="badge ${isTransit ? 'badge-blue' : 'badge-green'}">${isTransit ? 'In Transit' : 'Received'}</span>
+          </div>
+          <p class="text-[11px] text-gray-500">From: ${t.from} · Sent: ${t.sentDate}</p>
+          <p class="text-[10px] text-gray-400">Expected: ${t.expectedDate}</p>
+        </div>
+        <div class="text-right">
+          <p class="text-[11px] text-gray-500">${t.items.length} items</p>
+          <p class="text-[10px] text-gray-400">${t.items.reduce((s,i)=>s+i.expectedQty,0)} total units</p>
+        </div>
+      </div>
+      <div class="bg-gray-50 rounded-lg overflow-hidden mb-4">
+        <table class="w-full text-[11px]">
+          <thead><tr class="border-b border-gray-200"><th class="px-3 py-2 text-left text-gray-500 font-semibold">Product</th><th class="px-3 py-2 text-left text-gray-500 font-semibold">SKU</th><th class="px-3 py-2 text-center text-gray-500 font-semibold">Expected</th>${isTransit ? '<th class="px-3 py-2 text-center text-gray-500 font-semibold">Received</th>' : ''}</tr></thead>
+          <tbody>${t.items.map((item,idx) => `<tr class="border-b border-gray-100 last:border-0">
+            <td class="px-3 py-2 font-medium text-navy-dark">${item.name}</td>
+            <td class="px-3 py-2 font-mono text-gray-500">${item.sku}</td>
+            <td class="px-3 py-2 text-center font-bold">${item.expectedQty}</td>
+            ${isTransit ? `<td class="px-3 py-2 text-center"><input type="number" id="recv-${t.id}-${idx}" class="input-field w-16 text-center py-1 text-[12px] font-bold" value="${item.expectedQty}" min="0"></td>` : ''}
+          </tr>`).join('')}</tbody>
+        </table>
+      </div>
+      ${isTransit ? `<div class="flex items-center gap-2">
+        <button onclick="confirmTransfer('${t.id}')" class="btn-success"><ion-icon name="checkmark-circle-outline"></ion-icon>Confirm Receipt</button>
+        <button onclick="reportDiscrepancy('${t.id}')" class="btn-warning"><ion-icon name="alert-circle-outline"></ion-icon>Report Discrepancy</button>
+      </div>` : '<p class="text-[11px] text-brand-green font-medium flex items-center gap-1"><ion-icon name="checkmark-circle" class="text-sm"></ion-icon>Verified and added to store stock</p>'}
+    </div>`;
+  }).join('');
+}
+
+function confirmTransfer(id) {
+  const transfer = incomingTransfers.find(t => t.id === id);
+  if (!transfer) return;
+  transfer.items.forEach((item, idx) => {
+    const input = document.getElementById(`recv-${id}-${idx}`);
+    const received = parseInt(input?.value) || 0;
+    const product = products.find(p => p.sku === item.sku);
+    if (product) product.stock += received;
+  });
+  transfer.status = 'received';
+  toast(`Transfer #${id} received and stock updated`);
+  renderTransfers();
+}
+
+function reportDiscrepancy(id) {
+  toast('Discrepancy reported to warehouse','alert-circle-outline',false);
+}
+
+// ━━━━ REQUEST STOCK ━━━━
+function renderRequestSuggestions(query) {
+  const container = document.getElementById('req-suggestions');
+  if (!query.trim()) { container.classList.add('hidden'); return; }
+  const q = query.trim().toLowerCase();
+  const matches = products.filter(p => p.name.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q) || p.barcode.includes(q)).slice(0, 6);
+  if (matches.length === 0) { container.classList.add('hidden'); return; }
+  container.classList.remove('hidden');
+  container.innerHTML = matches.map(p => {
+    const already = requestItems.find(r => r.id === p.id);
+    return `<div class="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-0 flex justify-between items-center transition ${already ? 'opacity-50' : ''}" onclick="${already ? '' : `addRequestItem(${p.id})`}">
+      <div><p class="text-[12px] font-semibold text-navy-dark">${p.name}</p><p class="text-[10px] text-gray-400 font-mono">${p.sku} · Stock: ${p.stock} / Min: ${p.minStock}</p></div>
+      ${already ? '<span class="text-[9px] text-gray-400">Added</span>' : '<ion-icon name="add-circle-outline" class="text-brand-blue text-lg"></ion-icon>'}
+    </div>`;
+  }).join('');
+}
+
+function addRequestItem(id) {
+  const p = products.find(x => x.id === id);
+  if (!p || requestItems.find(r => r.id === id)) return;
+  const suggestedQty = Math.max(p.minStock * 2 - p.stock, 10);
+  requestItems.push({id: p.id, name: p.name, sku: p.sku, currentStock: p.stock, qty: suggestedQty});
+  document.getElementById('req-search').value = '';
+  document.getElementById('req-suggestions').classList.add('hidden');
+  renderRequestItems();
+}
+
+function removeRequestItem(id) {
+  requestItems = requestItems.filter(r => r.id !== id);
+  renderRequestItems();
+}
+
+function renderRequestItems() {
+  const list = document.getElementById('req-items-list');
+  const empty = document.getElementById('req-items-empty');
+  document.getElementById('req-item-count').textContent = requestItems.length + ' items';
+  if (requestItems.length === 0) {
+    list.innerHTML = '';
+    empty.classList.remove('hidden');
+    return;
+  }
+  empty.classList.add('hidden');
+  list.innerHTML = requestItems.map(r => `<div class="flex items-center gap-3 bg-gray-50 border border-gray-200 rounded-lg p-3">
+    <div class="flex-1 min-w-0">
+      <p class="text-[12px] font-semibold text-navy-dark truncate">${r.name}</p>
+      <p class="text-[10px] text-gray-400">${r.sku} · Current: ${r.currentStock}</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <input type="number" min="1" value="${r.qty}" onchange="requestItems.find(x=>x.id===${r.id}).qty=parseInt(this.value)||1" class="input-field w-16 text-center py-1 text-[12px] font-bold">
+      <button onclick="removeRequestItem(${r.id})" class="text-brand-red hover:bg-brand-red/10 p-1 rounded"><ion-icon name="close-outline" class="text-sm"></ion-icon></button>
+    </div>
+  </div>`).join('');
+}
+
+function submitStockRequest(e) {
+  e.preventDefault();
+  if (requestItems.length === 0) { toast('Add at least one product','alert-circle-outline',true); return false; }
+  const reqId = 'REQ-' + (502 + stockRequests.length);
+  stockRequests.unshift({
+    id: reqId,
+    items: requestItems.map(r => ({name: r.name, qty: r.qty})),
+    status: 'pending',
+    date: '2026-07-06',
+    notes: document.getElementById('req-notes').value
+  });
+  toast(`Stock request ${reqId} sent to warehouse`);
+  requestItems = [];
+  renderRequestItems();
+  document.getElementById('req-notes').value = '';
+  renderRequestHistory();
+  return false;
+}
+
+function renderRequestHistory() {
+  const el = document.getElementById('req-history');
+  if (stockRequests.length === 0) {
+    el.innerHTML = '<p class="text-[11px] text-gray-400 text-center py-6">No requests yet</p>';
+    return;
+  }
+  el.innerHTML = stockRequests.slice(0, 8).map(r => {
+    const statusClass = r.status === 'pending' ? 'badge-orange' : r.status === 'approved' ? 'badge-blue' : 'badge-green';
+    const statusLabel = r.status === 'pending' ? 'Pending' : r.status === 'approved' ? 'Approved' : 'Fulfilled';
+    return `<div class="py-2.5 px-3 rounded-lg hover:bg-gray-50 border-b border-gray-100 last:border-0">
+      <div class="flex items-center justify-between mb-1">
+        <p class="text-[11px] font-bold text-navy-dark font-mono">${r.id}</p>
+        <span class="badge ${statusClass}">${statusLabel}</span>
+      </div>
+      <p class="text-[10px] text-gray-500">${r.items.map(i => `${i.name} ×${i.qty}`).join(', ')}</p>
+      <p class="text-[9px] text-gray-400 mt-0.5">${r.date}</p>
+    </div>`;
+  }).join('');
+}
+
+// ━━━━ STOCK ADJUSTMENTS ━━━━
+function renderStockSuggestions(query) {
+  const container = document.getElementById('sa-suggestions');
+  if (!query.trim()) { container.classList.add('hidden'); return; }
+  const q = query.trim().toLowerCase();
+  const matches = products.filter(p => p.sku.toLowerCase().includes(q) || p.barcode.toLowerCase().includes(q) || p.name.toLowerCase().includes(q)).slice(0, 6);
+  if (matches.length === 0) {
+    container.classList.remove('hidden');
+    container.innerHTML = `<div class="px-4 py-4 text-center"><p class="text-[11px] text-gray-400">No product found for "<strong>${q}</strong>"</p></div>`;
+    return;
+  }
+  container.classList.remove('hidden');
+  container.innerHTML = matches.map(p => {
+    const stockClass = p.stock === 0 ? 'text-brand-red' : p.stock <= p.minStock ? 'text-brand-orange' : 'text-brand-green';
+    const stockBg = p.stock === 0 ? 'bg-brand-red/10' : p.stock <= p.minStock ? 'bg-brand-orange/10' : 'bg-brand-green/10';
+    return `<div class="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-0 flex justify-between items-center transition" onclick="selectStockProduct(${p.id})">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center"><ion-icon name="barcode-outline" class="text-gray-500 text-sm"></ion-icon></div>
+        <div><p class="text-[12px] font-semibold text-navy-dark">${p.name}</p><p class="text-[10px] text-gray-400 font-mono">${p.sku} · ${p.barcode}</p></div>
+      </div>
+      <span class="text-[12px] font-bold ${stockClass} ${stockBg} px-2 py-0.5 rounded-full">${p.stock}</span>
+    </div>`;
+  }).join('');
+}
+
+function selectStockProduct(id) {
+  selectedStockProduct = products.find(p => p.id === id);
+  if (!selectedStockProduct) return;
+  showSelectedStock();
+  document.getElementById('sa-suggestions').classList.add('hidden');
+  document.getElementById('sa-search').value = selectedStockProduct.sku;
+}
+
+function clearStockSelection() {
+  selectedStockProduct = null;
+  document.getElementById('sa-selected').classList.add('hidden');
+  document.getElementById('sa-preview').classList.add('hidden');
+  document.getElementById('sa-search').value = '';
+  document.getElementById('sa-search').focus();
+}
+
+function showSelectedStock() {
+  if (!selectedStockProduct) return;
+  document.getElementById('sa-selected').classList.remove('hidden');
+  document.getElementById('sa-selected-name').textContent = selectedStockProduct.name;
+  document.getElementById('sa-selected-info').textContent = `SKU: ${selectedStockProduct.sku} · Barcode: ${selectedStockProduct.barcode} · Min: ${selectedStockProduct.minStock}`;
+  document.getElementById('sa-selected-stock').textContent = selectedStockProduct.stock;
+  updateStockPreview();
+}
+
+function updateStockPreview() {
+  if (!selectedStockProduct) { document.getElementById('sa-preview').classList.add('hidden'); return; }
+  const type = document.getElementById('sa-type').value;
+  const qty = parseInt(document.getElementById('sa-qty').value) || 0;
+  const before = selectedStockProduct.stock;
+  let after = before;
+  if (type === 'add') after = before + qty;
+  else if (type === 'remove') after = Math.max(0, before - qty);
+  else after = qty;
+
+  document.getElementById('sa-preview').classList.remove('hidden');
+  document.getElementById('sa-preview-before').textContent = before;
+  const afterEl = document.getElementById('sa-preview-after');
+  afterEl.textContent = after;
+  afterEl.className = after > before ? 'text-[14px] font-bold text-brand-green' : after < before ? 'text-[14px] font-bold text-brand-red' : 'text-[14px] font-bold text-gray-600';
+}
+
+function adjustStock(e) {
+  e.preventDefault();
+  if (!selectedStockProduct) { toast('Select a product first','alert-circle-outline',true); return false; }
+  const type = document.getElementById('sa-type').value;
+  const qty = parseInt(document.getElementById('sa-qty').value);
+  const reason = document.getElementById('sa-reason').value;
+  if (isNaN(qty) || qty < 0) { toast('Invalid quantity','alert-circle-outline',true); return false; }
+
+  let oldStock = selectedStockProduct.stock;
+  if (type === 'add') selectedStockProduct.stock += qty;
+  else if (type === 'remove') selectedStockProduct.stock = Math.max(0, selectedStockProduct.stock - qty);
+  else selectedStockProduct.stock = qty;
+
+  stockHistory.unshift({product:selectedStockProduct.name,type,qty,reason,time:Date.now()});
+  toast(`Stock updated: ${selectedStockProduct.name} (${oldStock} → ${selectedStockProduct.stock})`);
+
+  selectedStockProduct = null;
+  document.getElementById('sa-selected').classList.add('hidden');
+  document.getElementById('sa-preview').classList.add('hidden');
+  document.getElementById('sa-search').value = '';
+  document.getElementById('sa-qty').value = 0;
+  renderStockHistory();
+  return false;
+}
+
+function renderStockHistory() {
+  const histEl = document.getElementById('sa-history');
+  if (stockHistory.length === 0) {
+    histEl.innerHTML = '<div class="text-center py-6"><ion-icon name="clipboard-outline" class="text-gray-300 text-2xl mb-1"></ion-icon><p class="text-[11px] text-gray-400">No adjustments yet</p></div>';
+    return;
+  }
+  histEl.innerHTML = stockHistory.slice(0, 10).map(h => {
+    const icon = h.type === 'add' ? 'add-circle-outline' : h.type === 'remove' ? 'remove-circle-outline' : 'refresh-outline';
+    const color = h.type === 'add' ? 'brand-green' : h.type === 'remove' ? 'brand-red' : 'brand-blue';
+    const label = h.type === 'add' ? `+${h.qty}` : h.type === 'remove' ? `-${h.qty}` : `=${h.qty}`;
+    const mins = Math.floor((Date.now() - h.time)/60000);
+    const timeLabel = mins < 60 ? mins + ' min ago' : Math.floor(mins/60) + ' hr ago';
+    return `<div class="flex items-center gap-3 py-2.5 px-3 rounded-lg hover:bg-gray-50 transition border-b border-gray-100 last:border-0">
+      <div class="w-8 h-8 rounded-lg bg-${color}/10 flex items-center justify-center shrink-0"><ion-icon name="${icon}" class="text-${color} text-sm"></ion-icon></div>
+      <div class="flex-1 min-w-0"><p class="text-[11px] text-gray-700 truncate"><strong class="text-navy-dark">${h.product}</strong></p><p class="text-[9px] text-gray-400 mt-0.5">${h.reason} · ${timeLabel}</p></div>
+      <span class="text-[12px] font-bold font-mono ${h.type === 'add' ? 'text-brand-green' : h.type === 'remove' ? 'text-brand-red' : 'text-brand-blue'}">${label}</span>
+    </div>`;
+  }).join('');
+}
+
+// ━━━━ STOCK COUNT ━━━━
+function startNewCount() {
+  countActive = true;
+  document.getElementById('count-session').classList.remove('hidden');
+  document.getElementById('count-empty').classList.add('hidden');
+  renderCountTable();
+}
+
+function cancelCount() {
+  countActive = false;
+  document.getElementById('count-session').classList.add('hidden');
+  document.getElementById('count-empty').classList.remove('hidden');
+}
+
+function renderCountTable() {
+  document.getElementById('count-progress').textContent = `0 / ${products.length} counted`;
+  document.getElementById('count-table-body').innerHTML = products.map((p, idx) => `<tr class="hover:bg-gray-50/50">
+    <td class="px-4 py-3"><p class="text-[12px] font-semibold text-navy-dark">${p.name}</p><p class="text-[10px] text-gray-400">${p.sku}</p></td>
+    <td class="px-4 py-3 text-[13px] font-bold text-navy-dark">${p.stock}</td>
+    <td class="px-4 py-3"><input type="number" id="count-${idx}" class="input-field w-20 text-center py-1 text-[13px] font-bold" min="0" placeholder="—" oninput="updateCountProgress()"></td>
+    <td class="px-4 py-3"><span id="var-${idx}" class="text-[12px] font-bold text-gray-400">—</span></td>
+  </tr>`).join('');
+}
+
+function updateCountProgress() {
+  let counted = 0;
+  products.forEach((p, idx) => {
+    const input = document.getElementById(`count-${idx}`);
+    const varEl = document.getElementById(`var-${idx}`);
+    if (input.value !== '') {
+      counted++;
+      const diff = parseInt(input.value) - p.stock;
+      if (diff === 0) { varEl.textContent = '✓'; varEl.className = 'text-[12px] font-bold text-brand-green'; }
+      else if (diff > 0) { varEl.textContent = `+${diff}`; varEl.className = 'text-[12px] font-bold text-brand-blue'; }
+      else { varEl.textContent = `${diff}`; varEl.className = 'text-[12px] font-bold text-brand-red'; }
+    } else {
+      varEl.textContent = '—'; varEl.className = 'text-[12px] font-bold text-gray-400';
+    }
+  });
+  document.getElementById('count-progress').textContent = `${counted} / ${products.length} counted`;
+}
+
+function submitCount() {
+  let adjustments = 0;
+  products.forEach((p, idx) => {
+    const input = document.getElementById(`count-${idx}`);
+    if (input.value !== '') {
+      const newQty = parseInt(input.value);
+      if (newQty !== p.stock) {
+        stockHistory.unshift({product: p.name, type: 'set', qty: newQty, reason: 'Stock count correction', time: Date.now()});
+        p.stock = newQty;
+        adjustments++;
+      }
+    }
+  });
+  toast(`Stock count completed. ${adjustments} item${adjustments !== 1 ? 's' : ''} adjusted.`);
+  cancelCount();
+}
+
+// ━━━━ EXPIRY MONITOR ━━━━
+function renderExpiry() {
+  const today = new Date('2026-07-06');
+  const perishable = products.filter(p => p.expiry).map(p => {
+    const exp = new Date(p.expiry);
+    const daysLeft = Math.ceil((exp - today) / (1000*60*60*24));
+    return {...p, daysLeft, expiryDate: exp};
+  }).sort((a,b) => a.daysLeft - b.daysLeft);
+
+  // Update badge
+  const urgent = perishable.filter(p => p.daysLeft <= 7).length;
+  document.getElementById('expiry-badge').textContent = urgent;
+  document.getElementById('expiry-badge').style.display = urgent > 0 ? 'flex' : 'none';
+
+  const el = document.getElementById('expiry-list');
+  if (perishable.length === 0) {
+    el.innerHTML = '<p class="text-[12px] text-gray-400 py-8 text-center">No perishable items with expiry dates</p>';
+    return;
+  }
+  el.innerHTML = perishable.map(p => {
+    let urgency, badge, bg;
+    if (p.daysLeft <= 0) { urgency = 'EXPIRED'; badge = 'badge-red'; bg = 'bg-brand-red/5 border-brand-red/20'; }
+    else if (p.daysLeft <= 3) { urgency = `${p.daysLeft} day${p.daysLeft>1?'s':''} left`; badge = 'badge-red'; bg = 'bg-brand-red/5 border-brand-red/20'; }
+    else if (p.daysLeft <= 7) { urgency = `${p.daysLeft} days left`; badge = 'badge-orange'; bg = 'bg-brand-orange/5 border-brand-orange/20'; }
+    else if (p.daysLeft <= 30) { urgency = `${p.daysLeft} days left`; badge = 'badge-blue'; bg = 'bg-gray-50 border-gray-200'; }
+    else { urgency = `${p.daysLeft} days left`; badge = 'badge-green'; bg = 'bg-gray-50 border-gray-200'; }
+
+    return `<div class="flex items-center justify-between p-4 rounded-xl border ${bg}">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-lg ${p.daysLeft <= 7 ? 'bg-brand-red/10' : 'bg-gray-100'} flex items-center justify-center">
+          <ion-icon name="time-outline" class="${p.daysLeft <= 7 ? 'text-brand-red' : 'text-gray-500'} text-lg"></ion-icon>
+        </div>
+        <div>
+          <p class="text-[12px] font-semibold text-navy-dark">${p.name}</p>
+          <p class="text-[10px] text-gray-400">${p.sku} · Stock: ${p.stock} · Expires: ${p.expiry}</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="badge ${badge}">${urgency}</span>
+        ${p.daysLeft <= 3 ? `<button onclick="writeOffExpired(${p.id})" class="btn-danger text-[10px] py-1.5 px-3">Write Off</button>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function writeOffExpired(id) {
+  const p = products.find(x => x.id === id);
+  if (!p) return;
+  if (!confirm(`Write off all ${p.stock} units of "${p.name}" as expired?`)) return;
+  stockHistory.unshift({product: p.name, type: 'remove', qty: p.stock, reason: 'Expired item', time: Date.now()});
+  p.stock = 0;
+  toast(`${p.name} written off (expired)`);
+  renderExpiry();
+}
+
+// ━━━━ TOAST ━━━━
+let toastTimer;
+function toast(msg, icon, isError) {
+  clearTimeout(toastTimer);
+  const el = document.getElementById('app-toast');
+  document.getElementById('toast-msg').textContent = msg;
+  const iconEl = document.getElementById('toast-icon');
+  iconEl.name = icon || 'checkmark-circle';
+  iconEl.className = isError ? 'text-brand-red text-lg' : 'text-brand-green text-lg';
+  el.classList.add('show');
+  toastTimer = setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+// ━━━━ INIT ━━━━
+document.addEventListener('DOMContentLoaded', () => {
+  renderDashboard();
+  renderProducts();
+  renderTransfers();
+  renderRequestHistory();
+  renderStockHistory();
+  renderExpiry();
+});
+</script>
+</body>
+</html>

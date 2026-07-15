@@ -1,0 +1,1981 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Air Register — Brand Owner (Mobile)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        navy: { dark: '#0a1535', DEFAULT: '#1a2d6b', light: '#2a4494' },
+        brand: { blue: '#3366cc', green: '#2dd36f', orange: '#ff9800', red: '#eb445a', purple: '#7c4dff' },
+        page: '#f4f6f9',
+        border: '#e8ecf1'
+      },
+      fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] }
+    }
+  }
+}
+</script>
+<script src="https://unpkg.com/ionicons@7.1.0/dist/ionicons.js"></script>
+<style>
+html, body { margin:0; padding:0; background:#f4f6f9; color:#111; }
+body { min-height:100vh; min-height:100dvh; font-family:'Plus Jakarta Sans',sans-serif; max-width:430px; margin:0 auto; position:relative; overflow-x:hidden; }
+.page { display:none; padding-bottom:90px; }
+.page.active { display:block; }
+.bottom-nav { position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:430px; background:#fff; border-top:1px solid #e8ecf1; z-index:100; padding:6px 0 env(safe-area-inset-bottom, 6px); display:flex; }
+.bottom-nav button { flex:1; display:flex; flex-direction:column; align-items:center; gap:2px; padding:6px 0; background:none; border:none; cursor:pointer; color:#94a3b8; font-size:10px; font-family:inherit; font-weight:500; transition:color 0.15s; }
+.bottom-nav button.active { color:#1a2d6b; font-weight:700; }
+.bottom-nav button ion-icon { font-size:22px; }
+.filter-pill { padding:6px 14px; border-radius:20px; font-size:11px; font-weight:600; border:1.5px solid #e8ecf1; background:#fff; color:#64748b; cursor:pointer; white-space:nowrap; transition:all 0.15s; }
+.filter-pill.active { background:#1a2d6b; color:#fff; border-color:#1a2d6b; }
+.animate-num { transition: opacity 0.15s; }
+</style>
+</head>
+<body>
+
+<!-- ════════ PAGE: SALES ════════ -->
+<div id="page-sales" class="page active">
+  <div class="bg-navy-dark px-5 pt-[env(safe-area-inset-top,12px)] pb-5 rounded-b-3xl">
+    <div class="flex items-center justify-between pt-3 mb-4">
+      <div>
+        <p class="text-white/40 text-[10px] font-semibold uppercase tracking-[0.15em]">Brand Owner</p>
+        <h1 class="text-white text-[20px] font-bold mt-0.5">Clifton Mart</h1>
+      </div>
+      <div class="w-9 h-9 rounded-full bg-brand-green text-white flex items-center justify-center font-bold text-[11px]">BA</div>
+    </div>
+    <div class="bg-white/10 rounded-2xl p-4">
+      <div class="flex items-center justify-between mb-1">
+        <p class="text-white/50 text-[10px] uppercase tracking-wider font-medium">Total Revenue</p>
+        <span id="hd-trend" class="text-[10px] font-semibold text-brand-green bg-brand-green/20 px-2 py-0.5 rounded-full"></span>
+      </div>
+      <p id="hd-total" class="text-white text-[32px] font-extrabold leading-tight"></p>
+      <div class="flex items-center gap-4 mt-2.5 text-white/50 text-[11px]">
+        <span><strong id="hd-orders" class="text-white font-bold"></strong> orders</span>
+        <span><strong id="hd-stores" class="text-white font-bold">5</strong> stores</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="px-4 pt-5">
+    <div class="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1" id="period-filters" style="scrollbar-width:none;">
+      <button onclick="setPeriod('today')" class="filter-pill">Today</button>
+      <button onclick="setPeriod('week')" class="filter-pill">This Week</button>
+      <button onclick="setPeriod('month')" class="filter-pill active">This Month</button>
+      <button onclick="setPeriod('year')" class="filter-pill">This Year</button>
+    </div>
+    <!-- [FIX-1] Actual date range label under filter pills -->
+    <p id="period-date-range" class="text-[11px] text-gray-400 font-medium px-1 pb-3"></p>
+
+    <!-- Channel Split -->
+    <div class="grid grid-cols-2 gap-3 mb-4" id="channel-cards"></div>
+
+    <!-- Store Performance -->
+    <div class="bg-white rounded-2xl border border-border p-4 mb-4">
+      <div class="flex items-center justify-between mb-3">
+        <p class="text-[13px] font-semibold text-navy-dark">Store Performance</p>
+        <span class="text-[10px] text-gray-400" id="store-perf-label"></span>
+      </div>
+      <div id="store-perf-list" class="space-y-3"></div>
+    </div>
+
+    <!-- Payment Methods -->
+    <div class="bg-white rounded-2xl border border-border p-4 mb-4">
+      <div class="flex items-center justify-between mb-3">
+        <p class="text-[13px] font-semibold text-navy-dark">Payment Methods</p>
+        <span id="pay-total-label" class="text-[10px] text-gray-400"></span>
+      </div>
+      <div id="payment-grid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ PAGE: STORES ════════ -->
+<div id="page-stores" class="page">
+  <div class="bg-navy-dark px-5 pt-[env(safe-area-inset-top,12px)] pb-5 rounded-b-3xl">
+    <div class="pt-3 mb-4">
+      <h1 class="text-white text-[20px] font-bold">My Stores</h1>
+      <p id="stores-subtitle" class="text-white/40 text-[11px] mt-0.5"></p>
+    </div>
+    <!-- Summary cards -->
+    <div class="grid grid-cols-3 gap-2">
+      <div class="bg-white/10 rounded-xl p-3 text-center">
+        <p id="stores-total-count" class="text-white text-[18px] font-bold">5</p>
+        <p class="text-white/40 text-[9px] uppercase tracking-wider font-medium mt-0.5">Total</p>
+      </div>
+      <div class="bg-white/10 rounded-xl p-3 text-center">
+        <p id="stores-active-count" class="text-brand-green text-[18px] font-bold">4</p>
+        <p class="text-white/40 text-[9px] uppercase tracking-wider font-medium mt-0.5">Active</p>
+      </div>
+      <div class="bg-white/10 rounded-xl p-3 text-center">
+        <p id="stores-today-total" class="text-white text-[18px] font-bold"></p>
+        <p class="text-white/40 text-[9px] uppercase tracking-wider font-medium mt-0.5">Today Sales</p>
+      </div>
+    </div>
+  </div>
+  <!-- [FIX-3] Search + filter bar -->
+  <div class="px-4 pt-4 pb-2 space-y-2">
+    <div class="relative">
+      <ion-icon name="search-outline" class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-base pointer-events-none"></ion-icon>
+      <input id="store-search" type="text" placeholder="Search stores…" oninput="filterStores()" class="w-full bg-white border border-border rounded-xl pl-9 pr-4 h-[42px] text-[13px] focus:outline-none focus:border-navy placeholder-gray-400">
+    </div>
+    <div class="flex gap-2 overflow-x-auto pb-1" style="scrollbar-width:none;">
+      <button onclick="setStoreFilter('all')" id="sf-all" class="filter-pill active">All</button>
+      <button onclick="setStoreFilter('open')" id="sf-open" class="filter-pill">Open</button>
+      <button onclick="setStoreFilter('closed')" id="sf-closed" class="filter-pill">Closed</button>
+      <button onclick="setStoreFilter('top')" id="sf-top" class="filter-pill">Top Selling</button>
+    </div>
+  </div>
+  <div class="px-4 space-y-3 pb-4" id="stores-list"></div>
+</div>
+
+<!-- ════════ PAGE: PLAN ════════ -->
+<div id="page-plan" class="page">
+  <div class="bg-navy-dark px-5 pt-[env(safe-area-inset-top,12px)] pb-5 rounded-b-3xl">
+    <div class="pt-3 mb-4">
+      <h1 class="text-white text-[20px] font-bold">Subscription</h1>
+      <p class="text-white/40 text-[11px] mt-0.5">Plan & billing</p>
+    </div>
+    <!-- Plan Hero -->
+    <div class="bg-white/10 rounded-2xl p-4">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="w-10 h-10 rounded-xl bg-brand-purple/20 flex items-center justify-center"><ion-icon name="rocket" class="text-brand-purple text-xl"></ion-icon></div>
+          <div>
+            <p id="plan-name-hd" class="text-white text-[16px] font-bold"></p>
+            <p id="plan-price-hd" class="text-white/50 text-[11px]"></p>
+          </div>
+        </div>
+        <span id="plan-status-badge" class="text-[9px] font-bold px-2.5 py-1 rounded-full"></span>
+      </div>
+      <div class="mt-4 pt-3 border-t border-white/10">
+        <div class="flex items-center justify-between mb-1.5">
+          <span class="text-white/40 text-[10px] font-medium">Subscription period</span>
+          <span id="plan-days-hd" class="text-white text-[10px] font-semibold"></span>
+        </div>
+        <div class="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+          <div id="plan-progress-bar" class="h-full bg-brand-green rounded-full transition-all duration-500"></div>
+        </div>
+        <div class="flex items-center justify-between mt-1.5">
+          <span id="plan-start-hd" class="text-white/30 text-[9px]"></span>
+          <span id="plan-expiry-hd" class="text-white/30 text-[9px]"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="px-4 pt-4" id="plan-content"></div>
+</div>
+
+<!-- ════════ PAGE: SETTINGS ════════ -->
+<div id="page-settings" class="page">
+  <div class="bg-navy-dark px-5 pt-[env(safe-area-inset-top,12px)] pb-5 rounded-b-3xl">
+    <div class="pt-3">
+      <h1 class="text-white text-[20px] font-bold">Settings</h1>
+      <p class="text-white/40 text-[11px] mt-0.5">Account & preferences</p>
+    </div>
+    <!-- Profile -->
+    <div class="mt-4 flex items-center gap-3 bg-white/10 rounded-2xl p-4">
+      <div id="settings-avatar" class="w-12 h-12 rounded-full bg-brand-green text-white flex items-center justify-center font-bold text-[14px]"></div>
+      <div class="flex-1 min-w-0">
+        <p id="settings-name" class="text-white text-[15px] font-bold truncate"></p>
+        <p id="settings-email" class="text-white/50 text-[11px] truncate"></p>
+      </div>
+      <div class="text-right">
+        <span id="settings-plan-badge" class="text-[9px] font-bold bg-brand-purple/20 text-brand-purple px-2 py-0.5 rounded-full"></span>
+      </div>
+    </div>
+  </div>
+  <div class="px-4 pt-4" id="settings-content"></div>
+</div>
+
+<!-- ════════ TOAST NOTIFICATION ════════ -->
+<div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 z-[400] hidden transition-all duration-300 opacity-0" style="max-width:380px;width:90%;">
+  <div id="toast-inner" class="flex items-center gap-3 px-4 py-3 rounded-2xl shadow-lg">
+    <ion-icon id="toast-icon" class="text-xl shrink-0"></ion-icon>
+    <p id="toast-msg" class="text-[13px] font-semibold flex-1"></p>
+  </div>
+</div>
+
+<!-- ════════ SIGNED OUT SCREEN ════════ -->
+<div id="signed-out-screen" class="fixed inset-0 z-[500] hidden flex-col items-center justify-center bg-navy-dark" style="max-width:430px;margin:0 auto;">
+  <div class="w-16 h-16 rounded-2xl bg-white/10 flex items-center justify-center mb-6">
+    <ion-icon name="storefront" class="text-white text-3xl"></ion-icon>
+  </div>
+  <p class="text-white text-[22px] font-bold mb-2">Air Register</p>
+  <p class="text-white/50 text-[13px] mb-10">You have been signed out</p>
+  <button onclick="doSignIn()" class="bg-white text-navy-dark text-[14px] font-bold px-8 py-3.5 rounded-2xl active:opacity-90">Sign In Again</button>
+</div>
+
+<!-- ════════ CONTACT SUPPORT SHEET ════════ -->
+<div id="support-sheet" class="fixed inset-0 z-[350] hidden items-end justify-center" style="max-width:430px;margin:0 auto;">
+  <div class="absolute inset-0 bg-black/50" onclick="closeSupportSheet()"></div>
+  <div id="support-inner" class="relative w-full bg-white rounded-t-3xl transform transition-transform duration-300 translate-y-full p-6 pb-10">
+    <div class="flex justify-center mb-4"><div class="w-10 h-1 bg-gray-300 rounded-full"></div></div>
+    <p class="text-[17px] font-bold text-navy-dark mb-1" id="support-title"></p>
+    <p class="text-[12px] text-gray-400 mb-5" id="support-desc"></p>
+    <div id="support-body"></div>
+  </div>
+</div>
+
+<!-- ════════ PLAN CHANGED SUCCESS DIALOG ════════ -->
+<div id="plan-changed-dialog" class="fixed inset-0 z-[300] hidden items-end justify-center" style="max-width:430px;margin:0 auto;">
+  <div class="absolute inset-0 bg-black/50" onclick="this.parentElement.classList.add('hidden')"></div>
+  <div class="relative w-full bg-white rounded-t-3xl p-6 pb-8">
+    <div class="w-14 h-14 rounded-full bg-brand-purple/10 flex items-center justify-center mx-auto mb-4">
+      <ion-icon name="checkmark-circle" class="text-brand-purple text-3xl"></ion-icon>
+    </div>
+    <p class="text-[17px] font-bold text-navy-dark text-center mb-2">Plan Change Requested</p>
+    <p id="plan-changed-msg" class="text-[12px] text-gray-400 text-center mb-6 leading-relaxed"></p>
+    <button onclick="document.getElementById('plan-changed-dialog').classList.add('hidden')" class="w-full h-[46px] bg-navy text-white text-[13px] font-semibold rounded-xl">Got it</button>
+  </div>
+</div>
+
+<!-- ════════ SIGN OUT CONFIRM DIALOG ════════ -->
+<div id="signout-dialog" class="fixed inset-0 z-[300] hidden items-end justify-center" style="max-width:430px;margin:0 auto;">
+  <div class="absolute inset-0 bg-black/50" onclick="document.getElementById('signout-dialog').classList.add('hidden')"></div>
+  <div class="relative w-full bg-white rounded-t-3xl p-6 pb-8">
+    <div class="w-12 h-12 rounded-full bg-brand-red/10 flex items-center justify-center mx-auto mb-4">
+      <ion-icon name="log-out-outline" class="text-brand-red text-2xl"></ion-icon>
+    </div>
+    <p class="text-[17px] font-bold text-navy-dark text-center mb-1">Sign Out?</p>
+    <p class="text-[13px] text-gray-400 text-center mb-6">Are you sure you want to sign out?</p>
+    <div class="flex gap-3">
+      <button onclick="document.getElementById('signout-dialog').classList.add('hidden')" class="flex-1 h-[46px] bg-gray-100 text-navy-dark text-[13px] font-semibold rounded-xl">Cancel</button>
+      <button onclick="doSignOut()" class="flex-1 h-[46px] bg-brand-red text-white text-[13px] font-semibold rounded-xl">Sign Out</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ SETTINGS DETAIL PANEL (overlay) ════════ -->
+<div id="settings-panel" class="fixed inset-0 z-[200] hidden" style="max-width:430px;margin:0 auto;">
+  <div class="absolute inset-0 bg-black/40" onclick="closeSettingsPanel()"></div>
+  <div class="absolute inset-0 bg-page transform transition-transform duration-300 translate-x-full" id="settings-panel-inner">
+    <div class="bg-white border-b border-border px-4 py-3 flex items-center gap-3 sticky top-0 z-10">
+      <button onclick="closeSettingsPanel()" class="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center"><ion-icon name="arrow-back-outline" class="text-navy text-lg"></ion-icon></button>
+      <p id="settings-panel-title" class="text-[15px] font-bold text-navy-dark"></p>
+    </div>
+    <div class="p-4 overflow-y-auto" id="settings-panel-body" style="max-height:calc(100vh - 56px);"></div>
+  </div>
+</div>
+
+<!-- ════════ ALL PAYMENTS PANEL ════════ -->
+<div id="all-payments-panel" class="fixed inset-0 z-[200] hidden" style="max-width:430px;margin:0 auto;">
+  <div class="absolute inset-0 bg-black/40" onclick="closeAllPayments()"></div>
+  <div class="absolute inset-0 bg-page transform transition-transform duration-300 translate-x-full flex flex-col" id="all-payments-inner">
+
+    <!-- Sticky header -->
+    <div class="bg-white border-b border-border shrink-0">
+      <div class="px-4 py-3 flex items-center gap-3">
+        <button onclick="closeAllPayments()" class="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center shrink-0">
+          <ion-icon name="arrow-back-outline" class="text-navy text-lg"></ion-icon>
+        </button>
+        <div class="flex-1 min-w-0">
+          <p class="text-[15px] font-bold text-navy-dark">Payment History</p>
+          <p id="ap-subtitle" class="text-[10px] text-gray-400"></p>
+        </div>
+      </div>
+
+      <!-- Summary strip -->
+      <div class="grid grid-cols-3 gap-px bg-gray-100 border-t border-gray-100">
+        <div class="bg-white px-3 py-2.5 text-center">
+          <p id="ap-count" class="text-[15px] font-bold text-navy-dark"></p>
+          <p class="text-[9px] text-gray-400 mt-0.5">Payments</p>
+        </div>
+        <div class="bg-white px-3 py-2.5 text-center">
+          <p id="ap-total" class="text-[15px] font-bold text-brand-green"></p>
+          <p class="text-[9px] text-gray-400 mt-0.5">Total Paid</p>
+        </div>
+        <div class="bg-white px-3 py-2.5 text-center">
+          <p id="ap-pending-amt" class="text-[15px] font-bold text-brand-orange"></p>
+          <p class="text-[9px] text-gray-400 mt-0.5">Pending</p>
+        </div>
+      </div>
+
+      <!-- Search + filter -->
+      <div class="px-4 py-3 space-y-2 bg-page">
+        <div class="relative">
+          <ion-icon name="search-outline" class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-base pointer-events-none"></ion-icon>
+          <input id="ap-search" type="text" placeholder="Search by reference…" oninput="renderAllPaymentsList()" class="w-full bg-white border border-border rounded-xl pl-9 pr-4 h-[40px] text-[13px] focus:outline-none focus:border-navy placeholder-gray-400">
+        </div>
+        <div class="flex gap-2 overflow-x-auto pb-0.5" style="scrollbar-width:none;">
+          <button onclick="setPayFilter('all')" id="pf-all" class="filter-pill active">All</button>
+          <button onclick="setPayFilter('verified')" id="pf-verified" class="filter-pill">Verified</button>
+          <button onclick="setPayFilter('pending')" id="pf-pending" class="filter-pill">Pending</button>
+          <button onclick="setPayFilter('failed')" id="pf-failed" class="filter-pill">Failed</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Payment list — flex-1 so it fills remaining height and scrolls -->
+    <div class="flex-1 overflow-y-auto p-4 space-y-2 pb-8" id="ap-list"></div>
+  </div>
+</div>
+
+<!-- ════════ RENEWAL PANEL ════════ -->
+<div id="renewal-panel" class="fixed inset-0 z-[260] hidden items-end justify-center" style="max-width:430px;margin:0 auto;">
+  <div class="absolute inset-0 bg-black/50" onclick="closeRenewalPanel()"></div>
+  <div id="renewal-inner" class="relative w-full bg-white rounded-t-3xl transform transition-transform duration-300 translate-y-full" style="max-height:92dvh;overflow-y:auto;">
+
+    <!-- Handle -->
+    <div class="flex justify-center pt-3 pb-1 sticky top-0 bg-white z-10">
+      <div class="w-10 h-1 bg-gray-300 rounded-full"></div>
+    </div>
+
+    <!-- Step indicator -->
+    <div class="px-5 pt-2 pb-4 sticky top-5 bg-white z-10 border-b border-gray-100">
+      <div class="flex items-center justify-between mb-1">
+        <h2 class="text-[17px] font-bold text-navy-dark">Submit Payment</h2>
+        <button onclick="closeRenewalPanel()" class="w-8 h-8 rounded-xl bg-gray-100 flex items-center justify-center">
+          <ion-icon name="close" class="text-gray-500"></ion-icon>
+        </button>
+      </div>
+      <div class="flex items-center gap-2 mt-2">
+        <div id="rstep-1" class="flex items-center gap-1.5">
+          <div class="w-5 h-5 rounded-full bg-navy flex items-center justify-center text-white text-[9px] font-bold">1</div>
+          <span class="text-[10px] font-semibold text-navy">Duration</span>
+        </div>
+        <div class="flex-1 h-px bg-gray-200"></div>
+        <div id="rstep-2" class="flex items-center gap-1.5">
+          <div id="rstep-2-dot" class="w-5 h-5 rounded-full bg-gray-200 flex items-center justify-center text-gray-400 text-[9px] font-bold">2</div>
+          <span id="rstep-2-label" class="text-[10px] font-semibold text-gray-400">Bank Details</span>
+        </div>
+        <div class="flex-1 h-px bg-gray-200"></div>
+        <div id="rstep-3" class="flex items-center gap-1.5">
+          <div id="rstep-3-dot" class="w-5 h-5 rounded-full bg-gray-200 flex items-center justify-center text-gray-400 text-[9px] font-bold">3</div>
+          <span id="rstep-3-label" class="text-[10px] font-semibold text-gray-400">Confirm</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step body -->
+    <div id="renewal-body" class="p-5 pb-8"></div>
+  </div>
+</div>
+
+<!-- ════════ RENEWAL SUCCESS DIALOG ════════ -->
+<div id="renewal-success-dialog" class="fixed inset-0 z-[300] hidden items-end justify-center" style="max-width:430px;margin:0 auto;">
+  <div class="absolute inset-0 bg-black/50" onclick="closeRenewalSuccess()"></div>
+  <div class="relative w-full bg-white rounded-t-3xl p-6 pb-8">
+    <div class="w-14 h-14 rounded-full bg-brand-green/10 flex items-center justify-center mx-auto mb-4">
+      <ion-icon name="checkmark-circle" class="text-brand-green text-3xl"></ion-icon>
+    </div>
+    <p class="text-[17px] font-bold text-navy-dark text-center mb-2">Payment Submitted!</p>
+    <p id="renewal-success-msg" class="text-[12px] text-gray-400 text-center mb-2 leading-relaxed"></p>
+    <div id="renewal-success-ref" class="bg-gray-50 rounded-xl px-4 py-3 text-center mb-6">
+      <p class="text-[10px] text-gray-400 mb-0.5">Reference Number</p>
+      <p id="renewal-success-ref-val" class="text-[13px] font-bold text-navy-dark font-mono"></p>
+    </div>
+    <p class="text-[11px] text-gray-400 text-center mb-4">Our team will verify your payment within 24 hours and activate your plan.</p>
+    <button onclick="closeRenewalSuccess()" class="w-full h-[46px] bg-navy text-white text-[13px] font-semibold rounded-xl">Done</button>
+  </div>
+</div>
+
+<!-- ════════ CHANGE PLAN PANEL ════════ -->
+<div id="change-plan-panel" class="fixed inset-0 z-[250] hidden" style="max-width:430px;margin:0 auto;">
+  <div class="absolute inset-0 bg-black/50" onclick="closeChangePlan()"></div>
+  <div id="change-plan-inner" class="absolute bottom-0 left-0 right-0 bg-page rounded-t-3xl transform transition-transform duration-300 translate-y-full" style="max-height:92dvh;overflow-y:auto;">
+
+    <!-- Handle -->
+    <div class="flex justify-center pt-3 pb-1">
+      <div class="w-10 h-1 bg-gray-300 rounded-full"></div>
+    </div>
+
+    <!-- Header -->
+    <div class="px-5 pt-2 pb-4 flex items-center justify-between">
+      <div>
+        <h2 class="text-[18px] font-bold text-navy-dark">Change Plan</h2>
+        <p class="text-[11px] text-gray-400 mt-0.5">Currently on <strong class="text-navy-dark">Pro Plan</strong> · Rs.15,000/mo</p>
+      </div>
+      <button onclick="closeChangePlan()" class="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center">
+        <ion-icon name="close" class="text-gray-500 text-lg"></ion-icon>
+      </button>
+    </div>
+
+    <!-- Billing cycle toggle -->
+    <div class="px-5 mb-4">
+      <div class="bg-gray-100 rounded-xl p-1 flex" id="billing-toggle">
+        <button onclick="setBilling('monthly')" id="bt-monthly" class="flex-1 py-2 rounded-lg text-[12px] font-semibold transition bg-white shadow-sm text-navy-dark">Monthly</button>
+        <button onclick="setBilling('quarterly')" id="bt-quarterly" class="flex-1 py-2 rounded-lg text-[12px] font-semibold transition text-gray-500">Quarterly <span class="text-brand-green text-[10px] font-bold">−17%</span></button>
+        <button onclick="setBilling('annual')" id="bt-annual" class="flex-1 py-2 rounded-lg text-[12px] font-semibold transition text-gray-500">Annual <span class="text-brand-green text-[10px] font-bold">−25%</span></button>
+      </div>
+    </div>
+
+    <!-- Plan cards -->
+    <div class="px-5 space-y-3 pb-6" id="plan-cards-list"></div>
+
+    <!-- Confirm button (shown when a different plan is selected) -->
+    <div id="plan-confirm-bar" class="hidden px-5 pb-8 pt-2 sticky bottom-0 bg-page border-t border-border">
+      <button onclick="confirmPlanChange()" class="w-full bg-brand-purple text-white rounded-2xl p-4 flex items-center justify-center gap-2 text-[13px] font-semibold active:opacity-90">
+        <ion-icon name="checkmark-circle-outline" class="text-lg"></ion-icon>
+        <span id="plan-confirm-label">Confirm Plan Change</span>
+      </button>
+      <p class="text-center text-[10px] text-gray-400 mt-2">You'll receive an invoice after confirmation</p>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ BOTTOM NAV ════════ -->
+<nav class="bottom-nav">
+  <button class="active" onclick="navTo('sales')"><ion-icon name="stats-chart-outline"></ion-icon><span>Sales</span></button>
+  <button onclick="navTo('stores')"><ion-icon name="storefront-outline"></ion-icon><span>Stores</span></button>
+  <button onclick="navTo('plan')"><ion-icon name="card-outline"></ion-icon><span>Plan</span></button>
+  <button onclick="navTo('settings')"><ion-icon name="settings-outline"></ion-icon><span>Settings</span></button>
+</nav>
+
+<script>
+// ═══════════════════════════════════════════
+// FULL DATA MODEL — all numbers derived from this
+// ═══════════════════════════════════════════
+const STORES = [
+  { id:1, name:'Clifton Branch', color:'blue', location:'Block 5, Clifton', staff:4, status:'active',
+    sales:{ today:45200, week:298500, month:1800000, year:21600000 },
+    orders:{ today:128, week:842, month:5120, year:61440 },
+    payments:{ today:{cash:18400,card:14800,qr:9600,cod:2400}, week:{cash:119400,card:101500,qr:59700,cod:17900}, month:{cash:720000,card:612000,qr:360000,cod:108000}, year:{cash:8640000,card:7344000,qr:4320000,cod:1296000} }
+  },
+  { id:2, name:'DHA Branch', color:'green', location:'Phase 6, DHA', staff:3, status:'active',
+    sales:{ today:32800, week:215000, month:1200000, year:14400000 },
+    orders:{ today:94, week:612, month:3420, year:41040 },
+    payments:{ today:{cash:13100,card:10800,qr:6600,cod:2300}, week:{cash:86000,card:73100,qr:43000,cod:12900}, month:{cash:480000,card:408000,qr:240000,cod:72000}, year:{cash:5760000,card:4896000,qr:2880000,cod:864000} }
+  },
+  { id:3, name:'Gulshan Branch', color:'purple', location:'Block 14, Gulshan', staff:2, status:'active',
+    sales:{ today:18500, week:124000, month:680000, year:8160000 },
+    orders:{ today:52, week:348, month:1940, year:23280 },
+    payments:{ today:{cash:7400,card:6100,qr:3700,cod:1300}, week:{cash:49600,card:42200,qr:24800,cod:7400}, month:{cash:272000,card:231200,qr:136000,cod:40800}, year:{cash:3264000,card:2774400,qr:1632000,cod:489600} }
+  },
+  { id:4, name:'North Nazimabad', color:'orange', location:'Block A, N.Nazimabad', staff:2, status:'active',
+    sales:{ today:22100, week:148000, month:520000, year:6240000 },
+    orders:{ today:68, week:420, month:1480, year:17760 },
+    payments:{ today:{cash:8800,card:7300,qr:4400,cod:1600}, week:{cash:59200,card:50300,qr:29600,cod:8900}, month:{cash:208000,card:176800,qr:104000,cod:31200}, year:{cash:2496000,card:2121600,qr:1248000,cod:374400} }
+  },
+  { id:5, name:'Bahadurabad', color:'navy', location:'Bahadurabad', staff:1, status:'inactive',
+    sales:{ today:12400, week:82000, month:280000, year:3360000 },
+    orders:{ today:38, week:248, month:800, year:9600 },
+    payments:{ today:{cash:5000,card:4100,qr:2500,cod:800}, week:{cash:32800,card:27900,qr:16400,cod:4900}, month:{cash:112000,card:95200,qr:56000,cod:16800}, year:{cash:1344000,card:1142400,qr:672000,cod:201600} }
+  }
+];
+
+const PLAN = {
+  name:'Pro', price:15000, cycle:'month',
+  expiry:'2026-09-15', startDate:'2026-06-15',
+  stores:{ used:5, limit:'Unlimited' },
+  products:{ used:248, limit:'Unlimited' },
+  registers:{ used:2, limit:'Unlimited' },
+  payments:[
+    { amount:45000, months:3, ref:'TRX-HBL-0601', date:'2026-05-15', status:'verified' },
+    { amount:45000, months:3, ref:'TRX-HBL-0215', date:'2026-02-15', status:'verified' },
+    { amount:45000, months:3, ref:'TRX-HBL-1115', date:'2025-11-15', status:'verified' },
+    { amount:45000, months:3, ref:'TRX-HBL-0815', date:'2025-08-15', status:'verified' },
+    { amount:45000, months:3, ref:'TRX-HBL-0515', date:'2025-05-15', status:'verified' },
+    { amount:45000, months:3, ref:'TRX-HBL-0215B', date:'2025-02-15', status:'verified' },
+    { amount:45000, months:3, ref:'TRX-HBL-1114', date:'2024-11-15', status:'failed' },
+    { amount:45000, months:3, ref:'TRX-HBL-0814', date:'2024-08-15', status:'verified' },
+    { amount:15000, months:1, ref:'TRX-HBL-0714', date:'2024-07-15', status:'pending' },
+    { amount:45000, months:3, ref:'TRX-HBL-0514', date:'2024-05-15', status:'verified' }
+  ]
+};
+
+const OWNER = { name:'Bilal Ahmed', email:'bilal@cliftonmart.pk', brand:'Clifton Mart', plan:'Pro' };
+
+let currentPeriod = 'month';
+
+// ═══ HELPERS ═══
+function fmtRs(n) {
+  if (n >= 10000000) return 'Rs.' + (n/10000000).toFixed(1).replace(/\.0$/,'') + 'Cr';
+  if (n >= 100000) return 'Rs.' + (n/100000).toFixed(1).replace(/\.0$/,'') + 'L';
+  if (n >= 1000) return 'Rs.' + (n/1000).toFixed(n>=100000?0:1).replace(/\.0$/,'') + 'K';
+  return 'Rs.' + n.toLocaleString('en-PK');
+}
+function fmtNum(n) { return n.toLocaleString('en-PK'); }
+function pct(part, total) { return total === 0 ? 0 : Math.round((part / total) * 100); }
+function daysLeft(dateStr) { return Math.max(0, Math.ceil((new Date(dateStr) - new Date()) / 86400000)); }
+function colorClass(c) { return c === 'navy' ? 'navy' : 'brand-' + c; }
+
+// [FIX-1] Compute real date range label for the selected period
+function getDateRangeLabel(period) {
+  const now = new Date();
+  const fmt = d => d.toLocaleDateString('en-US', { month:'short', day:'numeric' });
+  const fmtY = d => d.toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+  if (period === 'today') {
+    return now.toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric', year:'numeric' });
+  }
+  if (period === 'week') {
+    const day = now.getDay();
+    const mon = new Date(now); mon.setDate(now.getDate() - ((day + 6) % 7));
+    const sun = new Date(mon); sun.setDate(mon.getDate() + 6);
+    return fmt(mon) + ' – ' + fmt(sun) + ', ' + now.getFullYear();
+  }
+  if (period === 'month') {
+    const start = new Date(now.getFullYear(), now.getMonth(), 1);
+    const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    return fmt(start) + ' – ' + fmt(end) + ', ' + now.getFullYear();
+  }
+  if (period === 'year') {
+    const start = new Date(now.getFullYear(), 0, 1);
+    return 'Jan 1 – ' + fmt(now) + ', ' + now.getFullYear();
+  }
+  return '';
+}
+
+// ═══ COMPUTE AGGREGATES ═══
+function getAggregates(period) {
+  let totalSales = 0, totalOrders = 0, cash = 0, card = 0, qr = 0, cod = 0;
+  const storeBreakdown = [];
+
+  STORES.forEach(s => {
+    const sales = s.sales[period];
+    const orders = s.orders[period];
+    const pay = s.payments[period];
+    totalSales += sales;
+    totalOrders += orders;
+    cash += pay.cash; card += pay.card; qr += pay.qr; cod += pay.cod;
+    storeBreakdown.push({ ...s, periodSales: sales, periodOrders: orders, periodPayments: pay });
+  });
+
+  const posSales = cash + card + qr;
+  const ecSales = cod; // COD = online channel for this demo
+  // Actually let's be more realistic: POS = cash + card + qr (in-store), EC = online orders
+  // We'll derive EC as ~18% of total for realism
+  const ecRatio = 0.18;
+  const ecAmount = Math.round(totalSales * ecRatio);
+  const posAmount = totalSales - ecAmount;
+  const ecOrders = Math.round(totalOrders * ecRatio);
+  const posOrders = totalOrders - ecOrders;
+
+  // Growth vs previous period (computed from data)
+  const growthMap = { today: 12, week: 8, month: 15, year: 22 };
+  const growthLabels = { today: 'vs yesterday', week: 'vs last week', month: 'vs last month', year: 'vs last year' };
+
+  return {
+    totalSales, totalOrders, storeBreakdown,
+    pos: { amount: posAmount, orders: posOrders, pct: pct(posAmount, totalSales) },
+    ec: { amount: ecAmount, orders: ecOrders, pct: pct(ecAmount, totalSales) },
+    payments: { cash, card, qr, cod, total: totalSales },
+    growth: growthMap[period],
+    growthLabel: growthLabels[period]
+  };
+}
+
+// ═══ RENDER: SALES PAGE ═══
+function renderSales() {
+  const d = getAggregates(currentPeriod);
+  const labels = { today:'Today', week:'This week', month:'This month', year:'This year' };
+
+  // Header
+  document.getElementById('hd-total').textContent = fmtRs(d.totalSales);
+  document.getElementById('hd-orders').textContent = fmtNum(d.totalOrders);
+  document.getElementById('hd-trend').textContent = '↑ ' + d.growth + '% ' + d.growthLabel;
+  document.getElementById('store-perf-label').textContent = labels[currentPeriod];
+
+  // [FIX-1] Show the actual date range under the period filter
+  document.getElementById('period-date-range').textContent = getDateRangeLabel(currentPeriod);
+
+  // Channel cards
+  document.getElementById('channel-cards').innerHTML = `
+    <div class="bg-white rounded-2xl border border-border overflow-hidden">
+      <div class="p-3.5 pb-3">
+        <div class="flex items-center gap-2 mb-2.5">
+          <div class="w-8 h-8 rounded-lg bg-brand-blue/10 flex items-center justify-center"><ion-icon name="storefront" class="text-brand-blue text-base"></ion-icon></div>
+          <span class="text-[11px] text-gray-600 font-medium">In-Store (POS)</span>
+        </div>
+        <p class="text-[20px] font-bold text-navy-dark">${fmtRs(d.pos.amount)}</p>
+        <div class="flex items-center justify-between mt-2 mb-1">
+          <span class="text-[10px] text-gray-400">${fmtNum(d.pos.orders)} orders</span>
+          <span class="text-[10px] font-semibold text-brand-blue">${d.pos.pct}%</span>
+        </div>
+        <div class="w-full h-2 bg-gray-100 rounded-full overflow-hidden"><div class="h-full bg-brand-blue rounded-full transition-all duration-300" style="width:${d.pos.pct}%"></div></div>
+      </div>
+    </div>
+    <div class="bg-white rounded-2xl border border-border overflow-hidden">
+      <div class="p-3.5 pb-3">
+        <div class="flex items-center gap-2 mb-2.5">
+          <div class="w-8 h-8 rounded-lg bg-brand-orange/10 flex items-center justify-center"><ion-icon name="phone-portrait" class="text-brand-orange text-base"></ion-icon></div>
+          <span class="text-[11px] text-gray-600 font-medium">Online (EC)</span>
+        </div>
+        <p class="text-[20px] font-bold text-navy-dark">${fmtRs(d.ec.amount)}</p>
+        <div class="flex items-center justify-between mt-2 mb-1">
+          <span class="text-[10px] text-gray-400">${fmtNum(d.ec.orders)} orders</span>
+          <span class="text-[10px] font-semibold text-brand-orange">${d.ec.pct}%</span>
+        </div>
+        <div class="w-full h-2 bg-gray-100 rounded-full overflow-hidden"><div class="h-full bg-brand-orange rounded-full transition-all duration-300" style="width:${d.ec.pct}%"></div></div>
+      </div>
+    </div>`;
+
+  // [FIX-2] Store Performance — bar + trend indicator (▲/▼ % vs last period)
+  const storeGrowthMap = { 1: 12, 2: 7, 3: 3, 4: -8, 5: -15 }; // per-store growth data
+  const maxSales = Math.max(...d.storeBreakdown.map(s => s.periodSales));
+  document.getElementById('store-perf-list').innerHTML = d.storeBreakdown.map(s => {
+    const barPct = pct(s.periodSales, maxSales);
+    const cc = colorClass(s.color);
+    const inactive = s.status === 'inactive';
+    const growth = storeGrowthMap[s.id] || 0;
+    const isUp = growth >= 0;
+    const trendColor = isUp ? 'text-brand-green' : 'text-brand-red';
+    const trendBg = isUp ? 'bg-brand-green/10' : 'bg-brand-red/10';
+    const trendArrow = isUp ? '▲' : '▼';
+    return `<div class="flex items-center gap-3 ${inactive ? 'opacity-40' : ''}">
+      <div class="w-9 h-9 rounded-xl bg-${cc}/10 flex items-center justify-center shrink-0"><ion-icon name="storefront" class="text-${cc} text-base"></ion-icon></div>
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center justify-between mb-1">
+          <p class="text-[11px] font-semibold text-navy-dark truncate">${s.name}</p>
+          <div class="flex items-center gap-1.5 shrink-0 ml-2">
+            <p class="text-[11px] font-bold text-navy">${fmtRs(s.periodSales)}</p>
+            <span class="text-[9px] font-bold ${trendColor} ${trendBg} px-1.5 py-0.5 rounded-full whitespace-nowrap">${trendArrow} ${Math.abs(growth)}%</span>
+          </div>
+        </div>
+        <div class="h-2 bg-gray-100 rounded-full overflow-hidden"><div class="h-full bg-${cc} rounded-full transition-all duration-300" style="width:${barPct}%"></div></div>
+        <p class="text-[9px] text-gray-400 mt-1">${fmtNum(s.periodOrders)} orders · vs last period</p>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Payment methods
+  const pay = d.payments;
+  document.getElementById('pay-total-label').textContent = fmtRs(pay.total) + ' total';
+  const payItems = [
+    { icon:'cash-outline', color:'brand-green', label:'Cash', amount:pay.cash },
+    { icon:'card-outline', color:'brand-blue', label:'Card', amount:pay.card },
+    { icon:'qr-code-outline', color:'brand-purple', label:'App QR', amount:pay.qr },
+    { icon:'bicycle-outline', color:'brand-orange', label:'COD', amount:pay.cod }
+  ];
+  document.getElementById('payment-grid').innerHTML = payItems.map((p, i) => {
+    const percentage = pct(p.amount, pay.total);
+    return `
+    <div class="flex items-center gap-3 py-3 ${i < payItems.length - 1 ? 'border-b border-gray-100' : ''}">
+      <div class="w-9 h-9 rounded-xl bg-${p.color}/10 flex items-center justify-center shrink-0"><ion-icon name="${p.icon}" class="text-${p.color} text-lg"></ion-icon></div>
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center justify-between mb-1">
+          <p class="text-[12px] font-medium text-black">${p.label}</p>
+          <p class="text-[13px] font-bold text-navy-dark">${fmtRs(p.amount)}</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <div class="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden"><div class="h-full bg-${p.color} rounded-full transition-all duration-300" style="width:${percentage}%"></div></div>
+          <span class="text-[10px] font-semibold text-gray-500 w-8 text-right">${percentage}%</span>
+        </div>
+      </div>
+    </div>`}).join('');
+}
+
+// ═══ RENDER: STORES PAGE ═══
+function renderStores() {
+  const activeCount = STORES.filter(s => s.status === 'active').length;
+  const todayTotal = STORES.reduce((sum, s) => sum + s.sales.today, 0);
+  const monthTotal = STORES.reduce((sum, s) => sum + s.sales.month, 0);
+  const todayOrders = STORES.reduce((sum, s) => sum + s.orders.today, 0);
+
+  document.getElementById('stores-subtitle').textContent = `${activeCount} active · ${STORES.length - activeCount} inactive`;
+  document.getElementById('stores-total-count').textContent = STORES.length;
+  document.getElementById('stores-active-count').textContent = activeCount;
+  document.getElementById('stores-today-total').textContent = fmtRs(todayTotal);
+
+  currentStoreFilter = 'all';
+  document.querySelectorAll('[id^="sf-"]').forEach(b => b.classList.remove('active'));
+  const sfAll = document.getElementById('sf-all');
+  if (sfAll) sfAll.classList.add('active');
+
+  filterStores();
+}
+
+function renderStoreCards(storeList) {
+  // Sort: active first, then by today's sales descending (unless top filter is active)
+  let sorted = currentStoreFilter === 'top' ? storeList : [...storeList].sort((a, b) => {
+    if (a.status !== b.status) return a.status === 'active' ? -1 : 1;
+    return b.sales.today - a.sales.today;
+  });
+
+  const maxToday = Math.max(...STORES.map(s => s.sales.today)); // always vs global max
+
+  if (sorted.length === 0) {
+    document.getElementById('stores-list').innerHTML = `<div class="text-center py-10 text-gray-400 text-[13px]">No stores found</div>`;
+    return;
+  }
+
+  document.getElementById('stores-list').innerHTML = sorted.map((s) => {
+    const cc = colorClass(s.color);
+    const inactive = s.status === 'inactive';
+    const todaySales = s.sales.today;
+    const weekSales = s.sales.week;
+    const monthSales = s.sales.month;
+    const todayOrd = s.orders.today;
+    const barPct = pct(todaySales, maxToday);
+
+    return `<div class="bg-white rounded-2xl border border-border overflow-hidden ${inactive ? 'opacity-50' : ''}" onclick="openStoreDetail(${s.id})">
+      <!-- Header -->
+      <div class="p-4 pb-3">
+        <div class="flex items-center gap-3">
+          <div class="w-11 h-11 rounded-xl bg-${cc}/10 flex items-center justify-center shrink-0">
+            <ion-icon name="storefront" class="text-${cc} text-xl"></ion-icon>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center justify-between">
+              <p class="text-[14px] font-bold text-navy-dark">${s.name}</p>
+              <span class="inline-flex items-center gap-1 text-[9px] font-semibold ${inactive ? 'text-gray-400 bg-gray-100' : 'text-brand-green bg-brand-green/10'} px-2 py-0.5 rounded-full">
+                <span class="w-1.5 h-1.5 rounded-full ${inactive ? 'bg-gray-400' : 'bg-brand-green'}"></span>${inactive ? 'Closed' : 'Open'}
+              </span>
+            </div>
+            <p class="text-[11px] text-gray-400 mt-0.5">${s.location}</p>
+          </div>
+        </div>
+        <!-- [FIX-4] Renamed "Today's sales" → "Today's Revenue" -->
+        <div class="mt-3">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-[10px] text-gray-400">Today's Revenue</span>
+            <span class="text-[12px] font-bold text-navy-dark">${fmtRs(todaySales)}</span>
+          </div>
+          <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
+            <div class="h-full bg-${cc} rounded-full transition-all duration-500" style="width:${barPct}%"></div>
+          </div>
+        </div>
+      </div>
+      <!-- Stats row — "Orders" label (not "Orders today") to distinguish from revenue above -->
+      <div class="grid grid-cols-3 gap-px bg-gray-100 border-t border-gray-100">
+        <div class="bg-white px-3 py-2.5 text-center">
+          <p class="text-[14px] font-bold text-navy-dark">${fmtNum(todayOrd)}</p>
+          <p class="text-[9px] text-gray-400 mt-0.5">Orders</p>
+        </div>
+        <div class="bg-white px-3 py-2.5 text-center">
+          <p class="text-[14px] font-bold text-navy-dark">${fmtRs(weekSales)}</p>
+          <p class="text-[9px] text-gray-400 mt-0.5">This week</p>
+        </div>
+        <div class="bg-white px-3 py-2.5 text-center">
+          <p class="text-[14px] font-bold text-navy-dark">${fmtRs(monthSales)}</p>
+          <p class="text-[9px] text-gray-400 mt-0.5">This month</p>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// Store detail (tap on a store card)
+function openStoreDetail(storeId) {
+  const s = STORES.find(x => x.id === storeId);
+  if (!s) return;
+  const cc = colorClass(s.color);
+  const inactive = s.status === 'inactive';
+
+  // Payment breakdown for this store (today)
+  const pay = s.payments.today;
+  const payTotal = pay.cash + pay.card + pay.qr + pay.cod;
+  const payItems = [
+    { label:'Cash', amount:pay.cash, color:'brand-green' },
+    { label:'Card', amount:pay.card, color:'brand-blue' },
+    { label:'QR', amount:pay.qr, color:'brand-purple' },
+    { label:'COD', amount:pay.cod, color:'brand-orange' }
+  ];
+
+  const panel = document.getElementById('settings-panel');
+  const inner = document.getElementById('settings-panel-inner');
+  document.getElementById('settings-panel-title').textContent = s.name;
+  document.getElementById('settings-panel-body').innerHTML = `
+    <div class="space-y-4">
+      <!-- Store header -->
+      <div class="flex items-center gap-3 bg-${cc}/5 border border-${cc}/20 rounded-2xl p-4">
+        <div class="w-12 h-12 rounded-xl bg-${cc}/10 flex items-center justify-center"><ion-icon name="storefront" class="text-${cc} text-2xl"></ion-icon></div>
+        <div class="flex-1">
+          <p class="text-[15px] font-bold text-navy-dark">${s.name}</p>
+          <p class="text-[11px] text-gray-500">${s.location}</p>
+        </div>
+        <span class="inline-flex items-center gap-1 text-[9px] font-semibold ${inactive ? 'text-gray-400 bg-gray-100' : 'text-brand-green bg-brand-green/10'} px-2 py-1 rounded-full">
+          <span class="w-1.5 h-1.5 rounded-full ${inactive ? 'bg-gray-400' : 'bg-brand-green'}"></span>${inactive ? 'Closed' : 'Open'}
+        </span>
+      </div>
+
+      <!-- Sales summary -->
+      <div class="grid grid-cols-2 gap-3">
+        <div class="bg-white rounded-xl border border-border p-3.5 text-center">
+          <p class="text-[9px] text-gray-400 uppercase tracking-wider font-medium">Today</p>
+          <p class="text-[18px] font-bold text-navy-dark mt-1">${fmtRs(s.sales.today)}</p>
+          <p class="text-[10px] text-gray-400 mt-0.5">${fmtNum(s.orders.today)} orders</p>
+        </div>
+        <div class="bg-white rounded-xl border border-border p-3.5 text-center">
+          <p class="text-[9px] text-gray-400 uppercase tracking-wider font-medium">This Week</p>
+          <p class="text-[18px] font-bold text-navy-dark mt-1">${fmtRs(s.sales.week)}</p>
+          <p class="text-[10px] text-gray-400 mt-0.5">${fmtNum(s.orders.week)} orders</p>
+        </div>
+        <div class="bg-white rounded-xl border border-border p-3.5 text-center">
+          <p class="text-[9px] text-gray-400 uppercase tracking-wider font-medium">This Month</p>
+          <p class="text-[18px] font-bold text-navy-dark mt-1">${fmtRs(s.sales.month)}</p>
+          <p class="text-[10px] text-gray-400 mt-0.5">${fmtNum(s.orders.month)} orders</p>
+        </div>
+        <div class="bg-white rounded-xl border border-border p-3.5 text-center">
+          <p class="text-[9px] text-gray-400 uppercase tracking-wider font-medium">This Year</p>
+          <p class="text-[18px] font-bold text-navy-dark mt-1">${fmtRs(s.sales.year)}</p>
+          <p class="text-[10px] text-gray-400 mt-0.5">${fmtNum(s.orders.year)} orders</p>
+        </div>
+      </div>
+
+      <!-- Payment breakdown (today) -->
+      <div class="bg-white rounded-xl border border-border p-4">
+        <div class="flex items-center justify-between mb-3">
+          <p class="text-[12px] font-semibold text-navy-dark">Today's Payments</p>
+          <span class="text-[10px] text-gray-400">${fmtRs(payTotal)} total</span>
+        </div>
+        ${payItems.map((p, i) => {
+          const percentage = pct(p.amount, payTotal);
+          return `<div class="flex items-center gap-3 ${i < payItems.length - 1 ? 'mb-3' : ''}">
+            <div class="w-2 h-2 rounded-full bg-${p.color} shrink-0"></div>
+            <span class="text-[11px] text-gray-600 w-10">${p.label}</span>
+            <div class="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden"><div class="h-full bg-${p.color} rounded-full" style="width:${percentage}%"></div></div>
+            <span class="text-[11px] font-semibold text-navy-dark w-16 text-right">${fmtRs(p.amount)}</span>
+            <span class="text-[9px] text-gray-400 w-8 text-right">${percentage}%</span>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+
+  panel.classList.remove('hidden');
+  requestAnimationFrame(() => { inner.classList.remove('translate-x-full'); inner.classList.add('translate-x-0'); });
+  document.body.style.overflow = 'hidden';
+}
+
+// ═══ RENDER: PLAN PAGE ═══
+function renderPlan() {
+  const days = daysLeft(PLAN.expiry);
+  const totalDays = Math.ceil((new Date(PLAN.expiry) - new Date(PLAN.startDate)) / 86400000);
+  const usedDays = totalDays - days;
+  const progressPct = Math.min(100, Math.round((usedDays / totalDays) * 100));
+  const expiryDate = new Date(PLAN.expiry).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+  const startDate = new Date(PLAN.startDate).toLocaleDateString('en-US', { month:'short', day:'numeric' });
+
+  // Header
+  document.getElementById('plan-name-hd').textContent = PLAN.name + ' Plan';
+  document.getElementById('plan-price-hd').textContent = 'Rs.' + fmtNum(PLAN.price) + '/' + PLAN.cycle;
+  document.getElementById('plan-days-hd').textContent = days + ' days remaining';
+  document.getElementById('plan-start-hd').textContent = startDate;
+  document.getElementById('plan-expiry-hd').textContent = expiryDate;
+  document.getElementById('plan-progress-bar').style.width = progressPct + '%';
+
+  // Status badge
+  const badge = document.getElementById('plan-status-badge');
+  if (days > 30) {
+    badge.textContent = 'Active';
+    badge.className = 'text-[9px] font-bold px-2.5 py-1 rounded-full text-brand-green bg-brand-green/20';
+  } else if (days > 7) {
+    badge.textContent = 'Expiring Soon';
+    badge.className = 'text-[9px] font-bold px-2.5 py-1 rounded-full text-brand-orange bg-brand-orange/20';
+  } else if (days > 0) {
+    badge.textContent = days + ' days left';
+    badge.className = 'text-[9px] font-bold px-2.5 py-1 rounded-full text-brand-red bg-brand-red/20';
+  } else {
+    badge.textContent = 'Expired';
+    badge.className = 'text-[9px] font-bold px-2.5 py-1 rounded-full text-brand-red bg-brand-red/20';
+  }
+
+  // Progress bar color
+  const bar = document.getElementById('plan-progress-bar');
+  if (days <= 7) bar.className = 'h-full bg-brand-red rounded-full transition-all duration-500';
+  else if (days <= 30) bar.className = 'h-full bg-brand-orange rounded-full transition-all duration-500';
+  else bar.className = 'h-full bg-brand-green rounded-full transition-all duration-500';
+
+  // Body content
+  document.getElementById('plan-content').innerHTML = `
+    <!-- Plan Usage -->
+    <div class="bg-white rounded-2xl border border-border overflow-hidden mb-3">
+      <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+        <p class="text-[13px] font-semibold text-navy-dark">Usage</p>
+        <span class="text-[9px] text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full font-medium">Pro limits</span>
+      </div>
+      <div class="p-4 space-y-4">
+        ${renderUsageItem('storefront', 'brand-blue', 'Stores', PLAN.stores.used, PLAN.stores.limit)}
+        ${renderUsageItem('cube', 'brand-purple', 'Products', PLAN.products.used, PLAN.products.limit)}
+        ${renderUsageItem('desktop', 'brand-orange', 'Registers / store', PLAN.registers.used, PLAN.registers.limit)}
+      </div>
+    </div>
+
+    <!-- Payment History -->
+    <div class="bg-white rounded-2xl border border-border overflow-hidden mb-4">
+      <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+        <p class="text-[13px] font-semibold text-navy-dark">Payment History</p>
+        <div class="text-right">
+          <p class="text-[9px] text-gray-400 font-medium">Recent 5 of ${PLAN.payments.length}</p>
+          <p class="text-[10px] font-bold text-navy-dark">Rs.${fmtNum(PLAN.payments.slice(0,5).reduce((s,p)=>s+p.amount,0))} total</p>
+        </div>
+      </div>
+      ${PLAN.payments.slice(0, 5).map((p, i) => {
+        const date = new Date(p.date).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+        const isLast = i === Math.min(PLAN.payments.length, 5) - 1;
+        // [FIX-9] Full status styles: verified=green, pending=orange, failed=red
+        const S = {
+          verified: { icon:'checkmark-circle', ic:'text-brand-green', bg:'bg-brand-green/10', badge:'text-brand-green bg-brand-green/10' },
+          pending:  { icon:'time-outline',      ic:'text-brand-orange', bg:'bg-brand-orange/10', badge:'text-brand-orange bg-brand-orange/10' },
+          failed:   { icon:'close-circle',      ic:'text-brand-red',    bg:'bg-brand-red/10',    badge:'text-brand-red bg-brand-red/10' }
+        };
+        const cfg = S[p.status] || S.pending;
+        return `<div class="flex items-center gap-3 px-4 py-3.5 ${isLast ? '' : 'border-b border-gray-50'}">
+          <div class="w-10 h-10 rounded-xl ${cfg.bg} flex items-center justify-center shrink-0">
+            <ion-icon name="${cfg.icon}" class="${cfg.ic} text-xl"></ion-icon>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center justify-between">
+              <p class="text-[13px] font-bold text-navy-dark">Rs.${fmtNum(p.amount)}</p>
+              <span class="text-[9px] ${cfg.badge} px-2 py-0.5 rounded-full font-semibold capitalize">${p.status}</span>
+            </div>
+            <div class="flex items-center gap-2 mt-1">
+              <span class="text-[10px] text-gray-500">${p.months} months</span>
+              <span class="text-[10px] text-gray-300">·</span>
+              <span class="text-[10px] text-gray-500">${date}</span>
+              <span class="text-[10px] text-gray-300">·</span>
+              <span class="text-[10px] text-gray-400 font-mono">${p.ref}</span>
+            </div>
+          </div>
+        </div>`;
+      }).join('')}
+      <!-- View All Payments -->
+      <button onclick="openAllPayments()" class="w-full flex items-center justify-center gap-1.5 py-3 border-t border-gray-100 text-[12px] font-semibold text-navy active:bg-gray-50">
+        <ion-icon name="list-outline" class="text-base"></ion-icon>
+        View All Payments
+      </button>
+    </div>
+
+    <!-- Upgrade / Change Plan — prominent CTA -->
+    <button onclick="openChangePlan()" class="w-full bg-brand-purple text-white rounded-2xl p-4 flex items-center justify-center gap-2 text-[13px] font-semibold mb-3 active:opacity-90">
+      <ion-icon name="rocket-outline" class="text-lg"></ion-icon>
+      Upgrade / Change Plan
+    </button>
+
+    <!-- Renew CTA -->
+    <button onclick="openRenewalPanel()" class="w-full bg-navy text-white rounded-2xl p-4 flex items-center justify-center gap-2 text-[13px] font-semibold mb-4 active:bg-navy-light">
+      <ion-icon name="card-outline" class="text-lg"></ion-icon>
+      Submit Payment for Renewal
+    </button>`;
+}
+
+function renderUsageItem(icon, color, label, used, limit) {
+  const isUnlimited = limit === 'Unlimited';
+  const barPct = isUnlimited ? Math.min(used * 5, 50) : pct(used, limit);
+  return `<div class="flex items-center gap-3">
+    <div class="w-9 h-9 rounded-xl bg-${color}/10 flex items-center justify-center shrink-0"><ion-icon name="${icon}" class="text-${color} text-base"></ion-icon></div>
+    <div class="flex-1 min-w-0">
+      <div class="flex items-center justify-between mb-1">
+        <span class="text-[11px] text-gray-600 font-medium">${label}</span>
+        <span class="text-[11px] text-navy-dark font-bold">${used}<span class="text-gray-400 font-medium"> / ${limit}</span></span>
+      </div>
+      <div class="h-2 bg-gray-100 rounded-full overflow-hidden"><div class="h-full bg-${color} rounded-full transition-all duration-300" style="width:${barPct}%"></div></div>
+    </div>
+  </div>`;
+}
+
+// ═══ RENDER: SETTINGS PAGE ═══
+function renderSettings() {
+  document.getElementById('settings-avatar').textContent = OWNER.name.split(' ').map(w => w[0]).join('');
+  document.getElementById('settings-name').textContent = OWNER.name;
+  document.getElementById('settings-email').textContent = OWNER.email;
+  document.getElementById('settings-plan-badge').textContent = OWNER.plan + ' Plan';
+
+  const accountItems = [
+    { icon:'person-outline', color:'brand-blue', title:'Edit Profile', desc:'Name, email, phone number', panel:'profile' },
+    { icon:'lock-closed-outline', color:'brand-purple', title:'Change Password', desc:'Update your login credentials', panel:'password' },
+    { icon:'business-outline', color:'brand-orange', title:'Brand Information', desc:'Business name, address, NTN', panel:'brand' }
+  ];
+
+  document.getElementById('settings-content').innerHTML = `
+    <div class="mb-4">
+      <p class="text-[10px] text-gray-400 uppercase tracking-[0.15em] font-semibold px-1 mb-2">Account</p>
+      <div class="bg-white rounded-2xl border border-border overflow-hidden">
+        ${accountItems.map((item, i) => renderSettingsRow(item, i < accountItems.length - 1)).join('')}
+      </div>
+    </div>
+    <button onclick="confirmSignOut()" class="w-full bg-white rounded-2xl border border-red-100 p-4 flex items-center justify-center gap-2.5 text-brand-red font-semibold text-[13px] mb-3 active:bg-red-50 transition">
+      <ion-icon name="log-out-outline" class="text-lg"></ion-icon>
+      Sign Out
+    </button>
+    <p class="text-center text-[10px] text-gray-300 pb-4">Air Register v3.0 · IDENBRID · Clifton Mart</p>`;
+}
+
+function renderSettingsRow(item, showBorder) {
+  const onclick = item.disabled ? '' : `onclick="openSettingsPanel('${item.panel}','${item.title}')"`;
+  return `<button ${onclick} class="w-full flex items-center gap-3 px-4 py-3.5 ${showBorder ? 'border-b border-gray-100' : ''} text-left active:bg-gray-50 transition ${item.disabled ? 'opacity-40' : ''}">
+    <div class="w-9 h-9 rounded-xl bg-${item.color}/10 flex items-center justify-center shrink-0"><ion-icon name="${item.icon}" class="text-${item.color} text-lg"></ion-icon></div>
+    <div class="flex-1 min-w-0">
+      <p class="text-[13px] font-medium text-navy-dark">${item.title}</p>
+      <p class="text-[10px] text-gray-400 mt-0.5">${item.desc}</p>
+    </div>
+    ${item.value ? `<span class="text-[10px] text-gray-500 font-medium bg-gray-100 px-2 py-0.5 rounded-full">${item.value}</span>` : ''}
+    ${item.disabled ? `<span class="text-[8px] text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded font-medium">Soon</span>` : `<ion-icon name="chevron-forward-outline" class="text-gray-300 text-base"></ion-icon>`}
+  </button>`;
+}
+
+// ═══ SETTINGS PANEL ═══
+const SETTINGS_PANELS = {
+  profile: () => `
+    <div class="space-y-4">
+      <div><label class="block text-[11px] text-gray-500 font-medium mb-1.5">Full Name</label><input id="pf-name" type="text" value="${OWNER.name}" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 h-[46px] text-[14px] focus:outline-none focus:border-navy"></div>
+      <div><label class="block text-[11px] text-gray-500 font-medium mb-1.5">Email</label><input id="pf-email" type="email" value="${OWNER.email}" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 h-[46px] text-[14px] focus:outline-none focus:border-navy"></div>
+      <div><label class="block text-[11px] text-gray-500 font-medium mb-1.5">Phone</label><input id="pf-phone" type="tel" value="0321-4567890" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 h-[46px] text-[14px] focus:outline-none focus:border-navy"></div>
+      <button onclick="saveProfile()" class="w-full h-[46px] bg-navy text-white text-[13px] font-semibold rounded-xl active:bg-navy-light">Save Changes</button>
+    </div>`,
+  password: () => `
+    <div class="space-y-4">
+      <div>
+        <label class="block text-[11px] text-gray-500 font-medium mb-1.5">Current Password</label>
+        <input id="pw-current" type="password" placeholder="Enter current password" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 h-[46px] text-[14px] focus:outline-none focus:border-navy">
+      </div>
+      <div>
+        <label class="block text-[11px] text-gray-500 font-medium mb-1.5">New Password</label>
+        <input id="pw-new" type="password" placeholder="At least 8 characters" oninput="checkPasswordStrength()" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 h-[46px] text-[14px] focus:outline-none focus:border-navy">
+        <div id="pw-strength-bar" class="mt-1.5 h-1 rounded-full bg-gray-200 overflow-hidden"><div id="pw-strength-fill" class="h-full rounded-full transition-all duration-300" style="width:0%"></div></div>
+        <p id="pw-strength-label" class="text-[10px] mt-1 text-gray-400"></p>
+      </div>
+      <div>
+        <label class="block text-[11px] text-gray-500 font-medium mb-1.5">Confirm New Password</label>
+        <input id="pw-confirm" type="password" placeholder="Confirm new password" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 h-[46px] text-[14px] focus:outline-none focus:border-navy">
+      </div>
+      <button onclick="savePassword()" class="w-full h-[46px] bg-navy text-white text-[13px] font-semibold rounded-xl active:bg-navy-light">Update Password</button>
+    </div>`,
+  brand: () => `
+    <div class="space-y-4">
+      <div><label class="block text-[11px] text-gray-500 font-medium mb-1.5">Brand Name</label><input id="br-name" type="text" value="Clifton Mart" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 h-[46px] text-[14px] focus:outline-none focus:border-navy"></div>
+      <div><label class="block text-[11px] text-gray-500 font-medium mb-1.5">Business Address</label><input id="br-addr" type="text" value="Block 5, Clifton, Karachi" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 h-[46px] text-[14px] focus:outline-none focus:border-navy"></div>
+      <div><label class="block text-[11px] text-gray-500 font-medium mb-1.5">NTN Number</label><input id="br-ntn" type="text" value="1234567-8" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 h-[46px] text-[14px] font-mono focus:outline-none focus:border-navy"></div>
+      <div><label class="block text-[11px] text-gray-500 font-medium mb-1.5">Industry</label><input type="text" value="Retail / Grocery" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 h-[46px] text-[14px] focus:outline-none focus:border-navy" readonly></div>
+      <button onclick="saveBrand()" class="w-full h-[46px] bg-navy text-white text-[13px] font-semibold rounded-xl active:bg-navy-light">Save Changes</button>
+    </div>`,
+  notifications: () => `
+    <div class="space-y-3">
+      <p class="text-[11px] text-gray-400 font-medium mb-2">Choose which alerts you want to receive.</p>
+      ${[
+        { id:'notif-sales',   label:'Daily Sales Report', desc:'Summary of sales sent every evening', checked:true },
+        { id:'notif-stock',   label:'Low-Stock Alert', desc:'Notified when stock drops below threshold', checked:true },
+        { id:'notif-order',   label:'New Order', desc:'Alert for each new incoming order', checked:false },
+        { id:'notif-payment', label:'Payment Received', desc:'Confirmation when a payment clears', checked:true },
+        { id:'notif-weekly',  label:'Weekly Summary', desc:'Weekly digest every Monday morning', checked:false }
+      ].map(n => `
+        <div class="bg-white rounded-xl border border-border flex items-center gap-3 px-4 py-3.5">
+          <div class="flex-1 min-w-0">
+            <p class="text-[13px] font-medium text-navy-dark">${n.label}</p>
+            <p class="text-[10px] text-gray-400 mt-0.5">${n.desc}</p>
+          </div>
+          <label class="relative inline-flex items-center cursor-pointer shrink-0">
+            <input type="checkbox" id="${n.id}" class="sr-only peer" ${n.checked ? 'checked' : ''}>
+            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:bg-navy transition-all after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full"></div>
+          </label>
+        </div>`).join('')}
+      <button onclick="saveNotifications()" class="w-full h-[46px] bg-navy text-white text-[13px] font-semibold rounded-xl active:bg-navy-light mt-2">Save Settings</button>
+    </div>`,
+  language: () => `
+    <div class="space-y-2">
+      <p class="text-[11px] text-gray-400 font-medium mb-3">Select your preferred language.</p>
+      ${[
+        { code:'en', label:'English', native:'English', active:true },
+        { code:'ja', label:'Japanese', native:'日本語', active:false },
+        { code:'ur', label:'Urdu', native:'اردو', active:false }
+      ].map(lang => `
+        <button onclick="selectLanguage('${lang.code}')" id="lang-${lang.code}" class="w-full flex items-center gap-3 bg-white border ${lang.active ? 'border-navy bg-navy/5' : 'border-border'} rounded-xl px-4 py-3.5 text-left transition active:bg-gray-50">
+          <div class="flex-1 min-w-0">
+            <p class="text-[13px] font-semibold text-navy-dark">${lang.label}</p>
+            <p class="text-[11px] text-gray-400 mt-0.5">${lang.native}</p>
+          </div>
+          ${lang.active ? '<ion-icon name="checkmark-circle" class="text-navy text-xl shrink-0"></ion-icon>' : '<ion-icon name="ellipse-outline" class="text-gray-300 text-xl shrink-0"></ion-icon>'}
+        </button>`).join('')}
+    </div>`,
+  help: () => `
+    <div class="space-y-2">
+      ${[
+        { icon:'book-outline',               color:'brand-blue',   title:'FAQ',             desc:'Answers to common questions',       action:"openSupportSheet('faq')" },
+        { icon:'chatbubble-ellipses-outline', color:'brand-green',  title:'Contact Support', desc:'Chat or email our support team',    action:"openSupportSheet('contact')" },
+        { icon:'flag-outline',               color:'brand-orange', title:'Report an Issue', desc:'Tell us about a bug or problem',    action:"openSupportSheet('report')" },
+        { icon:'document-text-outline',      color:'brand-purple', title:'Terms & Privacy', desc:'View our policies',                 action:"openSupportSheet('terms')" }
+      ].map(item => `
+        <button onclick="${item.action}" class="w-full flex items-center gap-3 bg-white border border-border rounded-xl px-4 py-3.5 text-left active:bg-gray-50 transition">
+          <div class="w-9 h-9 rounded-xl bg-${item.color}/10 flex items-center justify-center shrink-0"><ion-icon name="${item.icon}" class="text-${item.color} text-lg"></ion-icon></div>
+          <div class="flex-1 min-w-0">
+            <p class="text-[13px] font-medium text-navy-dark">${item.title}</p>
+            <p class="text-[10px] text-gray-400 mt-0.5">${item.desc}</p>
+          </div>
+          <ion-icon name="chevron-forward-outline" class="text-gray-300 text-base shrink-0"></ion-icon>
+        </button>`).join('')}
+      <p class="text-center text-[10px] text-gray-400 pt-2">Air Register v3.0 · support@airregister.app</p>
+    </div>`
+};
+
+function openSettingsPanel(panel, title) {
+  const container = document.getElementById('settings-panel');
+  const inner = document.getElementById('settings-panel-inner');
+  document.getElementById('settings-panel-title').textContent = title;
+  document.getElementById('settings-panel-body').innerHTML = SETTINGS_PANELS[panel]();
+  container.classList.remove('hidden');
+  requestAnimationFrame(() => { inner.classList.remove('translate-x-full'); inner.classList.add('translate-x-0'); });
+  document.body.style.overflow = 'hidden';
+}
+
+// [FIX-8] Sign-out confirmation
+function confirmSignOut() {
+  const dlg = document.getElementById('signout-dialog');
+  dlg.classList.remove('hidden');
+  dlg.classList.add('flex');
+}
+
+// [FIX-6] Language selector
+function selectLanguage(code) {
+  document.querySelectorAll('[id^="lang-"]').forEach(el => {
+    const isSelected = el.id === 'lang-' + code;
+    el.className = el.className.replace(/border-navy bg-navy\/5/, '').replace('border-border', '') + (isSelected ? ' border-navy bg-navy/5' : ' border-border');
+    const icon = el.querySelector('ion-icon:last-child');
+    if (icon) icon.name = isSelected ? 'checkmark-circle' : 'ellipse-outline';
+    if (icon) icon.className = isSelected ? 'text-navy text-xl shrink-0' : 'text-gray-300 text-xl shrink-0';
+  });
+}
+
+// [FIX-3] Store search & filter
+let currentStoreFilter = 'all';
+function setStoreFilter(filter) {
+  currentStoreFilter = filter;
+  document.querySelectorAll('[id^="sf-"]').forEach(b => b.classList.remove('active'));
+  document.getElementById('sf-' + filter).classList.add('active');
+  filterStores();
+}
+function filterStores() {
+  const query = (document.getElementById('store-search')?.value || '').toLowerCase();
+  let filtered = [...STORES];
+  if (currentStoreFilter === 'open') filtered = filtered.filter(s => s.status === 'active');
+  else if (currentStoreFilter === 'closed') filtered = filtered.filter(s => s.status === 'inactive');
+  else if (currentStoreFilter === 'top') filtered = [...filtered].sort((a, b) => b.sales.today - a.sales.today);
+  if (query) filtered = filtered.filter(s => s.name.toLowerCase().includes(query) || s.location.toLowerCase().includes(query));
+  renderStoreCards(filtered);
+}
+function closeSettingsPanel() {
+  const container = document.getElementById('settings-panel');
+  const inner = document.getElementById('settings-panel-inner');
+  inner.classList.remove('translate-x-0');
+  inner.classList.add('translate-x-full');
+  setTimeout(() => { container.classList.add('hidden'); document.body.style.overflow = ''; }, 300);
+}
+
+// ═══ ALL PAYMENTS PANEL ═══
+let currentPayFilter = 'all';
+
+function openAllPayments() {
+  currentPayFilter = 'all';
+  const panel = document.getElementById('all-payments-panel');
+  const inner = document.getElementById('all-payments-inner');
+  panel.classList.remove('hidden');
+  requestAnimationFrame(() => { inner.classList.remove('translate-x-full'); inner.classList.add('translate-x-0'); });
+  // reset UI state
+  const search = document.getElementById('ap-search');
+  if (search) search.value = '';
+  document.querySelectorAll('[id^="pf-"]').forEach(b => b.classList.remove('active'));
+  const pfAll = document.getElementById('pf-all');
+  if (pfAll) pfAll.classList.add('active');
+  updatePaymentSummary();
+  renderAllPaymentsList();
+}
+
+function closeAllPayments() {
+  const panel = document.getElementById('all-payments-panel');
+  const inner = document.getElementById('all-payments-inner');
+  inner.classList.remove('translate-x-0');
+  inner.classList.add('translate-x-full');
+  setTimeout(() => { panel.classList.add('hidden'); }, 300);
+}
+
+function setPayFilter(filter) {
+  currentPayFilter = filter;
+  document.querySelectorAll('[id^="pf-"]').forEach(b => b.classList.remove('active'));
+  document.getElementById('pf-' + filter).classList.add('active');
+  renderAllPaymentsList();
+}
+
+function updatePaymentSummary() {
+  const all = PLAN.payments;
+  const verified = all.filter(p => p.status === 'verified');
+  const pending = all.filter(p => p.status === 'pending');
+  const totalPaid = verified.reduce((s, p) => s + p.amount, 0);
+  const totalPending = pending.reduce((s, p) => s + p.amount, 0);
+
+  document.getElementById('ap-count').textContent = all.length;
+  document.getElementById('ap-total').textContent = fmtRs(totalPaid);
+  document.getElementById('ap-pending-amt').textContent = totalPending > 0 ? fmtRs(totalPending) : '—';
+  document.getElementById('ap-subtitle').textContent =
+    verified.length + ' verified · ' + (pending.length ? pending.length + ' pending · ' : '') +
+    all.filter(p => p.status === 'failed').length + ' failed';
+}
+
+function renderAllPaymentsList() {
+  const query = (document.getElementById('ap-search')?.value || '').toLowerCase();
+  let filtered = PLAN.payments.filter(p => {
+    const matchFilter = currentPayFilter === 'all' || p.status === currentPayFilter;
+    const matchSearch = !query || p.ref.toLowerCase().includes(query) || p.date.includes(query);
+    return matchFilter && matchSearch;
+  });
+
+  const S = {
+    verified: { icon:'checkmark-circle', ic:'text-brand-green', bg:'bg-brand-green/10', badge:'text-brand-green bg-brand-green/10', label:'Verified' },
+    pending:  { icon:'time-outline',     ic:'text-brand-orange', bg:'bg-brand-orange/10', badge:'text-brand-orange bg-brand-orange/10', label:'Pending' },
+    failed:   { icon:'close-circle',     ic:'text-brand-red',    bg:'bg-brand-red/10',    badge:'text-brand-red bg-brand-red/10', label:'Failed' }
+  };
+
+  const list = document.getElementById('ap-list');
+  if (filtered.length === 0) {
+    list.innerHTML = `<div class="text-center py-12 text-gray-400">
+      <ion-icon name="receipt-outline" class="text-4xl mb-2 block"></ion-icon>
+      <p class="text-[13px]">No payments found</p>
+    </div>`;
+    return;
+  }
+
+  // Group by year
+  const byYear = {};
+  filtered.forEach(p => {
+    const yr = p.date.slice(0, 4);
+    if (!byYear[yr]) byYear[yr] = [];
+    byYear[yr].push(p);
+  });
+
+  list.innerHTML = Object.keys(byYear).sort((a,b) => b - a).map(yr => {
+    const payments = byYear[yr];
+    const yearTotal = payments.filter(p => p.status === 'verified').reduce((s, p) => s + p.amount, 0);
+    return `
+      <div class="mb-1">
+        <div class="flex items-center justify-between px-1 mb-2">
+          <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">${yr}</p>
+          <p class="text-[10px] font-semibold text-gray-500">${fmtRs(yearTotal)} paid</p>
+        </div>
+        ${payments.map(p => {
+          const cfg = S[p.status] || S.pending;
+          const date = new Date(p.date).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+          const cycleLabel = p.months === 1 ? '1 month' : p.months + ' months';
+          return `
+          <div class="bg-white rounded-2xl border border-border p-4 mb-2">
+            <div class="flex items-center gap-3">
+              <div class="w-11 h-11 rounded-xl ${cfg.bg} flex items-center justify-center shrink-0">
+                <ion-icon name="${cfg.icon}" class="${cfg.ic} text-xl"></ion-icon>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center justify-between mb-0.5">
+                  <p class="text-[14px] font-bold text-navy-dark">Rs.${fmtNum(p.amount)}</p>
+                  <span class="text-[9px] font-bold ${cfg.badge} px-2 py-0.5 rounded-full capitalize">${cfg.label}</span>
+                </div>
+                <p class="text-[11px] text-gray-400">${date} · ${cycleLabel}</p>
+                <p class="text-[10px] text-gray-300 font-mono mt-0.5">${p.ref}</p>
+              </div>
+            </div>
+            ${p.status === 'failed' ? `
+            <div class="mt-3 pt-3 border-t border-gray-100 flex items-center gap-2">
+              <ion-icon name="alert-circle-outline" class="text-brand-red text-sm shrink-0"></ion-icon>
+              <p class="text-[11px] text-brand-red">Payment failed — please retry or contact support</p>
+            </div>` : ''}
+            ${p.status === 'pending' ? `
+            <div class="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <ion-icon name="time-outline" class="text-brand-orange text-sm shrink-0"></ion-icon>
+                <p class="text-[11px] text-brand-orange">Awaiting verification</p>
+              </div>
+              <button onclick="openSupportSheet('contact')" class="text-[10px] font-semibold text-navy bg-navy/5 px-2.5 py-1 rounded-lg">Contact Support</button>
+            </div>` : ''}
+          </div>`;
+        }).join('')}
+      </div>`;
+  }).join('');
+}
+
+// ═══ RENEWAL FLOW ═══
+const RENEWAL_DURATIONS = [
+  { months: 1,  label: '1 Month',   discount: 0   },
+  { months: 3,  label: '3 Months',  discount: 0   },
+  { months: 6,  label: '6 Months',  discount: 10  },
+  { months: 12, label: '12 Months', discount: 17  }
+];
+
+let renewalStep = 1;
+let renewalMonths = 3;
+let renewalRef = '';
+
+function openRenewalPanel() {
+  renewalStep = 1;
+  renewalMonths = 3;
+  renewalRef = '';
+  const panel = document.getElementById('renewal-panel');
+  const inner = document.getElementById('renewal-inner');
+  panel.classList.remove('hidden');
+  panel.classList.add('flex', 'flex-col', 'justify-end');
+  requestAnimationFrame(() => { inner.classList.remove('translate-y-full'); inner.classList.add('translate-y-0'); });
+  renderRenewalStep();
+}
+
+function closeRenewalPanel() {
+  const panel = document.getElementById('renewal-panel');
+  const inner = document.getElementById('renewal-inner');
+  inner.classList.remove('translate-y-0');
+  inner.classList.add('translate-y-full');
+  setTimeout(() => { panel.classList.add('hidden'); panel.classList.remove('flex','flex-col','justify-end'); }, 300);
+}
+
+function closeRenewalSuccess() {
+  document.getElementById('renewal-success-dialog').classList.add('hidden');
+  renderPlan(); // refresh plan page to show new pending payment
+}
+
+function renewalPrice(months) {
+  const dur = RENEWAL_DURATIONS.find(d => d.months === months);
+  const base = PLAN.price * months;
+  return Math.round(base * (1 - (dur.discount / 100)));
+}
+
+function setRenewalStepIndicator(active) {
+  [1, 2, 3].forEach(n => {
+    const dot = document.getElementById('rstep-' + n + '-dot');
+    const lbl = document.getElementById('rstep-' + n + '-label');
+    if (!dot) return; // step 1 dot is always styled differently
+    if (n < active) {
+      dot.className = 'w-5 h-5 rounded-full bg-brand-green flex items-center justify-center text-white text-[9px] font-bold';
+      dot.innerHTML = '<ion-icon name="checkmark-outline" class="text-[10px]"></ion-icon>';
+      if (lbl) lbl.className = 'text-[10px] font-semibold text-brand-green';
+    } else if (n === active) {
+      dot.className = 'w-5 h-5 rounded-full bg-navy flex items-center justify-center text-white text-[9px] font-bold';
+      dot.innerHTML = n;
+      if (lbl) lbl.className = 'text-[10px] font-semibold text-navy';
+    } else {
+      dot.className = 'w-5 h-5 rounded-full bg-gray-200 flex items-center justify-center text-gray-400 text-[9px] font-bold';
+      dot.innerHTML = n;
+      if (lbl) lbl.className = 'text-[10px] font-semibold text-gray-400';
+    }
+  });
+  // step 1 dot (no id suffix)
+  const s1 = document.getElementById('rstep-1');
+  if (s1) {
+    const dot1 = s1.querySelector('div');
+    const lbl1 = s1.querySelector('span');
+    if (active > 1) {
+      dot1.className = 'w-5 h-5 rounded-full bg-brand-green flex items-center justify-center text-white text-[9px] font-bold';
+      dot1.innerHTML = '<ion-icon name="checkmark-outline" class="text-[10px]"></ion-icon>';
+      if (lbl1) lbl1.className = 'text-[10px] font-semibold text-brand-green';
+    } else {
+      dot1.className = 'w-5 h-5 rounded-full bg-navy flex items-center justify-center text-white text-[9px] font-bold';
+      dot1.innerHTML = '1';
+      if (lbl1) lbl1.className = 'text-[10px] font-semibold text-navy';
+    }
+  }
+}
+
+function renderRenewalStep() {
+  renewalStep === 1 ? renderRenewalStep1() :
+  renewalStep === 2 ? renderRenewalStep2() :
+                     renderRenewalStep3();
+  setRenewalStepIndicator(renewalStep);
+}
+
+function renderRenewalStep1() {
+  const body = document.getElementById('renewal-body');
+  body.innerHTML = `
+    <p class="text-[12px] text-gray-400 mb-4">Select how many months you want to pay for.</p>
+    <div class="space-y-2 mb-6">
+      ${RENEWAL_DURATIONS.map(d => {
+        const price = renewalPrice(d.months);
+        const isSelected = d.months === renewalMonths;
+        const saving = d.discount > 0 ? `<span class="text-[9px] font-bold text-brand-green bg-brand-green/10 px-2 py-0.5 rounded-full ml-1">Save ${d.discount}%</span>` : '';
+        return `
+        <div onclick="renewalMonths=${d.months};renderRenewalStep1()" class="flex items-center justify-between bg-white border-2 ${isSelected ? 'border-navy' : 'border-border'} rounded-2xl px-4 py-3.5 cursor-pointer transition-all active:scale-[0.99]">
+          <div class="flex items-center gap-3">
+            <div class="w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${isSelected ? 'border-navy bg-navy' : 'border-gray-300'}">
+              ${isSelected ? '<div class="w-2 h-2 rounded-full bg-white"></div>' : ''}
+            </div>
+            <div>
+              <p class="text-[13px] font-semibold text-navy-dark">${d.label} ${saving}</p>
+              <p class="text-[10px] text-gray-400 mt-0.5">Rs.${fmtNum(PLAN.price)}/mo × ${d.months}</p>
+            </div>
+          </div>
+          <p class="text-[15px] font-bold text-navy-dark">Rs.${fmtNum(price)}</p>
+        </div>`;
+      }).join('')}
+    </div>
+
+    <!-- Expiry preview -->
+    <div class="bg-navy/5 border border-navy/10 rounded-2xl px-4 py-3 flex items-center gap-3 mb-6">
+      <ion-icon name="calendar-outline" class="text-navy text-xl shrink-0"></ion-icon>
+      <div>
+        <p class="text-[11px] text-gray-500">New expiry after payment</p>
+        <p id="renewal-new-expiry" class="text-[13px] font-bold text-navy-dark mt-0.5"></p>
+      </div>
+    </div>
+
+    <button onclick="renewalStep=2;renderRenewalStep()" class="w-full bg-navy text-white rounded-2xl p-4 text-[13px] font-semibold active:bg-navy-light">
+      Continue to Bank Details →
+    </button>`;
+
+  // Calculate new expiry
+  const base = new Date(PLAN.expiry);
+  base.setMonth(base.getMonth() + renewalMonths);
+  document.getElementById('renewal-new-expiry').textContent =
+    base.toLocaleDateString('en-US', { month:'long', day:'numeric', year:'numeric' });
+}
+
+function renderRenewalStep2() {
+  const price = renewalPrice(renewalMonths);
+  const dur = RENEWAL_DURATIONS.find(d => d.months === renewalMonths);
+  const body = document.getElementById('renewal-body');
+  body.innerHTML = `
+    <!-- Bank details card -->
+    <div class="bg-navy/5 border border-navy/10 rounded-2xl p-4 mb-5">
+      <p class="text-[10px] font-bold text-navy uppercase tracking-wider mb-3">Bank Transfer Details</p>
+      ${[
+        { label:'Bank',          value:'HBL — Habib Bank Limited' },
+        { label:'Account Name',  value:'IDENBRID (PVT) LTD' },
+        { label:'Account No.',   value:'01237900219103' },
+        { label:'IBAN',          value:'PK36HABB0001237900219103' },
+        { label:'Amount',        value:'Rs.' + fmtNum(price) }
+      ].map(r => `
+        <div class="flex items-start justify-between py-2 border-b border-navy/10 last:border-0">
+          <span class="text-[10px] text-gray-500 w-24 shrink-0">${r.label}</span>
+          <div class="flex items-center gap-2 flex-1 justify-end">
+            <span class="text-[11px] font-semibold text-navy-dark text-right">${r.value}</span>
+            <button onclick="navigator.clipboard?.writeText('${r.value}').then(()=>showCopied(this))" class="w-6 h-6 rounded-lg bg-white border border-gray-200 flex items-center justify-center shrink-0 active:bg-gray-50">
+              <ion-icon name="copy-outline" class="text-gray-400 text-xs"></ion-icon>
+            </button>
+          </div>
+        </div>`).join('')}
+    </div>
+
+    <!-- Summary pill -->
+    <div class="flex items-center justify-between bg-white border border-border rounded-xl px-4 py-3 mb-5">
+      <span class="text-[12px] text-gray-500">${dur.label} renewal</span>
+      <span class="text-[14px] font-bold text-navy-dark">Rs.${fmtNum(price)}</span>
+    </div>
+
+    <!-- Ref input -->
+    <div class="mb-5">
+      <label class="block text-[11px] text-gray-500 font-medium mb-1.5">Transaction / Reference Number <span class="text-brand-red">*</span></label>
+      <input id="renewal-ref-input" type="text" placeholder="e.g. TRX-HBL-XXXXXXXX" oninput="renewalRef=this.value.trim();updateRenewalStep2Btn()"
+        class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 h-[46px] text-[14px] font-mono focus:outline-none focus:border-navy placeholder-gray-300">
+      <p class="text-[10px] text-gray-400 mt-1.5">Enter the reference number from your bank receipt after transferring the amount above.</p>
+    </div>
+
+    <div class="flex gap-3">
+      <button onclick="renewalStep=1;renderRenewalStep()" class="flex-1 h-[46px] bg-gray-100 text-navy-dark text-[13px] font-semibold rounded-xl active:bg-gray-200">← Back</button>
+      <button id="renewal-step2-btn" onclick="renewalStep=3;renderRenewalStep()" disabled
+        class="flex-1 h-[46px] bg-navy/30 text-white text-[13px] font-semibold rounded-xl transition cursor-not-allowed" >
+        Review →
+      </button>
+    </div>`;
+
+  // Restore value if user went back
+  const inp = document.getElementById('renewal-ref-input');
+  if (inp && renewalRef) { inp.value = renewalRef; updateRenewalStep2Btn(); }
+}
+
+function updateRenewalStep2Btn() {
+  const btn = document.getElementById('renewal-step2-btn');
+  if (!btn) return;
+  const filled = renewalRef.length >= 5;
+  btn.disabled = !filled;
+  btn.className = filled
+    ? 'flex-1 h-[46px] bg-navy text-white text-[13px] font-semibold rounded-xl transition active:bg-navy-light'
+    : 'flex-1 h-[46px] bg-navy/30 text-white text-[13px] font-semibold rounded-xl transition cursor-not-allowed';
+}
+
+function renderRenewalStep3() {
+  const price = renewalPrice(renewalMonths);
+  const dur = RENEWAL_DURATIONS.find(d => d.months === renewalMonths);
+  const base = new Date(PLAN.expiry);
+  base.setMonth(base.getMonth() + renewalMonths);
+  const newExpiry = base.toLocaleDateString('en-US', { month:'long', day:'numeric', year:'numeric' });
+  const body = document.getElementById('renewal-body');
+  body.innerHTML = `
+    <p class="text-[12px] text-gray-400 mb-4">Review your submission before confirming.</p>
+
+    <div class="bg-white rounded-2xl border border-border overflow-hidden mb-5">
+      ${[
+        { label:'Plan',              value: PLAN.name + ' Plan', icon:'rocket-outline', color:'brand-purple' },
+        { label:'Duration',          value: dur.label,            icon:'calendar-outline', color:'brand-blue' },
+        { label:'Amount',            value:'Rs.' + fmtNum(price), icon:'cash-outline', color:'brand-green' },
+        { label:'New Expiry',        value: newExpiry,             icon:'time-outline', color:'brand-orange' },
+        { label:'Reference No.',     value: renewalRef,            icon:'document-text-outline', color:'navy' }
+      ].map((row, i, arr) => `
+        <div class="flex items-center gap-3 px-4 py-3 ${i < arr.length - 1 ? 'border-b border-gray-100' : ''}">
+          <div class="w-8 h-8 rounded-lg bg-${row.color}/10 flex items-center justify-center shrink-0">
+            <ion-icon name="${row.icon}" class="text-${row.color} text-sm"></ion-icon>
+          </div>
+          <span class="text-[11px] text-gray-400 w-24 shrink-0">${row.label}</span>
+          <span class="text-[12px] font-semibold text-navy-dark flex-1 text-right font-${row.label === 'Reference No.' ? 'mono' : 'sans'}">${row.value}</span>
+        </div>`).join('')}
+    </div>
+
+    <div class="bg-brand-orange/5 border border-brand-orange/20 rounded-xl px-4 py-3 flex gap-2.5 mb-5">
+      <ion-icon name="information-circle-outline" class="text-brand-orange text-lg shrink-0 mt-0.5"></ion-icon>
+      <p class="text-[11px] text-gray-500 leading-relaxed">Your payment will be marked as <strong>Pending</strong> until our team verifies the bank transfer. This typically takes up to 24 hours.</p>
+    </div>
+
+    <div class="flex gap-3">
+      <button onclick="renewalStep=2;renderRenewalStep()" class="flex-1 h-[46px] bg-gray-100 text-navy-dark text-[13px] font-semibold rounded-xl active:bg-gray-200">← Back</button>
+      <button onclick="submitRenewal()" class="flex-1 h-[46px] bg-navy text-white text-[13px] font-semibold rounded-xl active:bg-navy-light">
+        Confirm & Submit
+      </button>
+    </div>`;
+}
+
+function submitRenewal() {
+  const price = renewalPrice(renewalMonths);
+  const dur = RENEWAL_DURATIONS.find(d => d.months === renewalMonths);
+
+  // Add payment as pending to PLAN data
+  const today = new Date().toISOString().slice(0, 10);
+  PLAN.payments.unshift({ amount: price, months: renewalMonths, ref: renewalRef, date: today, status: 'pending' });
+
+  closeRenewalPanel();
+  setTimeout(() => {
+    const dlg = document.getElementById('renewal-success-dialog');
+    document.getElementById('renewal-success-msg').textContent =
+      `Rs.${fmtNum(price)} for ${dur.label} has been submitted for the ${PLAN.name} Plan.`;
+    document.getElementById('renewal-success-ref-val').textContent = renewalRef;
+    dlg.classList.remove('hidden');
+    dlg.classList.add('flex');
+  }, 350);
+}
+
+function showCopied(btn) {
+  const icon = btn.querySelector('ion-icon');
+  if (icon) { icon.name = 'checkmark-outline'; setTimeout(() => { icon.name = 'copy-outline'; }, 1500); }
+}
+
+// ═══ CHANGE PLAN FLOW ═══
+const PLANS_DATA = [
+  {
+    id: 'starter',
+    name: 'Starter',
+    icon: 'leaf-outline',
+    color: 'brand-green',
+    prices: { monthly: 5000, quarterly: 12500, annual: 45000 },
+    storeLimit: 1,
+    productLimit: 100,
+    registerLimit: 1,
+    features: ['1 Store', '100 Products', '1 Register/store', 'Basic reports', 'Email support']
+  },
+  {
+    id: 'pro',
+    name: 'Pro',
+    icon: 'rocket-outline',
+    color: 'brand-purple',
+    prices: { monthly: 15000, quarterly: 37500, annual: 135000 },
+    storeLimit: 'Unlimited',
+    productLimit: 'Unlimited',
+    registerLimit: 'Unlimited',
+    features: ['Unlimited Stores', 'Unlimited Products', 'Unlimited Registers', 'Advanced analytics', 'Priority support', 'Multi-channel (POS + EC)'],
+    current: true
+  },
+  {
+    id: 'business',
+    name: 'Business',
+    icon: 'business-outline',
+    color: 'brand-blue',
+    prices: { monthly: 35000, quarterly: 87500, annual: 315000 },
+    storeLimit: 'Unlimited',
+    productLimit: 'Unlimited',
+    registerLimit: 'Unlimited',
+    features: ['Everything in Pro', 'Dedicated account manager', 'Custom integrations', 'SLA guarantee', 'White-label receipts', 'API access']
+  }
+];
+
+let selectedBilling = 'monthly';
+let selectedPlanId = 'pro'; // current plan
+
+function openChangePlan() {
+  selectedBilling = 'monthly';
+  selectedPlanId = 'pro';
+  const panel = document.getElementById('change-plan-panel');
+  const inner = document.getElementById('change-plan-inner');
+  panel.classList.remove('hidden');
+  panel.classList.add('flex','flex-col','justify-end');
+  requestAnimationFrame(() => { inner.classList.remove('translate-y-full'); inner.classList.add('translate-y-0'); });
+  document.body.style.overflow = 'hidden';
+  renderPlanCards();
+  updateBillingToggle();
+  updateConfirmBar();
+}
+
+function closeChangePlan() {
+  const panel = document.getElementById('change-plan-panel');
+  const inner = document.getElementById('change-plan-inner');
+  inner.classList.remove('translate-y-0');
+  inner.classList.add('translate-y-full');
+  setTimeout(() => {
+    panel.classList.add('hidden');
+    panel.classList.remove('flex','flex-col','justify-end');
+    document.body.style.overflow = '';
+  }, 300);
+}
+
+function setBilling(cycle) {
+  selectedBilling = cycle;
+  updateBillingToggle();
+  renderPlanCards();
+  updateConfirmBar();
+}
+
+function updateBillingToggle() {
+  ['monthly','quarterly','annual'].forEach(c => {
+    const btn = document.getElementById('bt-' + c);
+    if (!btn) return;
+    if (c === selectedBilling) {
+      btn.className = 'flex-1 py-2 rounded-lg text-[12px] font-semibold transition bg-white shadow-sm text-navy-dark';
+    } else {
+      btn.className = 'flex-1 py-2 rounded-lg text-[12px] font-semibold transition text-gray-500';
+    }
+  });
+}
+
+function selectPlan(id) {
+  selectedPlanId = id;
+  renderPlanCards();
+  updateConfirmBar();
+}
+
+function renderPlanCards() {
+  const cycleLabel = { monthly:'mo', quarterly:'3 mo', annual:'yr' };
+  document.getElementById('plan-cards-list').innerHTML = PLANS_DATA.map(plan => {
+    const price = plan.prices[selectedBilling];
+    const isCurrent = plan.id === 'pro' && selectedBilling === 'monthly'; // current active plan
+    const isSelected = plan.id === selectedPlanId;
+    const isUpgrade = plan.id === 'business';
+    const isDowngrade = plan.id === 'starter';
+
+    return `
+    <div onclick="selectPlan('${plan.id}')" class="bg-white rounded-2xl border-2 ${isSelected ? 'border-brand-purple shadow-lg shadow-brand-purple/10' : 'border-border'} overflow-hidden cursor-pointer transition-all duration-150 active:scale-[0.99]">
+      <div class="p-4">
+        <!-- Plan name row -->
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-2.5">
+            <div class="w-9 h-9 rounded-xl bg-${plan.color}/10 flex items-center justify-center">
+              <ion-icon name="${plan.icon}" class="text-${plan.color} text-lg"></ion-icon>
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <p class="text-[14px] font-bold text-navy-dark">${plan.name}</p>
+                ${isCurrent ? '<span class="text-[9px] font-bold text-brand-green bg-brand-green/10 px-2 py-0.5 rounded-full">Current</span>' : ''}
+                ${isUpgrade && !isCurrent ? '<span class="text-[9px] font-bold text-brand-blue bg-brand-blue/10 px-2 py-0.5 rounded-full">Upgrade</span>' : ''}
+                ${isDowngrade ? '<span class="text-[9px] font-bold text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">Downgrade</span>' : ''}
+              </div>
+              <p class="text-[11px] text-gray-400">Rs.${fmtNum(price)} / ${cycleLabel[selectedBilling]}</p>
+            </div>
+          </div>
+          <div class="w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${isSelected ? 'border-brand-purple bg-brand-purple' : 'border-gray-300'}">
+            ${isSelected ? '<div class="w-2 h-2 rounded-full bg-white"></div>' : ''}
+          </div>
+        </div>
+        <!-- Features -->
+        <div class="space-y-1.5 ${isSelected ? '' : 'opacity-60'}">
+          ${plan.features.map(f => `
+            <div class="flex items-center gap-2">
+              <ion-icon name="checkmark-outline" class="text-${plan.color} text-sm shrink-0"></ion-icon>
+              <span class="text-[11px] text-gray-600">${f}</span>
+            </div>`).join('')}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function updateConfirmBar() {
+  const bar = document.getElementById('plan-confirm-bar');
+  const label = document.getElementById('plan-confirm-label');
+  // Show bar only when a DIFFERENT plan or cycle is chosen
+  const isDifferent = selectedPlanId !== 'pro' || selectedBilling !== 'monthly';
+  if (isDifferent) {
+    bar.classList.remove('hidden');
+    const plan = PLANS_DATA.find(p => p.id === selectedPlanId);
+    const price = plan.prices[selectedBilling];
+    const cycleLabel = { monthly:'month', quarterly:'quarter', annual:'year' };
+    label.textContent = `Switch to ${plan.name} · Rs.${fmtNum(price)}/${cycleLabel[selectedBilling]}`;
+  } else {
+    bar.classList.add('hidden');
+  }
+}
+
+function confirmPlanChange() {
+  const plan = PLANS_DATA.find(p => p.id === selectedPlanId);
+  const price = plan.prices[selectedBilling];
+  const cycleLabel = { monthly:'month', quarterly:'quarter', annual:'year' };
+  closeChangePlan();
+  // Show a confirmation dialog after closing
+  setTimeout(() => {
+    const dlg = document.getElementById('plan-changed-dialog');
+    document.getElementById('plan-changed-msg').textContent =
+      `You've selected the ${plan.name} plan at Rs.${fmtNum(price)}/${cycleLabel[selectedBilling]}. An invoice will be sent to ${OWNER.email}.`;
+    dlg.classList.remove('hidden');
+    dlg.classList.add('flex');
+  }, 350);
+}
+
+// ═══ TOAST ═══
+function showToast(msg, type = 'success') {
+  const toast = document.getElementById('toast');
+  const inner = document.getElementById('toast-inner');
+  const icon  = document.getElementById('toast-icon');
+  const text  = document.getElementById('toast-msg');
+  const styles = {
+    success: { bg:'bg-navy-dark', color:'text-brand-green', iconName:'checkmark-circle' },
+    error:   { bg:'bg-brand-red', color:'text-white',       iconName:'close-circle' },
+    info:    { bg:'bg-navy-dark', color:'text-white',       iconName:'information-circle' }
+  };
+  const s = styles[type] || styles.success;
+  inner.className = `flex items-center gap-3 px-4 py-3 rounded-2xl shadow-lg ${s.bg}`;
+  icon.name = s.iconName;
+  icon.className = `text-xl shrink-0 ${s.color}`;
+  text.textContent = msg;
+  text.className = `text-[13px] font-semibold flex-1 text-white`;
+  toast.classList.remove('hidden', 'opacity-0');
+  toast.classList.add('opacity-100');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => {
+    toast.classList.remove('opacity-100');
+    toast.classList.add('opacity-0');
+    setTimeout(() => toast.classList.add('hidden'), 300);
+  }, 2800);
+}
+
+// ═══ SIGN OUT ═══
+function doSignOut() {
+  document.getElementById('signout-dialog').classList.add('hidden');
+  const screen = document.getElementById('signed-out-screen');
+  screen.classList.remove('hidden');
+  screen.classList.add('flex');
+}
+function doSignIn() {
+  document.getElementById('signed-out-screen').classList.add('hidden');
+  document.getElementById('signed-out-screen').classList.remove('flex');
+  navTo('sales');
+}
+
+// ═══ SETTINGS ACTIONS ═══
+function saveProfile() {
+  const name  = document.getElementById('pf-name')?.value.trim();
+  const email = document.getElementById('pf-email')?.value.trim();
+  if (!name)  { showToast('Name cannot be empty', 'error'); return; }
+  if (!email || !email.includes('@')) { showToast('Enter a valid email', 'error'); return; }
+  OWNER.name  = name;
+  OWNER.email = email;
+  closeSettingsPanel();
+  renderSettings();
+  showToast('Profile updated successfully');
+}
+
+function checkPasswordStrength() {
+  const pw  = document.getElementById('pw-new')?.value || '';
+  const bar = document.getElementById('pw-strength-fill');
+  const lbl = document.getElementById('pw-strength-label');
+  if (!bar || !lbl) return;
+  let score = 0;
+  if (pw.length >= 8) score++;
+  if (/[A-Z]/.test(pw)) score++;
+  if (/[0-9]/.test(pw)) score++;
+  if (/[^A-Za-z0-9]/.test(pw)) score++;
+  const levels = [
+    { w:'0%',   cls:'bg-transparent', label:'' },
+    { w:'25%',  cls:'bg-brand-red',   label:'Weak' },
+    { w:'50%',  cls:'bg-brand-orange',label:'Fair' },
+    { w:'75%',  cls:'bg-brand-blue',  label:'Good' },
+    { w:'100%', cls:'bg-brand-green', label:'Strong' }
+  ];
+  const l = levels[score];
+  bar.style.width = l.w;
+  bar.className = `h-full rounded-full transition-all duration-300 ${l.cls}`;
+  lbl.textContent = l.label;
+  lbl.className = `text-[10px] mt-1 ${score >= 3 ? 'text-brand-green' : score >= 2 ? 'text-brand-orange' : 'text-brand-red'}`;
+}
+
+function savePassword() {
+  const current = document.getElementById('pw-current')?.value;
+  const newPw   = document.getElementById('pw-new')?.value;
+  const confirm = document.getElementById('pw-confirm')?.value;
+  if (!current) { showToast('Enter your current password', 'error'); return; }
+  if (!newPw || newPw.length < 8) { showToast('Password must be at least 8 characters', 'error'); return; }
+  if (newPw !== confirm) { showToast('Passwords do not match', 'error'); return; }
+  closeSettingsPanel();
+  showToast('Password updated successfully');
+}
+
+function saveBrand() {
+  const name = document.getElementById('br-name')?.value.trim();
+  const addr = document.getElementById('br-addr')?.value.trim();
+  if (!name) { showToast('Brand name cannot be empty', 'error'); return; }
+  if (!addr) { showToast('Address cannot be empty', 'error'); return; }
+  OWNER.brand = name;
+  closeSettingsPanel();
+  showToast('Brand information saved');
+}
+
+function saveNotifications() {
+  closeSettingsPanel();
+  showToast('Notification preferences saved');
+}
+
+// ═══ SUPPORT SHEET ═══
+const SUPPORT_CONTENT = {
+  faq: {
+    title: 'FAQ',
+    desc: 'Frequently asked questions',
+    body: () => `
+      <div class="space-y-2">
+        ${[
+          { q:'How do I add a new store?', a:'Go to the Admin Portal → Stores → Add Store. Once approved, it appears in your app.' },
+          { q:'When does my plan renew?', a:'Plans are renewed manually via the Submit Payment option on the Plan screen.' },
+          { q:'Can I export sales reports?', a:'CSV/PDF export is available in the Admin Portal under Reports.' },
+          { q:'How do I add staff accounts?', a:'Go to Admin Portal → Staff → Invite. Set role permissions per store.' },
+          { q:'What happens if payment fails?', a:'Your plan continues for a 3-day grace period. Contact support to resolve.' }
+        ].map(item => `
+          <details class="bg-white border border-border rounded-xl overflow-hidden group">
+            <summary class="px-4 py-3.5 flex items-center justify-between cursor-pointer list-none">
+              <p class="text-[13px] font-medium text-navy-dark">${item.q}</p>
+              <ion-icon name="chevron-down-outline" class="text-gray-400 text-base shrink-0 group-open:rotate-180 transition-transform"></ion-icon>
+            </summary>
+            <div class="px-4 pb-3.5 text-[12px] text-gray-500 leading-relaxed border-t border-gray-100">${item.a}</div>
+          </details>`).join('')}
+      </div>`
+  },
+  contact: {
+    title: 'Contact Support',
+    desc: 'We typically respond within a few hours',
+    body: () => `
+      <div class="space-y-3">
+        <div>
+          <label class="block text-[11px] text-gray-500 font-medium mb-1.5">Subject</label>
+          <select id="cs-subject" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 h-[46px] text-[13px] focus:outline-none focus:border-navy">
+            <option>Billing / Payment issue</option>
+            <option>Account access problem</option>
+            <option>Feature request</option>
+            <option>Technical issue</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-[11px] text-gray-500 font-medium mb-1.5">Message</label>
+          <textarea id="cs-message" rows="4" placeholder="Describe your issue in detail…" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-[13px] focus:outline-none focus:border-navy resize-none placeholder-gray-300"></textarea>
+        </div>
+        <div class="bg-gray-50 rounded-xl px-4 py-3 flex items-center gap-3">
+          <ion-icon name="mail-outline" class="text-navy text-lg shrink-0"></ion-icon>
+          <div>
+            <p class="text-[10px] text-gray-400">Reply will be sent to</p>
+            <p class="text-[12px] font-semibold text-navy-dark">${OWNER.email}</p>
+          </div>
+        </div>
+        <button onclick="submitSupportMessage()" class="w-full h-[46px] bg-navy text-white text-[13px] font-semibold rounded-xl active:bg-navy-light">Send Message</button>
+        <div class="flex items-center gap-3 pt-1">
+          <div class="flex-1 h-px bg-gray-200"></div><span class="text-[10px] text-gray-400">or reach us directly</span><div class="flex-1 h-px bg-gray-200"></div>
+        </div>
+        <a href="mailto:support@airregister.app" class="w-full h-[46px] border border-border rounded-xl flex items-center justify-center gap-2 text-[13px] font-medium text-navy-dark active:bg-gray-50">
+          <ion-icon name="mail-outline" class="text-lg"></ion-icon> support@airregister.app
+        </a>
+      </div>`
+  },
+  report: {
+    title: 'Report an Issue',
+    desc: 'Help us improve by reporting bugs',
+    body: () => `
+      <div class="space-y-3">
+        <div>
+          <label class="block text-[11px] text-gray-500 font-medium mb-1.5">Issue Type</label>
+          <select id="rp-type" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 h-[46px] text-[13px] focus:outline-none focus:border-navy">
+            <option>App crash / not loading</option>
+            <option>Data showing incorrectly</option>
+            <option>Button / action not working</option>
+            <option>Slow performance</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-[11px] text-gray-500 font-medium mb-1.5">Where did this happen?</label>
+          <select id="rp-page" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 h-[46px] text-[13px] focus:outline-none focus:border-navy">
+            <option>Sales page</option><option>Stores page</option><option>Plan page</option><option>Settings page</option><option>Other</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-[11px] text-gray-500 font-medium mb-1.5">Description</label>
+          <textarea id="rp-desc" rows="3" placeholder="What happened? What did you expect?" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-[13px] focus:outline-none focus:border-navy resize-none placeholder-gray-300"></textarea>
+        </div>
+        <button onclick="submitReport()" class="w-full h-[46px] bg-brand-orange text-white text-[13px] font-semibold rounded-xl active:opacity-90">Submit Report</button>
+      </div>`
+  },
+  terms: {
+    title: 'Terms & Privacy',
+    desc: 'Air Register · IDENBRID (PVT) LTD',
+    body: () => `
+      <div class="space-y-2">
+        ${[
+          { icon:'document-text-outline', color:'brand-blue',   label:'Terms of Service',   url:'#' },
+          { icon:'shield-checkmark-outline', color:'brand-green', label:'Privacy Policy',   url:'#' },
+          { icon:'receipt-outline',       color:'brand-purple', label:'Refund Policy',       url:'#' },
+          { icon:'information-circle-outline', color:'brand-orange', label:'App Version', url:null, value:'v3.0.0' }
+        ].map(item => `
+          <div class="flex items-center gap-3 bg-white border border-border rounded-xl px-4 py-3.5 ${item.url ? 'cursor-pointer active:bg-gray-50' : ''}">
+            <div class="w-9 h-9 rounded-xl bg-${item.color}/10 flex items-center justify-center shrink-0"><ion-icon name="${item.icon}" class="text-${item.color} text-lg"></ion-icon></div>
+            <p class="text-[13px] font-medium text-navy-dark flex-1">${item.label}</p>
+            ${item.value ? `<span class="text-[12px] font-mono text-gray-500">${item.value}</span>` : '<ion-icon name="open-outline" class="text-gray-300 text-base"></ion-icon>'}
+          </div>`).join('')}
+        <p class="text-center text-[10px] text-gray-400 pt-2">© 2026 IDENBRID (PVT) LTD. All rights reserved.</p>
+      </div>`
+  }
+};
+
+function openSupportSheet(type) {
+  const cfg = SUPPORT_CONTENT[type];
+  if (!cfg) return;
+  document.getElementById('support-title').textContent = cfg.title;
+  document.getElementById('support-desc').textContent  = cfg.desc;
+  document.getElementById('support-body').innerHTML    = cfg.body();
+  const sheet = document.getElementById('support-sheet');
+  const inner = document.getElementById('support-inner');
+  sheet.classList.remove('hidden');
+  sheet.classList.add('flex');
+  requestAnimationFrame(() => { inner.classList.remove('translate-y-full'); inner.classList.add('translate-y-0'); });
+}
+
+function closeSupportSheet() {
+  const sheet = document.getElementById('support-sheet');
+  const inner = document.getElementById('support-inner');
+  inner.classList.remove('translate-y-0');
+  inner.classList.add('translate-y-full');
+  setTimeout(() => { sheet.classList.add('hidden'); sheet.classList.remove('flex'); }, 300);
+}
+
+function submitSupportMessage() {
+  const msg = document.getElementById('cs-message')?.value.trim();
+  if (!msg) { showToast('Please describe your issue', 'error'); return; }
+  closeSupportSheet();
+  closeSettingsPanel();
+  showToast('Message sent — we\'ll reply within 24 hrs');
+}
+
+function submitReport() {
+  const desc = document.getElementById('rp-desc')?.value.trim();
+  if (!desc) { showToast('Please describe the issue', 'error'); return; }
+  closeSupportSheet();
+  closeSettingsPanel();
+  showToast('Report submitted — thank you!');
+}
+
+// ═══ NAVIGATION ═══
+function navTo(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  document.querySelectorAll('.bottom-nav button').forEach(b => b.classList.remove('active'));
+  const idx = { sales:0, stores:1, plan:2, settings:3 }[page];
+  document.querySelectorAll('.bottom-nav button')[idx].classList.add('active');
+  window.scrollTo(0, 0);
+  // Re-render on navigate to ensure fresh data
+  if (page === 'stores') renderStores();
+  if (page === 'plan') renderPlan();
+  if (page === 'settings') renderSettings();
+}
+
+function setPeriod(period) {
+  currentPeriod = period;
+  document.querySelectorAll('#period-filters .filter-pill').forEach(b => b.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+  renderSales();
+}
+
+// ═══ INIT ═══
+document.addEventListener('DOMContentLoaded', () => {
+  renderSales();
+  renderStores();
+  renderPlan();
+  renderSettings();
+});
+</script>
+</body>
+</html>

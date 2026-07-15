@@ -1,0 +1,2780 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Air Register — V3 Register (Staff)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        navy: { dark: '#0a1535', DEFAULT: '#1a2d6b', light: '#2a4494' },
+        brand: { blue: '#3366cc', green: '#2dd36f', orange: '#ff9800', red: '#eb445a', purple: '#7c4dff' },
+        page: '#f4f6f9',
+        border: '#e8ecf1'
+      },
+      fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] }
+    }
+  }
+}
+</script>
+<script src="https://unpkg.com/ionicons@7.1.0/dist/ionicons.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  html, body { margin:0; padding:0; background:#f4f6f9; color:#111; overflow-x:hidden; }
+  body { min-height:100vh; font-family:'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
+  button:focus, button:active { outline: none; box-shadow: none; }
+  button { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+  /* Touch-friendly scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+  /* Prevent iOS zoom on input focus */
+  input, select, textarea { font-size: 16px !important; }
+  /* Hide scrollbar for coupon suggestions */
+  #coupon-suggestions::-webkit-scrollbar { display: none; }
+  /* Tap animation */
+  .tap-btn { transition: transform 0.1s ease, opacity 0.1s ease; }
+  .tap-btn:active { transform: scale(0.96); opacity: 0.85; }
+  /* Print styles */
+  @media print {
+    body * { visibility: hidden; }
+    #receipt-modal, #receipt-modal * { visibility: visible; }
+    #receipt-modal { position: absolute; left: 0; top: 0; width: 80mm; padding: 0; background: white; }
+    #receipt-modal > div { box-shadow: none; border-radius: 0; max-height: none; width: 80mm; }
+    #receipt-success-header { display: none !important; }
+    #receipt-modal .flex.gap-3.border-t { display: none !important; }
+    /* Shift closing report print mode */
+    body.print-report #receipt-modal, body.print-report #receipt-modal * { visibility: hidden; }
+    body.print-report #shift-report-modal, body.print-report #shift-report-modal * { visibility: visible; }
+    body.print-report #shift-report-modal { position: absolute; left: 0; top: 0; width: 100%; padding: 0; background: white; }
+    body.print-report #shift-report-modal > div { box-shadow: none; border-radius: 0; max-height: none; width: 100%; max-width: none; }
+    body.print-report #shift-report-actions { display: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ LOGIN SCREEN ============ -->
+<div id="login-screen" class="min-h-screen w-full flex flex-col lg:flex-row">
+  <!-- Left side - Branding (hidden on mobile/small tablet, visible on landscape tablet+) -->
+  <div class="hidden lg:flex flex-1 flex-col items-center justify-center relative overflow-hidden" style="background: linear-gradient(135deg, #0a1535 0%, #1a2d6b 50%, #2a4494 100%);">
+    <!-- Background pattern -->
+    <div class="absolute inset-0 opacity-[0.04]">
+      <div class="absolute top-12 left-12 w-44 h-44 border-2 border-white rounded-3xl rotate-12"></div>
+      <div class="absolute bottom-16 right-12 w-64 h-64 border-2 border-white rounded-full"></div>
+      <div class="absolute top-1/3 right-16 w-28 h-28 border-2 border-white rounded-2xl -rotate-6"></div>
+      <div class="absolute bottom-1/3 left-20 w-20 h-20 border-2 border-white rounded-xl rotate-45"></div>
+    </div>
+    <div class="relative z-10 text-center px-10">
+      <div class="w-28 h-28 mx-auto mb-6 bg-white/10 backdrop-blur-sm rounded-3xl flex items-center justify-center border border-white/10 shadow-2xl">
+        <img src="../img/CLIFTON-MARKET icon.jpg" alt="Clifton Mart" class="object-contain rounded-xl" style="width:88px;height:88px;">
+      </div>
+      <h1 class="text-[36px] font-extrabold text-white tracking-tight">Clifton Mart</h1>
+      <p class="text-[16px] text-white/50 mt-2 font-medium">Point of Sale · Register Terminal</p>
+      <div class="mt-10 flex items-center justify-center gap-8 text-white/40 text-[13px]">
+        <div class="flex items-center gap-2">
+          <ion-icon name="shield-checkmark-outline" class="text-xl text-green-400/60"></ion-icon>
+          <span>Secure Login</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <ion-icon name="cloud-done-outline" class="text-xl text-blue-300/60"></ion-icon>
+          <span>Cloud Synced</span>
+        </div>
+      </div>
+    </div>
+    <div class="absolute bottom-8 text-center">
+      <p class="text-[12px] text-white/20 font-medium">Powered by Air Register · v3.0</p>
+    </div>
+  </div>
+  <!-- Right side - Login Form (full width on mobile, fixed width on desktop) -->
+  <div class="flex-1 lg:flex-none lg:w-[540px] min-h-screen flex flex-col items-center justify-center px-6 sm:px-10 lg:px-14 shrink-0 bg-white lg:shadow-2xl">
+    <!-- Mobile/Tablet header (visible below lg) -->
+    <div class="lg:hidden text-center mb-6">
+      <div class="w-20 h-20 mx-auto mb-4 rounded-2xl flex items-center justify-center" style="background: linear-gradient(135deg, #0a1535, #1a2d6b);">
+        <img src="../img/CLIFTON-MARKET icon.jpg" alt="Clifton Mart" class="w-14 h-14 object-contain rounded-lg">
+      </div>
+      <h1 class="text-[22px] font-bold text-navy">Clifton Mart</h1>
+      <p class="text-[13px] text-gray-400 mt-1">POS Register · Sign In</p>
+    </div>
+    <div class="w-full max-w-[340px]">
+      <div class="mb-6 lg:mb-8">
+        <h2 class="text-[22px] lg:text-[24px] font-bold text-black">Welcome back</h2>
+        <p class="text-[13px] lg:text-[14px] text-gray-500 mt-1.5">Sign in to start your shift</p>
+      </div>
+      <div class="mb-4 lg:mb-5">
+        <label class="block text-[13px] text-gray-500 mb-2 font-medium">Staff Username</label>
+        <div class="relative">
+          <ion-icon name="person-outline" class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xl pointer-events-none"></ion-icon>
+          <input id="login-user" type="text" placeholder="e.g. hamza"
+            class="w-full bg-gray-50 border-2 border-gray-200 rounded-xl pl-12 pr-5 h-[52px] lg:h-[54px] text-[16px] focus:outline-none focus:border-navy focus:ring-2 focus:ring-navy/20 transition-colors"
+            onkeydown="if(event.key==='Enter'){document.getElementById('login-pin').focus();}">
+        </div>
+      </div>
+      <div class="mb-5 lg:mb-7">
+        <label class="block text-[13px] text-gray-500 mb-2 font-medium">PIN Code</label>
+        <div class="relative">
+          <ion-icon name="lock-closed-outline" class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xl pointer-events-none"></ion-icon>
+          <input id="login-pin" type="password" placeholder="••••" maxlength="6"
+            class="w-full bg-gray-50 border-2 border-gray-200 rounded-xl pl-12 pr-5 h-[52px] lg:h-[54px] text-[20px] font-mono tracking-[0.3em] focus:outline-none focus:border-navy focus:ring-2 focus:ring-navy/20 transition-colors"
+            onkeydown="if(event.key==='Enter'){doLogin();}">
+        </div>
+      </div>
+      <div id="login-error" class="hidden mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-[13px] text-brand-red font-medium flex items-center justify-center gap-2">
+        <ion-icon name="alert-circle-outline" class="text-lg shrink-0"></ion-icon>
+        <span id="login-error-text"></span>
+      </div>
+      <button onclick="doLogin()" class="tap-btn w-full h-[54px] lg:h-[56px] bg-navy text-white text-[15px] lg:text-[16px] font-bold rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-navy/30 hover:shadow-xl transition-shadow">
+        <ion-icon name="log-in-outline" style="font-size:22px;"></ion-icon> Sign In
+      </button>
+      <div class="mt-6 lg:mt-8 pt-5 lg:pt-6 border-t border-gray-100">
+        <p class="text-[12px] text-gray-400 text-center mb-3">Quick demo login:</p>
+        <div class="grid grid-cols-3 gap-2">
+          <button onclick="fillDemo('hamza','1234')" class="tap-btn px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-center hover:bg-navy/5 hover:border-navy/30 transition-colors">
+            <p class="text-[13px] font-semibold text-black">hamza</p>
+            <p class="text-[11px] text-gray-400 mt-0.5">1234</p>
+          </button>
+          <button onclick="fillDemo('ali','5678')" class="tap-btn px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-center hover:bg-navy/5 hover:border-navy/30 transition-colors">
+            <p class="text-[13px] font-semibold text-black">ali</p>
+            <p class="text-[11px] text-gray-400 mt-0.5">5678</p>
+          </button>
+          <button onclick="fillDemo('bilal','0000')" class="tap-btn px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-center hover:bg-navy/5 hover:border-navy/30 transition-colors">
+            <p class="text-[13px] font-semibold text-black">bilal</p>
+            <p class="text-[11px] text-gray-400 mt-0.5">0000</p>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MAIN REGISTER SCREEN ============ -->
+<div id="main-register-screen" class="h-screen flex-col hidden overflow-hidden">
+  <!-- Header bar - compact for tablet -->
+  <div class="bg-navy text-white px-5 py-3.5 flex items-center justify-between shrink-0">
+    <div class="flex items-center gap-3">
+      <div class="h-[44px] flex items-center justify-center">
+        <img src="../img/CLIFTON-MARKET icon.jpg" alt="Clifton Mart" class="h-full object-contain rounded-md">
+      </div>
+      <div class="leading-tight">
+        <p class="text-[18px] font-semibold">Clifton Mart · Register 1</p>
+        <p id="staff-line" class="text-[14px] text-white/60 font-normal">Staff: Hamza · Shift started 09:15</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-2">
+      <button onclick="openOpeningBalanceModal()" class="tap-btn px-4 py-2.5 bg-white/10 rounded-lg text-[15px] hover:bg-white/20 flex items-center gap-2 min-h-[48px]" title="Set Opening Balance">
+        <ion-icon name="wallet-outline" style="font-size:20px;"></ion-icon> <span id="opening-bal-display">Float: Rs.0</span>
+      </button>
+      <button onclick="openOrdersScreen()" class="tap-btn px-4 py-2.5 bg-white/10 rounded-lg text-[15px] hover:bg-white/20 flex items-center gap-2 min-h-[48px]" title="Orders">
+        <ion-icon name="receipt-outline" style="font-size:20px;"></ion-icon> Orders
+      </button>
+      <button onclick="openCloseDay()" class="tap-btn px-4 py-2.5 bg-white/10 rounded-lg text-[15px] hover:bg-white/20 flex items-center gap-2 min-h-[48px]" title="Close Day">
+        <ion-icon name="lock-closed-outline" style="font-size:20px;"></ion-icon> Close
+      </button>
+      <button onclick="openHelpScreen()" class="tap-btn px-4 py-2.5 bg-white/10 rounded-lg text-[15px] hover:bg-white/20 flex items-center gap-2 min-h-[48px]" title="Help & Support">
+        <ion-icon name="help-circle-outline" style="font-size:20px;"></ion-icon> Help
+      </button>
+    </div>
+  </div>
+
+  <!-- Body: Left (products + cart) + Right (summary + actions) -->
+  <div class="flex flex-1 overflow-hidden">
+    <!-- LEFT column - Products & Cart -->
+    <div class="flex-1 flex flex-col bg-white border-r border-gray-100 overflow-hidden">
+      <!-- Search bar -->
+      <div class="px-4 py-3 border-b border-gray-100 bg-gray-50/80">
+        <div class="relative">
+          <ion-icon name="search-outline" class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-2xl"></ion-icon>
+          <input id="scan-input" type="text" placeholder="Scan barcode or search product..."
+            class="w-full bg-white border border-gray-200 rounded-xl pl-12 pr-4 h-[52px] text-[16px] focus:outline-none focus:border-brand-blue focus:ring-2 focus:ring-brand-blue/20"
+            oninput="handleLiveSearch(this.value)"
+            onkeydown="if(event.key==='Enter'){handleScan(this.value); this.value=''; closeLiveSearch(); event.preventDefault()} if(event.key==='Escape'){closeLiveSearch()}"
+            onfocus="handleLiveSearch(this.value)"
+            autocomplete="off">
+          <!-- Live search dropdown -->
+          <div id="live-search-dropdown" class="hidden absolute left-0 right-0 top-full mt-1 bg-white border border-gray-200 rounded-xl shadow-xl z-[60] max-h-[350px] overflow-y-auto"></div>
+        </div>
+      </div>
+
+
+
+      <!-- Cart list -->
+      <div id="v3-cart" class="flex-1 overflow-y-auto px-4 py-3 space-y-2"></div>
+      <div id="v3-cart-empty" class="flex-1 flex flex-col items-center justify-center text-gray-300">
+        <ion-icon name="cart-outline" class="text-7xl"></ion-icon>
+        <p class="text-[16px] mt-3 text-gray-400 font-medium">Scan or tap to add items</p>
+      </div>
+      <!-- Held orders inline -->
+      <div id="v3-held-inline" class="hidden flex-1 overflow-y-auto p-4 pb-3">
+        <div class="flex items-center justify-between mb-3">
+          <p class="text-[15px] uppercase text-gray-500 tracking-wider font-semibold">Held Orders</p>
+          <button onclick="closeHeldInline()" class="tap-btn text-[15px] text-gray-500 hover:text-black px-3 py-1">Back</button>
+        </div>
+        <div id="v3-held-list" class="space-y-3"></div>
+      </div>
+    </div>
+
+    <!-- RIGHT column: customer + totals + actions -->
+    <div class="w-[370px] bg-gray-50 flex flex-col overflow-hidden shrink-0">
+      <!-- Customer panel -->
+      <div id="v3-customer-panel" class="border-b border-gray-100 shrink-0">
+        <!-- Not checked in state -->
+        <div id="cust-empty-state" class="px-4 py-3 bg-white">
+          <div class="flex items-center gap-3 mb-2">
+            <div class="w-11 h-11 rounded-full bg-gray-100 flex items-center justify-center">
+              <ion-icon name="person-outline" class="text-gray-400 text-2xl"></ion-icon>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-[15px] text-black font-semibold">Walk-in Customer</p>
+              <p class="text-[13px] text-gray-500">No loyalty account linked</p>
+            </div>
+          </div>
+          <button onclick="openUserIdModal()" class="tap-btn w-full h-[50px] text-[15px] text-navy bg-white border-2 border-dashed border-gray-300 rounded-xl hover:bg-gray-50 font-medium flex items-center justify-center gap-2">
+            <ion-icon name="person-add-outline" style="font-size:22px;"></ion-icon>
+            Link Customer
+          </button>
+        </div>
+        <!-- Checked-in state -->
+        <div id="cust-info-state" class="hidden px-4 py-2.5 bg-gradient-to-b from-emerald-50 to-white">
+          <div class="flex items-center gap-3">
+            <div class="w-11 h-11 rounded-full bg-brand-green text-white flex items-center justify-center font-bold text-[16px] shrink-0 shadow-sm">
+              <span id="cust-initial">A</span>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p id="cust-name" class="text-[15px] font-semibold text-black truncate">Ahmed Hassan</p>
+              <p id="cust-area" class="text-[13px] text-gray-500 truncate">Clifton, Karachi</p>
+              <div class="flex items-center gap-2 mt-0.5 text-[12px] text-gray-500">
+                <span><strong id="cust-visits" class="text-black">15</strong> visits</span>
+                <span>·</span>
+                <span>Last <strong id="cust-last" class="text-black">3 days ago</strong></span>
+              </div>
+            </div>
+            <button onclick="endCheckin()" class="tap-btn w-9 h-9 rounded-full bg-red-50 text-brand-red flex items-center justify-center" title="Remove">
+              <ion-icon name="close-outline" class="text-lg"></ion-icon>
+            </button>
+          </div>
+          <!-- Loyalty Points Bar -->
+          <div id="cust-loyalty-bar" class="mt-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2.5 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <ion-icon name="star" class="text-amber-500 text-xl"></ion-icon>
+              <div>
+                <p class="text-[13px] text-gray-600 leading-tight"><strong id="cust-points" class="text-black">0</strong> pts · <span id="cust-tier" class="font-medium text-amber-600">Gold</span></p>
+                <p class="text-[12px] text-gray-400">Rs.<span id="cust-points-value">0</span> value</p>
+              </div>
+            </div>
+            <button onclick="openRedeemModal()" id="redeem-btn" class="tap-btn px-3 py-2 bg-amber-500 text-white text-[13px] font-semibold rounded-lg hover:bg-amber-600">
+              Redeem
+            </button>
+          </div>
+          <div class="hidden mt-2 text-[12px] text-gray-500">
+            <span>Lifetime: <strong id="cust-lifetime" class="text-black">Rs.62,400</strong></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Totals -->
+      <div class="px-4 py-3 bg-white border-b border-gray-100 flex-1 min-h-0 overflow-y-auto">
+        <div class="space-y-2 text-[15px]">
+          <div class="flex justify-between"><span class="text-gray-500">Items</span><span id="v3-items-count" class="font-medium text-black">0</span></div>
+          <div class="flex justify-between"><span class="text-gray-500">Subtotal</span><span id="v3-subtotal" class="font-medium text-black">Rs.0</span></div>
+          <div id="v3-discount-line" class="hidden flex justify-between">
+            <span class="text-brand-green font-medium">Discount</span>
+            <span id="v3-discount" class="font-medium text-brand-green">-Rs.0</span>
+          </div>
+          <!-- Coupon line -->
+          <div id="v3-coupon-line" class="hidden">
+            <div class="flex justify-between items-center">
+              <div class="flex items-center gap-1.5">
+                <ion-icon name="pricetag-outline" class="text-brand-purple text-[16px]"></ion-icon>
+                <span class="text-brand-purple font-medium text-[15px]" id="v3-coupon-label">Coupon</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span id="v3-coupon-amount" class="font-medium text-brand-purple">-Rs.0</span>
+                <button onclick="removeCoupon()" class="tap-btn w-7 h-7 rounded-full bg-red-50 text-brand-red flex items-center justify-center" title="Remove coupon">
+                  <ion-icon name="close-outline" style="font-size:16px;"></ion-icon>
+                </button>
+              </div>
+            </div>
+          </div>
+          <!-- Apply coupon button -->
+          <div id="v3-coupon-btn-wrap">
+            <button onclick="openCouponModal()" class="tap-btn w-full flex items-center justify-center gap-1.5 py-2.5 text-[15px] text-brand-purple border border-dashed border-purple-300 rounded-lg hover:bg-purple-50 font-medium mt-1">
+              <ion-icon name="pricetag-outline" style="font-size:18px;"></ion-icon> Apply Coupon
+            </button>
+          </div>
+          <!-- Loyalty points redeemed line -->
+          <div id="v3-points-line" class="hidden">
+            <div class="flex justify-between items-center">
+              <div class="flex items-center gap-1.5">
+                <ion-icon name="star" class="text-amber-500 text-[16px]"></ion-icon>
+                <span class="text-amber-600 font-medium text-[15px]" id="v3-points-label">Points</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span id="v3-points-amount" class="font-medium text-amber-600">-Rs.0</span>
+                <button onclick="removePoints()" class="tap-btn w-7 h-7 rounded-full bg-red-50 text-brand-red flex items-center justify-center" title="Remove points">
+                  <ion-icon name="close-outline" style="font-size:16px;"></ion-icon>
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="flex justify-between items-center">
+            <button onclick="toggleGst()" class="tap-btn flex items-center gap-1.5 text-gray-500 hover:text-black py-1">
+              <span id="v3-tax-label" class="text-[15px]">Tax (16%)</span>
+              <span id="v3-gst-mode" class="text-[12px] px-2 py-0.5 rounded-full bg-gray-100 font-semibold text-gray-600">excl</span>
+            </button>
+            <span id="v3-tax" class="font-medium text-black">Rs.0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Total + Action buttons - pinned at bottom -->
+      <!-- Total + Action buttons - pinned at bottom -->
+      <div class="shrink-0 bg-white border-t border-gray-200">
+        <div class="px-4 py-3 flex justify-between items-baseline">
+          <span class="text-[15px] text-gray-500 font-medium uppercase tracking-wide">Total</span>
+          <span id="v3-total" class="text-[30px] font-bold text-navy">Rs.0</span>
+        </div>
+        <div class="px-4 pb-4 pt-1 flex flex-col gap-2.5">
+          <button id="complete-btn" onclick="completeSale()" class="tap-btn w-full h-[56px] bg-navy text-white text-[17px] font-bold rounded-xl flex items-center justify-center gap-2 disabled:bg-navy/30 disabled:text-white/50 shadow-lg shadow-navy/20" disabled>
+            <ion-icon name="checkmark-circle-outline" style="font-size:22px;"></ion-icon>
+            <span id="complete-btn-label">Charge Rs.0</span>
+          </button>
+          <button id="hold-btn" onclick="holdSale()" class="tap-btn w-full h-[48px] text-[15px] font-medium text-gray-600 bg-white border-2 border-gray-200 rounded-xl flex items-center justify-center gap-2 relative hover:bg-gray-50 active:bg-gray-100">
+            <ion-icon name="pause-circle-outline" style="font-size:20px;"></ion-icon>
+            <span id="hold-btn-label">Hold Order</span>
+            <span id="held-badge" class="absolute -top-2 -right-2 bg-brand-orange text-white text-[12px] font-bold w-7 h-7 rounded-full flex items-center justify-center hidden shadow">0</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ RECEIPT MODAL ============ -->
+<div id="receipt-modal" class="fixed inset-0 bg-black/60 z-[80] hidden items-center justify-center p-4">
+  <div class="bg-white rounded-2xl w-full max-w-[380px] shadow-2xl max-h-[90vh] flex flex-col overflow-hidden">
+    <!-- Success header -->
+    <div id="receipt-success-header" class="bg-brand-green px-6 py-5 text-center">
+      <div class="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-3">
+        <ion-icon name="checkmark-circle" class="text-white text-4xl"></ion-icon>
+      </div>
+      <p class="text-white text-[20px] font-bold">Payment Successful</p>
+      <p id="receipt-success-amount" class="text-white/80 text-[15px] mt-1">Rs.0</p>
+    </div>
+    <!-- Receipt body -->
+    <div id="receipt-body" class="overflow-y-auto flex-1 px-5 py-4"></div>
+    <!-- Actions -->
+    <div class="px-5 pb-5 pt-2 flex gap-3 border-t border-gray-100 shrink-0">
+      <button onclick="printReceipt()" class="tap-btn flex-1 h-[52px] bg-navy text-white text-[15px] font-semibold rounded-xl flex items-center justify-center gap-2">
+        <ion-icon name="print-outline" style="font-size:20px;"></ion-icon> Print
+      </button>
+      <button onclick="newSaleAfterReceipt()" class="tap-btn flex-1 h-[52px] bg-brand-green text-white text-[15px] font-semibold rounded-xl flex items-center justify-center gap-2">
+        <ion-icon name="add-circle-outline" style="font-size:20px;"></ion-icon> New Sale
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ CASH TENDERED MODAL ============ -->
+<div id="cash-modal" class="fixed inset-0 bg-black/60 z-[80] hidden items-center justify-center p-4">
+  <div class="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl">
+    <div class="flex items-center justify-between mb-4">
+      <div>
+        <h3 class="font-bold text-[18px] text-black">Cash Payment</h3>
+        <p class="text-[14px] text-gray-500 mt-1">Enter amount received</p>
+      </div>
+      <button onclick="closeCashModal()" class="tap-btn w-11 h-11 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center"><ion-icon name="close-outline" style="font-size:26px;"></ion-icon></button>
+    </div>
+    <div class="bg-navy/5 rounded-xl p-4 mb-5 text-center">
+      <p class="text-[13px] text-gray-500 uppercase font-medium">Amount Due</p>
+      <p id="cash-amount-due" class="text-[32px] font-bold text-navy mt-1">Rs.0</p>
+    </div>
+    <label class="block text-[14px] text-gray-500 mb-2 font-medium">Cash Received (Rs.)</label>
+    <input id="cash-tendered-input" type="number" placeholder="Enter amount..."
+      class="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-5 h-[58px] text-[24px] font-mono focus:outline-none focus:border-brand-green focus:ring-2 focus:ring-green-100 mb-3"
+      oninput="updateCashChange()"
+      onkeydown="if(event.key==='Enter'){confirmCashPayment();event.preventDefault()}">
+    <!-- Quick cash buttons -->
+    <div class="grid grid-cols-4 gap-2 mb-4" id="cash-quick-btns"></div>
+    <!-- Change display -->
+    <div id="cash-change-display" class="hidden bg-green-50 border border-green-200 rounded-xl p-4 mb-4">
+      <div class="flex justify-between items-center">
+        <span class="text-[14px] text-gray-600 font-medium">Change Due</span>
+        <span id="cash-change-amount" class="text-[22px] font-bold text-brand-green">Rs.0</span>
+      </div>
+    </div>
+    <div id="cash-error" class="hidden mb-3 px-4 py-2.5 bg-red-50 rounded-xl text-[13px] text-brand-red flex items-center gap-2">
+      <ion-icon name="alert-circle-outline" class="text-base shrink-0"></ion-icon>
+      <span>Insufficient amount</span>
+    </div>
+    <button onclick="confirmCashPayment()" id="cash-confirm-btn" class="tap-btn w-full h-[54px] bg-brand-green text-white text-[16px] font-semibold rounded-xl flex items-center justify-center gap-2 disabled:bg-gray-200 disabled:text-gray-400" disabled>
+      <ion-icon name="checkmark-outline" style="font-size:22px;"></ion-icon> Confirm Payment
+    </button>
+    <!-- Exact amount shortcut -->
+    <button onclick="payExactCash()" class="tap-btn w-full mt-3 h-[44px] text-[14px] font-medium text-gray-600 border border-gray-200 rounded-xl hover:bg-gray-50 flex items-center justify-center gap-1.5">
+      <ion-icon name="wallet-outline" style="font-size:18px;"></ion-icon> Exact Amount
+    </button>
+  </div>
+</div>
+
+<!-- ============ USER ID MODAL ============ -->
+<div id="userid-modal" class="fixed inset-0 bg-black/60 z-[80] hidden items-center justify-center p-4">
+  <div class="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl">
+    <div class="flex items-center justify-between mb-4">
+      <div>
+        <h3 class="font-bold text-[18px] text-black">Customer</h3>
+        <p class="text-[14px] text-gray-500 mt-0.5">Link existing or register new</p>
+      </div>
+      <button onclick="closeUserIdModal()" class="tap-btn w-11 h-11 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center"><ion-icon name="close-outline" style="font-size:26px;"></ion-icon></button>
+    </div>
+    <!-- Tabs -->
+    <div class="flex bg-gray-100 rounded-xl p-1 mb-5">
+      <button onclick="switchCustomerTab('lookup')" id="cust-tab-lookup" class="tap-btn flex-1 py-3 text-[15px] font-semibold rounded-lg bg-white text-navy shadow-sm">Look up</button>
+      <button onclick="switchCustomerTab('register')" id="cust-tab-register" class="tap-btn flex-1 py-3 text-[15px] font-medium rounded-lg text-gray-500">Register New</button>
+    </div>
+    <!-- Lookup Tab -->
+    <div id="cust-panel-lookup">
+      <label class="block text-[14px] text-gray-500 mb-2 font-medium">Phone Number</label>
+      <input id="userid-input" type="tel" placeholder="e.g. 0300-1234567"
+        class="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-5 h-[54px] text-[16px] font-mono focus:outline-none focus:border-navy focus:ring-2 focus:ring-navy/20 mb-4"
+        onkeydown="if(event.key==='Enter'){submitUserId();event.preventDefault()}">
+      <div id="lookup-error" class="hidden mb-3 px-4 py-2.5 bg-red-50 rounded-xl text-[13px] text-brand-red flex items-center gap-2">
+        <ion-icon name="alert-circle-outline" class="text-base shrink-0"></ion-icon>
+        <span>Customer not found. Try registering them instead.</span>
+      </div>
+      <div class="flex gap-3">
+        <button onclick="closeUserIdModal()" class="tap-btn flex-1 h-[50px] bg-gray-100 text-black text-[15px] font-medium rounded-xl">Cancel</button>
+        <button onclick="submitUserId()" class="tap-btn flex-1 h-[50px] bg-navy text-white text-[15px] font-semibold rounded-xl">Search</button>
+      </div>
+      <p class="text-[12px] text-gray-400 mt-3 text-center">Try "0300-1111111" (Ahmed) or "0321-2222222" (Fatima)</p>
+    </div>
+    <!-- Register Tab -->
+    <div id="cust-panel-register" class="hidden">
+      <div class="space-y-3 mb-4">
+        <div>
+          <label class="block text-[14px] text-gray-500 mb-1.5 font-medium">Full Name *</label>
+          <input id="reg-name" type="text" placeholder="e.g. Saad Ahmed"
+            class="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-4 h-[52px] text-[16px] focus:outline-none focus:border-navy focus:ring-2 focus:ring-navy/20">
+        </div>
+        <div>
+          <label class="block text-[14px] text-gray-500 mb-1.5 font-medium">Phone Number *</label>
+          <input id="reg-phone" type="tel" placeholder="e.g. 0300-1234567"
+            class="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-4 h-[52px] text-[16px] font-mono focus:outline-none focus:border-navy focus:ring-2 focus:ring-navy/20">
+        </div>
+        <div>
+          <label class="block text-[14px] text-gray-500 mb-1.5 font-medium">Area (optional)</label>
+          <input id="reg-area" type="text" placeholder="e.g. Gulshan, Karachi"
+            class="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-4 h-[52px] text-[16px] focus:outline-none focus:border-navy focus:ring-2 focus:ring-navy/20">
+        </div>
+      </div>
+      <div id="reg-error" class="hidden mb-3 px-4 py-2.5 bg-red-50 rounded-xl text-[13px] text-brand-red flex items-center gap-2">
+        <ion-icon name="alert-circle-outline" class="text-base shrink-0"></ion-icon>
+        <span id="reg-error-msg"></span>
+      </div>
+      <div id="reg-success" class="hidden mb-3 px-4 py-3 bg-green-50 border border-green-200 rounded-xl">
+        <div class="flex items-center gap-2 mb-1">
+          <ion-icon name="checkmark-circle" class="text-brand-green text-xl"></ion-icon>
+          <span class="text-[14px] font-semibold text-brand-green">Registered!</span>
+        </div>
+        <p class="text-[13px] text-gray-600">User ID: <strong id="reg-new-id" class="font-mono text-black">—</strong></p>
+        <p class="text-[12px] text-gray-400 mt-1">Customer can use this ID in the app</p>
+      </div>
+      <div class="flex gap-3">
+        <button onclick="closeUserIdModal()" class="tap-btn flex-1 h-[50px] bg-gray-100 text-black text-[15px] font-medium rounded-xl">Cancel</button>
+        <button onclick="registerNewCustomer()" id="reg-submit-btn" class="tap-btn flex-1 h-[50px] bg-brand-green text-white text-[15px] font-semibold rounded-xl flex items-center justify-center gap-2">
+          <ion-icon name="person-add-outline" style="font-size:20px;"></ion-icon> Register & Link
+        </button>
+      </div>
+      <div class="mt-4 bg-blue-50 rounded-xl px-4 py-3 flex items-start gap-2">
+        <ion-icon name="information-circle-outline" class="text-brand-blue text-xl shrink-0 mt-0.5"></ion-icon>
+        <p class="text-[12px] text-navy leading-relaxed">Customer starts with <strong>0 points</strong> and earns 1 pt per Rs.10 spent. Points can be redeemed on their next visit.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ OPENING BALANCE MODAL ============ -->
+<div id="opening-modal" class="fixed inset-0 bg-black/60 z-[80] hidden items-center justify-center p-4">
+  <div class="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl">
+    <div class="flex items-center justify-between mb-4">
+      <div>
+        <h3 class="font-bold text-[18px] text-black">Opening Cash</h3>
+        <p class="text-[14px] text-gray-500 mt-1">Count the cash in drawer</p>
+      </div>
+      <button onclick="closeOpeningBalanceModal()" class="tap-btn w-11 h-11 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center"><ion-icon name="close-outline" style="font-size:26px;"></ion-icon></button>
+    </div>
+    <div class="bg-blue-50 rounded-xl p-4 mb-5 flex items-start gap-3">
+      <ion-icon name="information-circle-outline" class="text-brand-blue text-xl shrink-0 mt-0.5"></ion-icon>
+      <p class="text-[13px] text-navy leading-relaxed">This amount will be used to tally at the end of day.</p>
+    </div>
+    <label class="block text-[14px] text-gray-500 mb-2 font-medium">Cash counted (Rs.)</label>
+    <input id="opening-input" type="number" placeholder="e.g. 5000"
+      class="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-5 h-[58px] text-[24px] font-mono focus:outline-none focus:border-navy focus:ring-2 focus:ring-navy/20 mb-5"
+      onkeydown="if(event.key==='Enter'){saveOpeningBalance();event.preventDefault()}">
+    <button onclick="saveOpeningBalance()" class="tap-btn w-full h-[54px] bg-navy text-white text-[16px] font-semibold rounded-xl flex items-center justify-center gap-2">
+      <ion-icon name="checkmark-outline" style="font-size:22px;"></ion-icon> Confirm & Start
+    </button>
+  </div>
+</div>
+
+<!-- ============ PAYMENT METHOD MODAL ============ -->
+<div id="noapp-modal" class="fixed inset-0 bg-black/60 z-[80] hidden items-center justify-center p-4">
+  <div class="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl">
+    <div class="flex items-center justify-between mb-5">
+      <div>
+        <h3 class="font-bold text-[18px] text-black">Payment Method</h3>
+        <p class="text-[14px] text-gray-500 mt-1">How is the customer paying?</p>
+      </div>
+      <button onclick="closeNoAppModal()" class="tap-btn w-11 h-11 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center"><ion-icon name="close-outline" style="font-size:26px;"></ion-icon></button>
+    </div>
+    <div class="space-y-3">
+      <button onclick="walkInPay('cash')" class="tap-btn w-full flex items-center gap-4 p-4 border-2 border-gray-200 rounded-xl hover:border-brand-green hover:bg-green-50/50 text-left min-h-[72px]">
+        <div class="w-14 h-14 bg-green-50 rounded-xl flex items-center justify-center">
+          <ion-icon name="cash-outline" class="text-brand-green text-3xl"></ion-icon>
+        </div>
+        <div class="flex-1">
+          <p class="text-[17px] font-semibold text-black">Cash</p>
+          <p class="text-[14px] text-gray-500">Customer pays with cash</p>
+        </div>
+      </button>
+      <button onclick="walkInPay('card')" class="tap-btn w-full flex items-center gap-4 p-4 border-2 border-gray-200 rounded-xl hover:border-brand-blue hover:bg-blue-50/50 text-left min-h-[72px]">
+        <div class="w-14 h-14 bg-blue-50 rounded-xl flex items-center justify-center">
+          <ion-icon name="card-outline" class="text-brand-blue text-3xl"></ion-icon>
+        </div>
+        <div class="flex-1">
+          <p class="text-[17px] font-semibold text-black">Card</p>
+          <p class="text-[14px] text-gray-500">Swipe / insert / tap</p>
+        </div>
+      </button>
+      <button onclick="walkInPay('qr')" class="tap-btn w-full flex items-center gap-4 p-4 border-2 border-gray-200 rounded-xl hover:border-brand-purple hover:bg-purple-50/50 text-left min-h-[72px]">
+        <div class="w-14 h-14 bg-purple-50 rounded-xl flex items-center justify-center">
+          <ion-icon name="qr-code-outline" class="text-brand-purple text-3xl"></ion-icon>
+        </div>
+        <div class="flex-1">
+          <p class="text-[17px] font-semibold text-black">QR / App Pay</p>
+          <p class="text-[14px] text-gray-500">Scan QR or pay via app</p>
+        </div>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ REFUND MODAL ============ -->
+<div id="refund-modal" class="fixed inset-0 bg-black/60 z-[80] hidden items-center justify-center p-4">
+  <div class="bg-white rounded-2xl w-full max-w-lg p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+    <div class="flex items-center justify-between mb-4">
+      <div>
+        <h3 class="font-bold text-[16px] text-black">Return & Refund</h3>
+        <p id="refund-order-id" class="text-[13px] text-gray-500 mt-0.5 font-mono"></p>
+      </div>
+      <button onclick="closeRefundModal()" class="tap-btn w-10 h-10 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center"><ion-icon name="close-outline" style="font-size:24px;"></ion-icon></button>
+    </div>
+    <!-- Receipt validation info -->
+    <div id="refund-receipt-info" class="bg-gray-50 rounded-xl p-4 mb-4 text-[13px] space-y-1.5">
+      <div class="flex justify-between"><span class="text-gray-500">Date</span><span id="refund-date" class="text-black font-medium"></span></div>
+      <div class="flex justify-between"><span class="text-gray-500">Payment</span><span id="refund-method" class="text-black font-medium"></span></div>
+      <div class="flex justify-between"><span class="text-gray-500">Customer</span><span id="refund-customer" class="text-black font-medium"></span></div>
+    </div>
+    <!-- Select items -->
+    <p class="text-[13px] text-gray-500 mb-2 font-medium">Select items to return:</p>
+    <div id="refund-items" class="space-y-1 mb-4 border border-gray-200 rounded-xl overflow-hidden"></div>
+    <!-- Return type -->
+    <div class="mb-4">
+      <p class="text-[13px] text-gray-500 mb-2 font-medium">Return type:</p>
+      <div class="grid grid-cols-2 gap-3">
+        <button onclick="setReturnType('refund')" id="return-type-refund" class="tap-btn p-4 border-2 border-navy bg-navy/5 rounded-xl text-left min-h-[60px]">
+          <p class="text-[13px] font-semibold text-black">Refund</p>
+          <p class="text-[12px] text-gray-500">Return money</p>
+        </button>
+        <button onclick="setReturnType('exchange')" id="return-type-exchange" class="tap-btn p-4 border-2 border-gray-200 rounded-xl text-left min-h-[60px]">
+          <p class="text-[13px] font-semibold text-black">Exchange</p>
+          <p class="text-[12px] text-gray-500">Swap item</p>
+        </button>
+      </div>
+    </div>
+    <!-- Refund method -->
+    <div id="refund-method-section" class="mb-4">
+      <p class="text-[13px] text-gray-500 mb-2 font-medium">Refund to:</p>
+      <div id="refund-method-display" class="bg-blue-50 rounded-xl p-3 flex items-center gap-2">
+        <ion-icon id="refund-method-icon" name="card-outline" class="text-brand-blue text-lg"></ion-icon>
+        <span id="refund-method-label" class="text-[13px] font-medium text-navy">Original payment method</span>
+      </div>
+    </div>
+    <!-- Reason -->
+    <div class="mb-4">
+      <p class="text-[13px] text-gray-500 mb-2 font-medium">Reason:</p>
+      <div class="grid grid-cols-2 gap-2 mb-2">
+        <button onclick="setReturnReason('Damaged/Defective')" class="tap-btn refund-reason-btn px-4 py-3 text-[12px] border border-gray-200 rounded-xl text-left hover:border-navy min-h-[44px]">Damaged / Defective</button>
+        <button onclick="setReturnReason('Wrong item')" class="tap-btn refund-reason-btn px-4 py-3 text-[12px] border border-gray-200 rounded-xl text-left hover:border-navy min-h-[44px]">Wrong item</button>
+        <button onclick="setReturnReason('Customer changed mind')" class="tap-btn refund-reason-btn px-4 py-3 text-[12px] border border-gray-200 rounded-xl text-left hover:border-navy min-h-[44px]">Changed mind</button>
+        <button onclick="setReturnReason('Expired product')" class="tap-btn refund-reason-btn px-4 py-3 text-[12px] border border-gray-200 rounded-xl text-left hover:border-navy min-h-[44px]">Expired</button>
+      </div>
+      <input id="refund-reason" type="text" placeholder="Or type a reason..." class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 h-[44px] text-[13px] focus:outline-none focus:border-navy">
+    </div>
+    <!-- Summary -->
+    <div class="bg-gray-50 rounded-xl p-4 mb-4">
+      <div class="flex justify-between items-center">
+        <span class="text-[13px] text-gray-500">Refund Amount</span>
+        <span id="refund-amount" class="text-[18px] font-bold text-brand-red">Rs.0</span>
+      </div>
+      <p id="refund-items-count" class="text-[12px] text-gray-400 mt-1">0 items selected</p>
+    </div>
+    <button onclick="processRefund()" id="refund-confirm-btn" class="tap-btn w-full h-[52px] bg-brand-red text-white text-[14px] font-semibold rounded-xl flex items-center justify-center gap-2 disabled:bg-gray-300 disabled:text-gray-500" disabled>
+      <ion-icon name="return-down-back-outline" style="font-size:18px;"></ion-icon>
+      <span id="refund-confirm-label">Confirm Refund</span>
+    </button>
+  </div>
+</div>
+
+<!-- ============ COUPON MODAL ============ -->
+<div id="coupon-modal" class="fixed inset-0 bg-black/60 z-[80] hidden items-center justify-center p-4">
+  <div class="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl">
+    <div class="flex items-center justify-between mb-5">
+      <div>
+        <h3 class="font-bold text-[16px] text-black">Apply Coupon</h3>
+        <p class="text-[13px] text-gray-500 mt-1">Enter a coupon code for order discount</p>
+      </div>
+      <button onclick="closeCouponModal()" class="tap-btn w-10 h-10 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center"><ion-icon name="close-outline" style="font-size:24px;"></ion-icon></button>
+    </div>
+    <div class="relative mb-4">
+      <ion-icon name="pricetag-outline" class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xl"></ion-icon>
+      <input id="coupon-input" type="text" placeholder="e.g. SAVE50"
+        class="w-full bg-gray-50 border-2 border-gray-200 rounded-xl pl-12 pr-4 h-[52px] text-[16px] font-mono uppercase focus:outline-none focus:border-brand-purple focus:ring-2 focus:ring-purple-200"
+        onkeydown="if(event.key==='Enter'){applyCouponCode();event.preventDefault()}"
+        oninput="this.value=this.value.toUpperCase(); clearCouponError()">
+    </div>
+    <div id="coupon-error" class="hidden mb-4 px-4 py-3 bg-red-50 rounded-xl text-[13px] text-brand-red flex items-center gap-2">
+      <ion-icon name="alert-circle-outline" class="text-lg shrink-0"></ion-icon>
+      <span id="coupon-error-msg"></span>
+    </div>
+    <div id="coupon-success" class="hidden mb-4 px-4 py-3 bg-green-50 rounded-xl text-[13px] text-brand-green flex items-center gap-2">
+      <ion-icon name="checkmark-circle-outline" class="text-lg shrink-0"></ion-icon>
+      <span id="coupon-success-msg"></span>
+    </div>
+    <button onclick="applyCouponCode()" class="tap-btn w-full h-[52px] bg-brand-purple text-white text-[15px] font-semibold rounded-xl flex items-center justify-center gap-2 mb-4">
+      <ion-icon name="checkmark-outline" style="font-size:20px;"></ion-icon> Apply
+    </button>
+    <div class="border-t border-gray-100 pt-4">
+      <p class="text-[12px] text-gray-500 font-medium mb-3 uppercase tracking-wide">Available Coupons</p>
+      <div id="coupon-suggestions" class="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1" style="-webkit-overflow-scrolling: touch; scrollbar-width: none;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ REDEEM POINTS MODAL ============ -->
+<div id="redeem-modal" class="fixed inset-0 bg-black/60 z-[80] hidden items-center justify-center p-4">
+  <div class="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl">
+    <div class="flex items-center justify-between mb-4">
+      <div>
+        <h3 class="font-bold text-[16px] text-black">Redeem Points</h3>
+        <p class="text-[13px] text-gray-500 mt-1" id="redeem-subtitle">Use loyalty points as payment</p>
+      </div>
+      <button onclick="closeRedeemModal()" class="tap-btn w-10 h-10 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center"><ion-icon name="close-outline" style="font-size:24px;"></ion-icon></button>
+    </div>
+    <!-- Points balance -->
+    <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-5">
+      <div class="flex items-center justify-between mb-2">
+        <div class="flex items-center gap-2">
+          <ion-icon name="star" class="text-amber-500 text-xl"></ion-icon>
+          <span class="text-[14px] font-semibold text-black" id="redeem-balance">0 points</span>
+        </div>
+        <span class="text-[12px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-semibold" id="redeem-tier">Gold</span>
+      </div>
+      <div class="flex justify-between text-[12px] text-gray-500">
+        <span>Value: <strong id="redeem-value" class="text-black">Rs.0</strong></span>
+        <span>Rate: 10 pts = Rs.1</span>
+      </div>
+    </div>
+    <!-- Quick redeem buttons -->
+    <p class="text-[12px] text-gray-500 font-medium mb-2">Quick redeem:</p>
+    <div class="grid grid-cols-3 gap-2 mb-4" id="redeem-quick-btns"></div>
+    <!-- Custom input -->
+    <label class="block text-[13px] text-gray-500 mb-2 font-medium">Or enter points to redeem:</label>
+    <div class="relative mb-2">
+      <input id="redeem-input" type="number" placeholder="e.g. 500"
+        class="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-4 h-[52px] text-[18px] font-mono focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-100"
+        oninput="updateRedeemPreview()"
+        onkeydown="if(event.key==='Enter'){confirmRedeem();event.preventDefault()}">
+      <span class="absolute right-4 top-1/2 -translate-y-1/2 text-[13px] text-gray-400">pts</span>
+    </div>
+    <div id="redeem-preview" class="mb-4 px-4 py-2 bg-gray-50 rounded-lg text-[12px] text-gray-500 flex justify-between">
+      <span>Discount:</span>
+      <span id="redeem-preview-val" class="font-semibold text-black">Rs.0</span>
+    </div>
+    <div id="redeem-error" class="hidden mb-4 px-4 py-2 bg-red-50 rounded-xl text-[12px] text-brand-red flex items-center gap-2">
+      <ion-icon name="alert-circle-outline" class="text-sm shrink-0"></ion-icon>
+      <span id="redeem-error-msg"></span>
+    </div>
+    <button onclick="confirmRedeem()" class="tap-btn w-full h-[52px] bg-amber-500 text-white text-[15px] font-semibold rounded-xl flex items-center justify-center gap-2 hover:bg-amber-600">
+      <ion-icon name="star" style="font-size:18px;"></ion-icon>
+      <span id="redeem-confirm-label">Redeem Points</span>
+    </button>
+    <p class="text-[11px] text-gray-400 text-center mt-3">Min <span id="redeem-min-pts">100</span> pts · Max 50% of order total</p>
+  </div>
+</div>
+
+<!-- ============ ORDERS SCREEN ============ -->
+<div id="orders-screen" class="h-screen flex-col hidden">
+  <div class="bg-navy text-white px-5 py-3.5 flex items-center justify-between shrink-0">
+    <button onclick="closeOrdersScreen()" class="tap-btn px-4 py-2.5 bg-white/10 rounded-lg text-[15px] hover:bg-white/20 flex items-center gap-2 min-h-[48px]">
+      <ion-icon name="arrow-back-outline" style="font-size:22px;"></ion-icon> Back
+    </button>
+    <div class="flex items-center gap-3">
+      <span class="text-[14px] text-white/60" id="orders-date"></span>
+    </div>
+  </div>
+  <div class="flex-1 overflow-y-auto bg-page">
+    <div class="px-6 py-5">
+      <div class="flex items-center justify-between mb-5">
+        <div>
+          <h2 class="text-[22px] font-bold text-black">Orders</h2>
+          <p class="text-[14px] text-gray-500 mt-0.5">Today's transactions</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <span id="orders-count-badge" class="text-[14px] text-gray-600 bg-gray-100 px-4 py-2 rounded-full font-medium">0 orders</span>
+          <span id="orders-total-badge" class="text-[14px] text-navy bg-navy/10 px-4 py-2 rounded-full font-semibold">Rs.0</span>
+        </div>
+      </div>
+      <div id="orders-list" class="space-y-3"></div>
+      <div id="orders-empty" class="hidden text-center py-20">
+        <ion-icon name="receipt-outline" class="text-7xl text-gray-300"></ion-icon>
+        <p class="text-[16px] text-gray-500 mt-3 font-medium">No orders yet</p>
+        <p class="text-[14px] text-gray-400 mt-1">Completed sales appear here</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ CLOSE DAY SCREEN ============ -->
+<div id="closeday-screen" class="h-screen flex-col hidden">
+  <div class="bg-navy text-white px-5 py-3.5 flex items-center justify-between shrink-0">
+    <button onclick="closeCloseDay()" class="tap-btn px-4 py-2.5 bg-white/10 rounded-lg text-[15px] hover:bg-white/20 flex items-center gap-2 min-h-[48px]">
+      <ion-icon name="arrow-back-outline" style="font-size:22px;"></ion-icon> Back
+    </button>
+    <span class="text-[14px] text-white/60" id="closeday-date"></span>
+  </div>
+  <div class="flex-1 overflow-y-auto bg-page">
+    <div class="max-w-4xl mx-auto px-6 py-5">
+      <h2 class="text-[22px] font-bold text-black mb-1">Daily Settlement</h2>
+      <p class="text-[14px] text-gray-500 mb-5" id="closeday-subtitle"></p>
+      <!-- Shift Info (US_APP02_V03_347 AC2) -->
+      <div class="bg-white rounded-xl border border-gray-200 p-5 mb-5">
+        <div class="flex items-center gap-2 mb-4">
+          <ion-icon name="person-circle-outline" class="text-navy text-2xl"></ion-icon>
+          <p class="text-[15px] font-semibold text-black">Shift Information</p>
+        </div>
+        <div class="grid grid-cols-4 gap-4 text-[14px]">
+          <div>
+            <p class="text-[12px] text-gray-400 uppercase font-medium mb-1">Staff</p>
+            <p id="cd-staff-name" class="font-semibold text-black">—</p>
+          </div>
+          <div>
+            <p class="text-[12px] text-gray-400 uppercase font-medium mb-1">Shift Start</p>
+            <p id="cd-shift-start" class="font-semibold text-black">—</p>
+          </div>
+          <div>
+            <p class="text-[12px] text-gray-400 uppercase font-medium mb-1">Shift End</p>
+            <p id="cd-shift-end" class="font-semibold text-black">—</p>
+          </div>
+          <div>
+            <p class="text-[12px] text-gray-400 uppercase font-medium mb-1">Register</p>
+            <p class="font-semibold text-black">Register 1</p>
+          </div>
+        </div>
+      </div>
+      <!-- Top Cards -->
+      <div class="grid grid-cols-3 gap-4 mb-5">
+        <div class="bg-white rounded-xl border border-gray-200 p-5">
+          <div class="w-11 h-11 bg-navy/10 rounded-xl flex items-center justify-center mb-3">
+            <ion-icon name="trending-up-outline" class="text-navy text-2xl"></ion-icon>
+          </div>
+          <p class="text-[13px] text-gray-500 uppercase font-medium">Total Sales</p>
+          <p id="cd-system-total" class="text-[26px] font-bold text-black mt-1">Rs.0</p>
+          <p id="cd-tx-count-label" class="text-[13px] text-gray-400 mt-1">0 transactions</p>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-200 p-5">
+          <div class="w-11 h-11 bg-brand-green/10 rounded-xl flex items-center justify-center mb-3">
+            <ion-icon name="cash-outline" class="text-brand-green text-2xl"></ion-icon>
+          </div>
+          <p class="text-[13px] text-gray-500 uppercase font-medium">Cash</p>
+          <p id="cd-cash-total" class="text-[26px] font-bold text-black mt-1">Rs.0</p>
+          <p id="cd-cash-count" class="text-[13px] text-gray-400 mt-1">0 transactions</p>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-200 p-5">
+          <div class="w-11 h-11 bg-brand-purple/10 rounded-xl flex items-center justify-center mb-3">
+            <ion-icon name="card-outline" class="text-brand-purple text-2xl"></ion-icon>
+          </div>
+          <p class="text-[13px] text-gray-500 uppercase font-medium">Digital</p>
+          <p id="cd-digital-total" class="text-[26px] font-bold text-black mt-1">Rs.0</p>
+          <p id="cd-digital-count" class="text-[13px] text-gray-400 mt-1">0 transactions</p>
+        </div>
+      </div>
+
+      <!-- Payment Breakdown -->
+      <div class="bg-white rounded-xl border border-gray-200 p-5 mb-5">
+        <p class="text-[15px] font-semibold text-black mb-4">Payment Breakdown</p>
+        <div class="space-y-4">
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="text-[14px] font-medium text-brand-green">Cash (<span id="cd-cash-pct">0</span>%) · <span id="cd-cash-bar-count">0 tx</span></span>
+              <span id="cd-cash-bar-val" class="text-[14px] font-semibold text-black">Rs.0</span>
+            </div>
+            <div class="h-3.5 bg-gray-100 rounded-full overflow-hidden"><div id="cd-cash-bar" class="h-full bg-brand-green rounded-full transition-all" style="width:0%"></div></div>
+          </div>
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="text-[14px] font-medium text-brand-blue">Card (<span id="cd-card-pct">0</span>%) · <span id="cd-card-bar-count">0 tx</span></span>
+              <span id="cd-card-bar-val" class="text-[14px] font-semibold text-black">Rs.0</span>
+            </div>
+            <div class="h-3.5 bg-gray-100 rounded-full overflow-hidden"><div id="cd-card-bar" class="h-full bg-brand-blue rounded-full transition-all" style="width:0%"></div></div>
+          </div>
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="text-[14px] font-medium text-brand-purple">QR Pay (<span id="cd-qr-pct">0</span>%) · <span id="cd-qr-bar-count">0 tx</span></span>
+              <span id="cd-qr-bar-val" class="text-[14px] font-semibold text-black">Rs.0</span>
+            </div>
+            <div class="h-3.5 bg-gray-100 rounded-full overflow-hidden"><div id="cd-qr-bar" class="h-full bg-brand-purple rounded-full transition-all" style="width:0%"></div></div>
+          </div>
+        </div>
+        <div class="border-t border-gray-100 mt-4 pt-3 flex justify-between">
+          <span class="text-[14px] text-gray-500">Gross Sales</span>
+          <span id="cd-gross-sales-line" class="text-[14px] font-semibold text-black">Rs.0</span>
+        </div>
+        <div id="cd-refund-row" class="hidden mt-1 pt-1">
+          <div class="flex justify-between items-center">
+            <div class="flex items-center gap-2">
+              <span class="text-gray-700 text-[14px]">Refunds (<span id="cd-refund-count">0</span>)</span>
+            </div>
+            <span id="cd-refund-total" class="font-semibold text-brand-red text-[14px]">-Rs.0</span>
+          </div>
+        </div>
+        <div class="border-t border-gray-100 mt-3 pt-3 flex justify-between">
+          <span class="text-[15px] font-semibold text-black">Net Sales</span>
+          <span id="cd-total-sales-line" class="text-[16px] font-bold text-brand-green">Rs.0</span>
+        </div>
+      </div>
+
+      <!-- Discounts & Loyalty Summary (US_APP02_V03_347) -->
+      <div class="bg-white rounded-xl border border-gray-200 p-5 mb-5">
+        <div class="flex items-center gap-2 mb-4">
+          <ion-icon name="pricetags-outline" class="text-navy text-2xl"></ion-icon>
+          <p class="text-[15px] font-semibold text-black">Discounts &amp; Loyalty</p>
+        </div>
+        <div class="space-y-2 text-[15px]">
+          <div class="flex justify-between py-2 border-b border-gray-100">
+            <span class="text-gray-500">Coupon Discounts (<span id="cd-coupon-count">0</span>)</span>
+            <span id="cd-coupon-total" class="font-medium text-brand-purple">-Rs.0</span>
+          </div>
+          <div class="flex justify-between py-2 border-b border-gray-100">
+            <span class="text-gray-500">Points Redeemed (<span id="cd-points-count">0</span> tx · <span id="cd-points-pts">0</span> pts)</span>
+            <span id="cd-points-total" class="font-medium text-amber-600">-Rs.0</span>
+          </div>
+          <div class="flex justify-between py-2">
+            <span class="text-gray-500">Item Discounts / Promos</span>
+            <span id="cd-item-disc-total" class="font-medium text-brand-green">-Rs.0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card Reconciliation (US_APP02_V03_347 AC7) -->
+      <div class="bg-white rounded-xl border border-gray-200 p-5 mb-5">
+        <div class="flex items-center gap-2 mb-4">
+          <ion-icon name="card-outline" class="text-navy text-2xl"></ion-icon>
+          <p class="text-[15px] font-semibold text-black">Card Reconciliation</p>
+        </div>
+        <div class="space-y-2 text-[15px]">
+          <div class="flex justify-between py-2.5 border-b border-gray-100">
+            <span class="text-gray-500">POS Card Sales</span>
+            <span id="cd-pos-card-total" class="font-medium text-black">Rs.0</span>
+          </div>
+          <div class="py-3">
+            <label class="text-[14px] text-gray-500 block mb-2 font-medium">Card Terminal Total (optional)</label>
+            <input id="cd-card-terminal" type="number" placeholder="Enter terminal batch total..."
+              class="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-4 h-[56px] text-[20px] font-mono focus:outline-none focus:border-navy focus:ring-2 focus:ring-navy/20" oninput="calcCardDifference()">
+          </div>
+          <div id="cd-card-diff-row" class="hidden py-3 px-4 rounded-xl flex justify-between items-center">
+            <span class="text-[14px] font-medium">Card Difference</span>
+            <span id="cd-card-difference" class="font-bold text-[16px]">Rs.0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cash Drawer -->
+      <div class="bg-white rounded-xl border border-gray-200 p-5 mb-5">
+        <div class="flex items-center gap-2 mb-4">
+          <ion-icon name="wallet-outline" class="text-navy text-2xl"></ion-icon>
+          <p class="text-[15px] font-semibold text-black">Cash Drawer</p>
+        </div>
+        <div class="space-y-2 text-[15px]">
+          <div class="flex justify-between items-center py-2.5 border-b border-gray-100">
+            <span class="text-gray-500">Opening Balance</span>
+            <span id="cd-opening-display" class="font-medium text-black">Rs.0</span>
+          </div>
+          <div class="flex justify-between py-2.5 border-b border-gray-100">
+            <span class="text-gray-500">+ Cash In</span>
+            <span id="cd-cashin" class="font-medium text-brand-green">+Rs.0</span>
+          </div>
+          <div class="flex justify-between py-2.5 border-b border-gray-100">
+            <span class="text-gray-500">− Cash Out (Refunds)</span>
+            <span id="cd-cashout" class="font-medium text-brand-red">-Rs.0</span>
+          </div>
+          <div class="flex justify-between py-2.5 border-b border-gray-100">
+            <span class="text-gray-500">Net Cash Sales</span>
+            <span id="cd-net-cash" class="font-medium text-black">Rs.0</span>
+          </div>
+          <div class="flex justify-between py-2.5 border-b border-gray-200">
+            <span class="text-black font-semibold">Expected in Drawer</span>
+            <span id="cd-expected" class="font-bold text-brand-green text-[18px]">Rs.0</span>
+          </div>
+          <div class="py-3">
+            <label class="text-[14px] text-gray-500 block mb-2 font-medium">Actual Cash Count</label>
+            <input id="cd-actual" type="number" placeholder="Count the cash..."
+              class="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-4 h-[56px] text-[20px] font-mono focus:outline-none focus:border-navy focus:ring-2 focus:ring-navy/20" oninput="calcDifference()">
+          </div>
+          <div id="cd-diff-row" class="hidden py-3 px-4 rounded-xl flex justify-between items-center">
+            <span class="text-[14px] font-medium">Difference</span>
+            <span id="cd-difference" class="font-bold text-[16px]">Rs.0</span>
+          </div>
+        </div>
+      </div>
+      <!-- Notes -->
+      <div class="bg-white rounded-xl border border-gray-200 p-5 mb-6">
+        <label class="text-[14px] text-gray-500 block mb-2 font-medium">Notes (optional)</label>
+        <textarea id="cd-notes" rows="2" placeholder="Any remarks..." class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-[15px] focus:outline-none focus:border-navy resize-none"></textarea>
+      </div>
+    </div>
+  </div>
+  <!-- Fixed bottom -->
+  <div class="shrink-0 px-6 py-4 bg-white border-t border-gray-200">
+    <div class="max-w-4xl mx-auto">
+      <button onclick="submitCloseDay()" class="tap-btn w-full h-[58px] bg-brand-red text-white text-[17px] font-bold rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-red-200">
+        <ion-icon name="lock-closed-outline" style="font-size:22px;"></ion-icon> Close Day
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ HELP SCREEN ============ -->
+<div id="help-screen" class="h-screen flex-col hidden">
+  <div class="bg-navy text-white px-5 py-3.5 flex items-center justify-between shrink-0">
+    <button onclick="closeHelpScreen()" class="tap-btn px-4 py-2.5 bg-white/10 rounded-lg text-[15px] hover:bg-white/20 flex items-center gap-2 min-h-[48px]">
+      <ion-icon name="arrow-back-outline" style="font-size:22px;"></ion-icon> Back
+    </button>
+    <div class="flex items-center gap-2">
+      <ion-icon name="help-circle-outline" style="font-size:22px;" class="text-white/60"></ion-icon>
+      <span class="text-[16px] font-semibold">Help &amp; Support</span>
+    </div>
+    <span class="w-[90px]"></span>
+  </div>
+  <!-- Tabs -->
+  <div class="bg-white border-b border-gray-200 px-6 shrink-0">
+    <div class="max-w-4xl mx-auto flex gap-1">
+      <button id="help-tab-faq" onclick="switchHelpTab('faq')" class="tap-btn px-5 py-3.5 text-[15px] font-semibold text-navy border-b-2 border-navy flex items-center gap-2">
+        <ion-icon name="help-circle-outline" style="font-size:18px;"></ion-icon> FAQ
+      </button>
+      <button id="help-tab-contact" onclick="switchHelpTab('contact')" class="tap-btn px-5 py-3.5 text-[15px] font-medium text-gray-500 border-b-2 border-transparent flex items-center gap-2">
+        <ion-icon name="chatbubble-ellipses-outline" style="font-size:18px;"></ion-icon> Contact Us
+      </button>
+      <button id="help-tab-report" onclick="switchHelpTab('report')" class="tap-btn px-5 py-3.5 text-[15px] font-medium text-gray-500 border-b-2 border-transparent flex items-center gap-2">
+        <ion-icon name="warning-outline" style="font-size:18px;"></ion-icon> Report a Problem
+      </button>
+      <button id="help-tab-tickets" onclick="switchHelpTab('tickets')" class="tap-btn px-5 py-3.5 text-[15px] font-medium text-gray-500 border-b-2 border-transparent flex items-center gap-2">
+        <ion-icon name="file-tray-full-outline" style="font-size:18px;"></ion-icon> My Tickets
+        <span id="help-tickets-badge" class="hidden text-[11px] px-1.5 py-0.5 rounded-full bg-navy text-white font-bold">0</span>
+      </button>
+    </div>
+  </div>
+  <div class="flex-1 overflow-y-auto bg-page">
+    <div class="max-w-4xl mx-auto px-6 py-5">
+
+      <!-- FAQ Panel -->
+      <div id="help-panel-faq">
+        <h2 class="text-[20px] font-bold text-black mb-1">Frequently Asked Questions</h2>
+        <p class="text-[14px] text-gray-500 mb-5">Answers to common register operations</p>
+        <div id="faq-list" class="space-y-3"></div>
+        <div class="mt-6 bg-navy/5 border border-navy/10 rounded-xl p-5 flex items-center justify-between">
+          <div>
+            <p class="text-[15px] font-semibold text-black">Still need help?</p>
+            <p class="text-[13px] text-gray-500 mt-0.5">Send us a message and we'll get back to you in-app.</p>
+          </div>
+          <button onclick="switchHelpTab('contact')" class="tap-btn px-5 py-3 bg-navy text-white text-[14px] font-semibold rounded-xl flex items-center gap-2">
+            <ion-icon name="chatbubble-ellipses-outline" style="font-size:18px;"></ion-icon> Contact Us
+          </button>
+        </div>
+      </div>
+
+      <!-- Contact Us Panel -->
+      <div id="help-panel-contact" class="hidden">
+        <h2 class="text-[20px] font-bold text-black mb-1">Contact Us</h2>
+        <p class="text-[14px] text-gray-500 mb-5">Send an inquiry to the support team. Replies appear in My Tickets.</p>
+        <div class="bg-white rounded-xl border border-gray-200 p-5 max-w-xl">
+          <div class="mb-4">
+            <label class="block text-[14px] text-gray-500 mb-2 font-medium">Topic</label>
+            <select id="contact-topic" class="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-4 h-[52px] text-[15px] focus:outline-none focus:border-navy">
+              <option>POS Operations</option>
+              <option>Payments &amp; Refunds</option>
+              <option>Loyalty &amp; Coupons</option>
+              <option>Receipt / FBR</option>
+              <option>Account</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="mb-4">
+            <label class="block text-[14px] text-gray-500 mb-2 font-medium">Subject *</label>
+            <input id="contact-subject" type="text" placeholder="Brief summary (min 3 chars)" maxlength="100"
+              class="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-4 h-[52px] text-[15px] focus:outline-none focus:border-navy focus:ring-2 focus:ring-navy/20"
+              oninput="validateContactForm()">
+          </div>
+          <div class="mb-4">
+            <div class="flex justify-between mb-2">
+              <label class="text-[14px] text-gray-500 font-medium">Message *</label>
+              <span class="text-[12px] text-gray-400"><span id="contact-msg-count">0</span>/1000</span>
+            </div>
+            <textarea id="contact-message" rows="5" placeholder="Describe your question (min 10 chars)..." maxlength="1000"
+              class="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-4 py-3 text-[15px] focus:outline-none focus:border-navy focus:ring-2 focus:ring-navy/20 resize-none"
+              oninput="validateContactForm()"></textarea>
+          </div>
+          <button id="contact-submit-btn" onclick="submitContact()" disabled
+            class="tap-btn w-full h-[52px] bg-navy text-white text-[15px] font-semibold rounded-xl flex items-center justify-center gap-2 disabled:bg-gray-200 disabled:text-gray-400">
+            <ion-icon name="send-outline" style="font-size:18px;"></ion-icon> Send Inquiry
+          </button>
+          <button onclick="switchHelpTab('tickets')" class="tap-btn w-full mt-3 h-[44px] text-[13px] font-medium text-gray-500 hover:text-navy flex items-center justify-center gap-1.5">
+            <ion-icon name="file-tray-full-outline" style="font-size:16px;"></ion-icon> View my support tickets
+          </button>
+        </div>
+      </div>
+
+      <!-- Report a Problem Panel -->
+      <div id="help-panel-report" class="hidden">
+        <h2 class="text-[20px] font-bold text-black mb-1">Report a Problem</h2>
+        <p class="text-[14px] text-gray-500 mb-5">Something not working? Let us know.</p>
+        <div class="bg-white rounded-xl border border-gray-200 p-5 max-w-xl">
+          <p class="text-[14px] text-gray-500 mb-2 font-medium">Category *</p>
+          <div id="report-categories" class="grid grid-cols-2 gap-2 mb-4">
+            <button onclick="setReportCategory('Payment issue', this)" class="tap-btn report-cat-btn px-4 py-3 text-[13px] border-2 border-gray-200 rounded-xl text-left min-h-[48px] font-medium">Payment issue</button>
+            <button onclick="setReportCategory('Printer / Receipt', this)" class="tap-btn report-cat-btn px-4 py-3 text-[13px] border-2 border-gray-200 rounded-xl text-left min-h-[48px] font-medium">Printer / Receipt</button>
+            <button onclick="setReportCategory('Barcode scanner', this)" class="tap-btn report-cat-btn px-4 py-3 text-[13px] border-2 border-gray-200 rounded-xl text-left min-h-[48px] font-medium">Barcode scanner</button>
+            <button onclick="setReportCategory('Wrong price / product', this)" class="tap-btn report-cat-btn px-4 py-3 text-[13px] border-2 border-gray-200 rounded-xl text-left min-h-[48px] font-medium">Wrong price / product</button>
+            <button onclick="setReportCategory('App crash / freeze', this)" class="tap-btn report-cat-btn px-4 py-3 text-[13px] border-2 border-gray-200 rounded-xl text-left min-h-[48px] font-medium">App crash / freeze</button>
+            <button onclick="setReportCategory('Other', this)" class="tap-btn report-cat-btn px-4 py-3 text-[13px] border-2 border-gray-200 rounded-xl text-left min-h-[48px] font-medium">Other</button>
+          </div>
+          <div class="mb-4">
+            <div class="flex justify-between mb-2">
+              <label class="text-[14px] text-gray-500 font-medium">Description *</label>
+              <span class="text-[12px] text-gray-400"><span id="report-msg-count">0</span>/1000</span>
+            </div>
+            <textarea id="report-message" rows="5" placeholder="What happened? What did you expect? (min 10 chars)" maxlength="1000"
+              class="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-4 py-3 text-[15px] focus:outline-none focus:border-navy focus:ring-2 focus:ring-navy/20 resize-none"
+              oninput="validateReportForm()"></textarea>
+          </div>
+          <div class="mb-4 bg-gray-50 rounded-xl px-4 py-3 flex items-start gap-2">
+            <ion-icon name="information-circle-outline" class="text-gray-400 text-lg shrink-0 mt-0.5"></ion-icon>
+            <p class="text-[12px] text-gray-500 leading-relaxed">Diagnostics auto-attached: App v3.0 · Register 1 · Staff ID <span id="report-staff-id">—</span></p>
+          </div>
+          <button id="report-submit-btn" onclick="submitReport()" disabled
+            class="tap-btn w-full h-[52px] bg-brand-red text-white text-[15px] font-semibold rounded-xl flex items-center justify-center gap-2 disabled:bg-gray-200 disabled:text-gray-400">
+            <ion-icon name="send-outline" style="font-size:18px;"></ion-icon> Submit Report
+          </button>
+        </div>
+      </div>
+
+      <!-- My Tickets Panel -->
+      <div id="help-panel-tickets" class="hidden">
+        <h2 class="text-[20px] font-bold text-black mb-1">My Support Tickets</h2>
+        <p class="text-[14px] text-gray-500 mb-5">Inquiries and reports you've submitted</p>
+        <div id="tickets-list" class="space-y-3"></div>
+        <div id="tickets-empty" class="hidden text-center py-16 bg-white rounded-xl border border-gray-200">
+          <ion-icon name="file-tray-outline" class="text-6xl text-gray-300"></ion-icon>
+          <p class="text-[16px] text-gray-500 mt-3 font-medium">No tickets yet</p>
+          <p class="text-[13px] text-gray-400 mt-1 mb-5">Your inquiries and problem reports will appear here</p>
+          <div class="flex items-center justify-center gap-3">
+            <button onclick="switchHelpTab('contact')" class="tap-btn px-5 py-2.5 text-[13px] font-semibold text-navy border border-navy/30 rounded-xl hover:bg-navy/5">Contact Us</button>
+            <button onclick="switchHelpTab('report')" class="tap-btn px-5 py-2.5 text-[13px] font-semibold text-brand-red border border-red-200 rounded-xl hover:bg-red-50">Report a Problem</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ============ SHIFT CLOSING REPORT MODAL (US_APP02_V03_347) ============ -->
+<div id="shift-report-modal" class="fixed inset-0 bg-black/60 z-[85] hidden items-center justify-center p-4">
+  <div class="bg-white rounded-2xl w-full max-w-[520px] shadow-2xl max-h-[92vh] flex flex-col overflow-hidden">
+    <div class="px-6 py-4 bg-navy text-white flex items-center justify-between shrink-0">
+      <div class="flex items-center gap-2">
+        <ion-icon name="document-text-outline" style="font-size:22px;"></ion-icon>
+        <p class="text-[17px] font-bold">Shift Closing Report</p>
+      </div>
+      <span class="text-[12px] text-white/60" id="shift-report-generated"></span>
+    </div>
+    <div id="shift-report-body" class="overflow-y-auto flex-1 px-6 py-5 text-[13px]"></div>
+    <div id="shift-report-actions" class="px-6 pb-5 pt-3 flex gap-3 border-t border-gray-100 shrink-0">
+      <button onclick="printShiftReport()" class="tap-btn flex-1 h-[52px] bg-white border-2 border-gray-200 text-gray-700 text-[15px] font-semibold rounded-xl flex items-center justify-center gap-2 hover:bg-gray-50">
+        <ion-icon name="print-outline" style="font-size:20px;"></ion-icon> Print Report
+      </button>
+      <button onclick="openEndShiftConfirm()" class="tap-btn flex-1 h-[52px] bg-brand-red text-white text-[15px] font-semibold rounded-xl flex items-center justify-center gap-2">
+        <ion-icon name="log-out-outline" style="font-size:20px;"></ion-icon> End Shift &amp; Logout
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ END SHIFT CONFIRM MODAL (US_APP02_V03_348) ============ -->
+<div id="endshift-modal" class="fixed inset-0 bg-black/70 z-[90] hidden items-center justify-center p-4">
+  <div class="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl text-center">
+    <div class="w-16 h-16 mx-auto mb-4 bg-red-50 rounded-full flex items-center justify-center">
+      <ion-icon name="log-out-outline" class="text-brand-red text-3xl"></ion-icon>
+    </div>
+    <h3 class="text-[18px] font-bold text-black mb-2" id="endshift-title">End shift?</h3>
+    <p class="text-[14px] text-gray-500 leading-relaxed mb-5" id="endshift-desc">Are you sure? This will end your shift. The register will be locked until the next staff logs in.</p>
+    <div class="flex gap-3">
+      <button onclick="closeEndShiftConfirm()" class="tap-btn flex-1 h-[50px] bg-gray-100 text-black text-[15px] font-medium rounded-xl">Cancel</button>
+      <button onclick="confirmEndShift()" class="tap-btn flex-1 h-[50px] bg-brand-red text-white text-[15px] font-semibold rounded-xl flex items-center justify-center gap-2">
+        <ion-icon name="checkmark-outline" style="font-size:20px;"></ion-icon> End Shift
+      </button>
+    </div>
+  </div>
+</div>
+
+<script src="pos-shared.js"></script>
+<script>
+// ===== State =====
+let cart = [];
+let customer = null;
+let heldSales = [];
+let salesHistory = [];
+let v4State = 'idle';
+let gstIncluded = false;
+let openingBalance = 0;
+let cashRefundsTotal = 0;
+let loggedInStaff = null;
+let appliedCoupon = null;
+let redeemedPoints = 0;
+let shiftStartAt = null;
+const TICKETS_KEY = 'airRegister.supportTickets.staff';
+const SHIFT_REPORTS_KEY = 'airRegister.shiftReports';
+
+// ===== Login =====
+const STAFF_CREDENTIALS = [
+  { id: 'S001', username: 'hamza', pin: '1234', name: 'Hamza' },
+  { id: 'S002', username: 'ali', pin: '5678', name: 'Ali' },
+  { id: 'S003', username: 'bilal', pin: '0000', name: 'Bilal' },
+];
+
+function doLogin() {
+  const user = (document.getElementById('login-user').value || '').trim().toLowerCase();
+  const pin = (document.getElementById('login-pin').value || '').trim();
+  const errorEl = document.getElementById('login-error');
+  const errorText = document.getElementById('login-error-text');
+  if (!user || !pin) { errorText.textContent = 'Please enter both username and PIN'; errorEl.classList.remove('hidden'); return; }
+  const staff = STAFF_CREDENTIALS.find(s => s.username === user && s.pin === pin);
+  if (!staff) { errorText.textContent = 'Invalid credentials. Try again.'; errorEl.classList.remove('hidden'); document.getElementById('login-pin').value = ''; return; }
+  loggedInStaff = staff;
+  errorEl.classList.add('hidden');
+  document.getElementById('login-screen').classList.add('hidden');
+  document.getElementById('main-register-screen').classList.remove('hidden');
+  document.getElementById('main-register-screen').classList.add('flex');
+  shiftStartAt = new Date();
+  const now = shiftStartAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  document.getElementById('staff-line').textContent = `Staff: ${staff.name} · Shift started ${now}`;
+  setTimeout(() => openOpeningBalanceModal(), 300);
+}
+function fillDemo(user, pin) {
+  document.getElementById('login-user').value = user;
+  document.getElementById('login-pin').value = pin;
+  document.getElementById('login-error').classList.add('hidden');
+}
+
+// Effective totals for charging/receipts — honors the GST incl/excl mode so the
+// amount charged always matches what the register and customer display show.
+function calcEffectiveTotals() {
+  const t = calcTotals(cart, appliedCoupon, redeemedPoints);
+  const d = calcDisplayTotals(t, gstIncluded);
+  return { ...t, sub: d.displaySub, tax: d.displayTax, total: d.displayTotal };
+}
+
+// ===== Broadcast to V4 =====
+function syncToV4() {
+  const totals = calcTotals(cart, appliedCoupon, redeemedPoints);
+  const { count, sub, tax, total } = totals;
+  const { displaySub, displayTax, displayTotal } = calcDisplayTotals(totals, gstIncluded);
+  posSend('cart-update', { cart, customer, count, sub, tax, total, displaySub, displayTax, displayTotal, coupon: appliedCoupon, redeemedPoints, gstIncluded });
+}
+function notifyV4State(state, extra) {
+  v4State = state;
+  posSend('state-change', { state, ...extra });
+}
+posListen((type, payload) => {
+  if (type === 'customer-checkin') { const cust = CUSTOMERS[payload.which]; if (cust) setCustomer(cust); }
+  else if (type === 'v5-pay') { completePayment('qr', null); }
+});
+
+
+
+// ===== Render Cart =====
+function renderV3() {
+  const list = document.getElementById('v3-cart');
+  const empty = document.getElementById('v3-cart-empty');
+  const heldInline = document.getElementById('v3-held-inline');
+  heldInline.classList.add('hidden');
+  heldInline.classList.remove('flex', 'flex-col');
+  if (cart.length === 0) {
+    list.innerHTML = '';
+    list.classList.add('hidden');
+    empty.classList.remove('hidden');
+    empty.classList.add('flex');
+  } else {
+    list.classList.remove('hidden');
+    empty.classList.add('hidden');
+    empty.classList.remove('flex');
+    list.innerHTML = cart.map((it, idx) => {
+      const effectivePrice = getEffectivePrice(it);
+      const hasDiscount = it.discount && effectivePrice < it.price;
+      return `
+      <div class="bg-gray-50 rounded-xl p-3.5 flex items-center gap-3 border border-gray-100">
+        <div class="w-14 h-14 bg-white rounded-lg flex items-center justify-center border border-gray-200 shrink-0 overflow-hidden">
+          <img src="${it.img}" alt="${it.name}" class="w-full h-full object-cover">
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-[16px] font-medium text-black truncate">${it.name}</p>
+          <div class="flex items-center gap-2 mt-0.5">
+            ${hasDiscount
+              ? `<span class="text-[14px] text-gray-400 line-through">Rs.${it.price}</span><span class="text-[14px] text-brand-green font-semibold">Rs.${effectivePrice}</span><span class="text-[12px] bg-green-100 text-brand-green px-1.5 py-0.5 rounded-full font-medium">${it.discount.label}</span>`
+              : `<span class="text-[14px] text-gray-500">${it.sku || 'NO-BARCODE'} · Rs.${it.price}</span>`
+            }
+          </div>
+        </div>
+        <div class="flex items-center gap-0 bg-white border border-gray-200 rounded-lg overflow-hidden">
+          <button onclick="changeQty(${idx}, -1)" class="tap-btn w-11 h-11 text-[20px] text-gray-600 hover:bg-gray-50 flex items-center justify-center font-bold">−</button>
+          <span class="text-[17px] font-semibold w-9 text-center border-x border-gray-200">${it.qty}</span>
+          <button onclick="changeQty(${idx}, +1)" class="tap-btn w-11 h-11 text-[20px] text-gray-600 hover:bg-gray-50 flex items-center justify-center font-bold">+</button>
+        </div>
+        <p class="text-[16px] font-bold text-navy w-24 text-right">Rs.${(effectivePrice * it.qty).toLocaleString()}</p>
+        <button onclick="removeItem(${idx})" class="tap-btn w-11 h-11 rounded-lg bg-red-50 text-brand-red flex items-center justify-center">
+          <ion-icon name="trash-outline" class="text-xl"></ion-icon>
+        </button>
+      </div>`;
+    }).join('');
+  }
+  // Totals
+  const { count, sub, tax, total, totalDiscount, couponDiscount, pointsDiscount, totalBeforePoints } = calcTotals(cart, appliedCoupon, redeemedPoints);
+  const displayCoupon = couponDiscount;
+  const displayPoints = pointsDiscount;
+  const { displaySub, displayTax, displayTotal } = calcDisplayTotals({ sub, tax, total, couponDiscount, pointsDiscount }, gstIncluded);
+  document.getElementById('v3-items-count').textContent = count;
+  document.getElementById('v3-subtotal').textContent = `Rs.${displaySub.toLocaleString()}`;
+  document.getElementById('v3-tax').textContent = `Rs.${displayTax.toLocaleString()}`;
+  document.getElementById('v3-total').textContent = `Rs.${displayTotal.toLocaleString()}`;
+  document.getElementById('v3-gst-mode').textContent = gstIncluded ? 'incl' : 'excl';
+  const discountLine = document.getElementById('v3-discount-line');
+  if (discountLine) { if (totalDiscount > 0) { discountLine.classList.remove('hidden'); document.getElementById('v3-discount').textContent = `-Rs.${totalDiscount.toLocaleString()}`; } else { discountLine.classList.add('hidden'); } }
+  // Coupon line
+  const couponLine = document.getElementById('v3-coupon-line');
+  const couponBtnWrap = document.getElementById('v3-coupon-btn-wrap');
+  if (appliedCoupon && displayCoupon > 0) {
+    couponLine.classList.remove('hidden');
+    document.getElementById('v3-coupon-label').textContent = appliedCoupon.code + ' (' + appliedCoupon.label + ')';
+    document.getElementById('v3-coupon-amount').textContent = `-Rs.${displayCoupon.toLocaleString()}`;
+    couponBtnWrap.classList.add('hidden');
+  } else {
+    couponLine.classList.add('hidden');
+    couponBtnWrap.classList.remove('hidden');
+  }
+  // Points line
+  const pointsLine = document.getElementById('v3-points-line');
+  if (redeemedPoints > 0 && displayPoints > 0) {
+    pointsLine.classList.remove('hidden');
+    document.getElementById('v3-points-label').textContent = `${redeemedPoints.toLocaleString()} pts redeemed`;
+    document.getElementById('v3-points-amount').textContent = `-Rs.${displayPoints.toLocaleString()}`;
+  } else {
+    pointsLine.classList.add('hidden');
+  }
+  const hasItems = cart.length > 0;
+  document.getElementById('complete-btn').disabled = !hasItems;
+  document.getElementById('complete-btn-label').textContent = `Charge Rs.${displayTotal.toLocaleString()}`;
+  syncToV4();
+  if (v4State !== 'qr' && v4State !== 'success') { notifyV4State(hasItems || !!customer ? 'scanning' : 'idle'); }
+}
+
+function toggleGst() { gstIncluded = !gstIncluded; renderV3(); }
+
+// ===== Customer =====
+function setCustomer(cust) {
+  customer = cust;
+  redeemedPoints = 0; // Reset points when customer changes
+  const emptyState = document.getElementById('cust-empty-state');
+  const infoState = document.getElementById('cust-info-state');
+  const setText = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  if (cust) {
+    if (emptyState) emptyState.classList.add('hidden');
+    if (infoState) infoState.classList.remove('hidden');
+    setText('cust-initial', cust.initial);
+    setText('cust-name', cust.name);
+    setText('cust-area', cust.area);
+    setText('cust-visits', cust.visits);
+    setText('cust-lifetime', cust.lifetime);
+    setText('cust-last', cust.last);
+    // Loyalty points
+    const pts = cust.loyaltyPoints || 0;
+    const val = Math.round(pts / LOYALTY_CONFIG.redemptionRate);
+    setText('cust-points', pts.toLocaleString());
+    setText('cust-points-value', val.toLocaleString());
+    setText('cust-tier', cust.loyaltyTier || 'Member');
+    const loyaltyBar = document.getElementById('cust-loyalty-bar');
+    const redeemBtn = document.getElementById('redeem-btn');
+    if (loyaltyBar) loyaltyBar.classList.toggle('hidden', pts === 0);
+    if (redeemBtn) redeemBtn.disabled = pts < LOYALTY_CONFIG.minRedeemPoints;
+  } else {
+    if (emptyState) emptyState.classList.remove('hidden');
+    if (infoState) infoState.classList.add('hidden');
+  }
+  renderV3();
+  posSend('customer-update', { customer: cust });
+}
+function endCheckin() { setCustomer(null); }
+
+// ===== Scan / Add =====
+function handleScan(value) {
+  if (!value) return;
+  const v = value.trim();
+  let hit = CATALOG.find(p => p.sku === v) || CATALOG.find(p => p.name.toLowerCase().includes(v.toLowerCase()));
+  if (!hit) hit = QUICK_ADD.find(p => p.name.toLowerCase().includes(v.toLowerCase()));
+  if (!hit) { flashScanFeedback(false); return; }
+  addToCart(hit);
+  flashScanFeedback(true);
+}
+function flashScanFeedback(ok) {
+  const el = document.getElementById('scan-input');
+  if (!el) return;
+  const cls = ok ? 'ring-2 ring-brand-green' : 'ring-2 ring-brand-red';
+  el.classList.add(...cls.split(' '));
+  setTimeout(() => el.classList.remove(...cls.split(' ')), 400);
+}
+function addToCart(product) {
+  const key = product.sku ? i => i.sku === product.sku : i => !i.sku && i.name === product.name;
+  const existing = cart.find(key);
+  if (existing) existing.qty += 1;
+  else cart.push({ ...product, qty: 1 });
+  renderV3();
+}
+function changeQty(idx, delta) {
+  if (!cart[idx]) return;
+  cart[idx].qty += delta;
+  if (cart[idx].qty <= 0) cart.splice(idx, 1);
+  renderV3();
+}
+function removeItem(idx) { cart.splice(idx, 1); renderV3(); }
+
+// ===== Live Search =====
+function handleLiveSearch(value) {
+  const dropdown = document.getElementById('live-search-dropdown');
+  const query = (value || '').trim().toLowerCase();
+  if (query.length === 0) { closeLiveSearch(); return; }
+  const allProducts = [...CATALOG, ...QUICK_ADD];
+  const results = allProducts.filter(p => p.name.toLowerCase().includes(query) || (p.sku && p.sku.includes(query)));
+  if (results.length === 0) {
+    dropdown.innerHTML = `<div class="p-6 text-center text-gray-500 text-[15px]"><ion-icon name="search-outline" class="text-4xl text-gray-300 block mx-auto mb-2"></ion-icon>No products found</div>`;
+  } else {
+    dropdown.innerHTML = results.map((p, i) => {
+      // Store product data safely to avoid quote issues in attributes
+      window.__searchResults = window.__searchResults || [];
+      window.__searchResults[i] = p;
+      return `
+      <button onclick="addFromSearch(window.__searchResults[${i}])" class="tap-btn w-full flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 active:bg-gray-100 text-left border-b border-gray-50 last:border-0 min-h-[60px]">
+        <div class="w-12 h-12 bg-gray-50 rounded-lg shrink-0 overflow-hidden">
+          <img src="${p.img}" alt="${p.name}" class="w-full h-full object-cover">
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-[16px] font-medium text-black truncate">${p.name}</p>
+          <p class="text-[14px] text-gray-500">${p.sku || 'No barcode'}</p>
+        </div>
+        <span class="text-[16px] font-bold text-navy shrink-0">Rs.${p.price}</span>
+      </button>
+    `}).join('');
+  }
+  dropdown.classList.remove('hidden');
+}
+function closeLiveSearch() { document.getElementById('live-search-dropdown').classList.add('hidden'); }
+function addFromSearch(product) {
+  addToCart(product);
+  document.getElementById('scan-input').value = '';
+  closeLiveSearch();
+  flashScanFeedback(true);
+}
+document.addEventListener('click', (e) => {
+  const dropdown = document.getElementById('live-search-dropdown');
+  const input = document.getElementById('scan-input');
+  if (dropdown && input && !dropdown.contains(e.target) && e.target !== input) closeLiveSearch();
+});
+
+// ===== Complete Sale =====
+function completeSale() {
+  if (cart.length === 0) return;
+  document.getElementById('noapp-modal').classList.remove('hidden');
+  document.getElementById('noapp-modal').classList.add('flex');
+}
+function completePayment(methodHint, cashTendered) {
+  const method = methodHint || 'qr';
+  const txId = recordSale(method);
+  showReceipt(txId, method, cashTendered);
+  notifyV4State('success', { txId, customerName: customer ? customer.name.split(' ')[0] : null });
+}
+function newSaleAfterReceipt() {
+  closeReceipt();
+  cart = []; appliedCoupon = null; redeemedPoints = 0; setCustomer(null); renderV3();
+  notifyV4State('idle');
+  const scan = document.getElementById('scan-input'); if (scan) scan.focus();
+}
+function closeNoAppModal() { document.getElementById('noapp-modal').classList.add('hidden'); document.getElementById('noapp-modal').classList.remove('flex'); }
+function walkInPay(mode) {
+  closeNoAppModal();
+  if (mode === 'cash') { openCashModal(); }
+  else { completePayment(mode); }
+}
+
+// ===== User ID =====
+function openUserIdModal() {
+  document.getElementById('userid-modal').classList.remove('hidden');
+  document.getElementById('userid-modal').classList.add('flex');
+  switchCustomerTab('lookup');
+  document.getElementById('lookup-error').classList.add('hidden');
+  document.getElementById('reg-error').classList.add('hidden');
+  document.getElementById('reg-success').classList.add('hidden');
+  setTimeout(() => { const i = document.getElementById('userid-input'); if (i) { i.value = ''; i.focus(); } }, 50);
+}
+function closeUserIdModal() { document.getElementById('userid-modal').classList.add('hidden'); document.getElementById('userid-modal').classList.remove('flex'); }
+function switchCustomerTab(tab) {
+  const lookupTab = document.getElementById('cust-tab-lookup');
+  const registerTab = document.getElementById('cust-tab-register');
+  const lookupPanel = document.getElementById('cust-panel-lookup');
+  const registerPanel = document.getElementById('cust-panel-register');
+  if (tab === 'lookup') {
+    lookupTab.className = 'tap-btn flex-1 py-3 text-[15px] font-semibold rounded-lg bg-white text-navy shadow-sm';
+    registerTab.className = 'tap-btn flex-1 py-3 text-[15px] font-medium rounded-lg text-gray-500';
+    lookupPanel.classList.remove('hidden');
+    registerPanel.classList.add('hidden');
+    setTimeout(() => { const i = document.getElementById('userid-input'); if (i) i.focus(); }, 50);
+  } else {
+    registerTab.className = 'tap-btn flex-1 py-3 text-[15px] font-semibold rounded-lg bg-white text-navy shadow-sm';
+    lookupTab.className = 'tap-btn flex-1 py-3 text-[15px] font-medium rounded-lg text-gray-500';
+    registerPanel.classList.remove('hidden');
+    lookupPanel.classList.add('hidden');
+    document.getElementById('reg-error').classList.add('hidden');
+    document.getElementById('reg-success').classList.add('hidden');
+    document.getElementById('reg-submit-btn').disabled = false;
+    setTimeout(() => { const i = document.getElementById('reg-name'); if (i) i.focus(); }, 50);
+  }
+}
+function submitUserId() {
+  const input = document.getElementById('userid-input');
+  const val = (input && input.value || '').trim().replace(/\s/g, '');
+  if (!val) return;
+  // Search by phone number (normalize: remove dashes/spaces for comparison)
+  const normalized = val.replace(/[-\s]/g, '');
+  const hit = Object.values(CUSTOMERS).find(c => c.phone && c.phone.replace(/[-\s]/g, '') === normalized);
+  if (hit) { document.getElementById('lookup-error').classList.add('hidden'); setCustomer(hit); closeUserIdModal(); }
+  else { document.getElementById('lookup-error').classList.remove('hidden'); input.classList.add('border-brand-red', 'ring-2', 'ring-red-100'); setTimeout(() => input.classList.remove('border-brand-red', 'ring-2', 'ring-red-100'), 1500); }
+}
+function registerNewCustomer() {
+  const name = (document.getElementById('reg-name').value || '').trim();
+  const phone = (document.getElementById('reg-phone').value || '').trim();
+  const area = (document.getElementById('reg-area').value || '').trim();
+  const errorEl = document.getElementById('reg-error');
+  const errorMsg = document.getElementById('reg-error-msg');
+  errorEl.classList.add('hidden');
+  if (!name) { errorMsg.textContent = 'Please enter the customer name'; errorEl.classList.remove('hidden'); return; }
+  if (!phone || phone.length < 7) { errorMsg.textContent = 'Please enter a valid phone number'; errorEl.classList.remove('hidden'); return; }
+  // Generate User ID from initials + random
+  const parts = name.split(' ');
+  const initials = (parts[0][0] + (parts[1] ? parts[1][0] : parts[0][1] || 'X')).toUpperCase();
+  const randomNum = String(Math.floor(Math.random() * 90000000) + 10000000);
+  const newUserId = initials + '-' + randomNum;
+  // Create customer record
+  const newCustomer = {
+    userId: newUserId,
+    name: name,
+    initial: name[0].toUpperCase(),
+    area: area || 'Karachi',
+    title: '',
+    lastName: parts.length > 1 ? parts[parts.length - 1] : name,
+    visits: 0,
+    lifetime: 'Rs.0',
+    last: 'New',
+    note: '',
+    rec: '',
+    favorite: false,
+    loyaltyPoints: 0,
+    loyaltyTier: 'Member',
+    phone: phone,
+  };
+  // Add to CUSTOMERS dictionary
+  const key = initials.toLowerCase() + randomNum.slice(0, 4);
+  CUSTOMERS[key] = newCustomer;
+  // Show success
+  document.getElementById('reg-success').classList.remove('hidden');
+  document.getElementById('reg-new-id').textContent = newUserId;
+  document.getElementById('reg-submit-btn').disabled = true;
+  // Link customer to current transaction
+  setTimeout(() => { setCustomer(newCustomer); closeUserIdModal(); }, 1200);
+}
+
+// ===== Hold / Resume =====
+function holdSale() {
+  if (cart.length === 0) { if (heldSales.length > 0) openHeldPanel(); return; }
+  const id = 'H-' + String(heldSales.length + 1).padStart(3, '0');
+  const at = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+  heldSales.push({ id, cart: [...cart], customer, at });
+  cart = []; setCustomer(null); renderV3(); updateHeldBadge();
+  const btn = document.getElementById('hold-btn');
+  if (btn) { btn.classList.add('ring-2', 'ring-brand-orange'); setTimeout(() => btn.classList.remove('ring-2', 'ring-brand-orange'), 800); }
+}
+function updateHeldBadge() {
+  const badge = document.getElementById('held-badge');
+  const label = document.getElementById('hold-btn-label');
+  const btn = document.getElementById('hold-btn');
+  if (!badge || !btn) return;
+  if (heldSales.length === 0) {
+    badge.classList.add('hidden');
+    if (label) label.textContent = 'Hold Order';
+    btn.className = 'tap-btn w-full h-[48px] text-[15px] font-medium text-gray-600 bg-white border-2 border-gray-200 rounded-xl flex items-center justify-center gap-2 relative hover:bg-gray-50 active:bg-gray-100';
+  } else {
+    badge.classList.remove('hidden');
+    badge.textContent = heldSales.length;
+    if (label) label.textContent = `Held (${heldSales.length})`;
+    btn.className = 'tap-btn w-full h-[48px] text-[15px] font-semibold text-brand-orange bg-orange-50 border-2 border-brand-orange rounded-xl flex items-center justify-center gap-2 relative active:bg-orange-100';
+  }
+}
+
+function openHeldPanel() {
+  const cartEl = document.getElementById('v3-cart');
+  const emptyEl = document.getElementById('v3-cart-empty');
+  const heldEl = document.getElementById('v3-held-inline');
+  const heldList = document.getElementById('v3-held-list');
+  cartEl.classList.add('hidden');
+  emptyEl.classList.add('hidden'); emptyEl.classList.remove('flex');
+  heldEl.classList.remove('hidden'); heldEl.classList.add('flex', 'flex-col');
+  if (heldSales.length === 0) {
+    heldList.innerHTML = `<div class="text-center py-16 text-gray-400"><ion-icon name="pause-circle-outline" class="text-5xl"></ion-icon><p class="text-[15px] mt-3">No held orders</p></div>`;
+  } else {
+    heldList.innerHTML = heldSales.slice().reverse().map((h, revIdx) => {
+      const idx = heldSales.length - 1 - revIdx;
+      const sub = h.cart.reduce((s, i) => s + i.price * i.qty, 0);
+      const itemRows = h.cart.map(it => `
+        <div class="flex items-center gap-3 py-2.5">
+          <div class="w-10 h-10 bg-gray-100 rounded-lg shrink-0 overflow-hidden"><img src="${it.img}" alt="${it.name}" class="w-full h-full object-cover"></div>
+          <span class="flex-1 text-[15px] text-gray-700 truncate">${it.name}</span>
+          <span class="text-[14px] text-gray-500">×${it.qty}</span>
+          <span class="text-[15px] font-semibold text-black w-20 text-right">Rs.${(it.price * it.qty).toLocaleString()}</span>
+        </div>`).join('');
+      return `<div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div class="px-4 py-3 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="w-8 h-8 rounded-full bg-navy text-white text-[13px] font-bold flex items-center justify-center">${idx + 1}</span>
+            <span class="text-[15px] font-semibold text-black">${h.customer ? h.customer.name : 'Guest'}</span>
+            <span class="text-[14px] text-gray-400">${h.at}</span>
+          </div>
+          <span class="text-[15px] font-bold text-navy">Rs.${sub.toLocaleString()}</span>
+        </div>
+        <div class="px-4 divide-y divide-gray-100">${itemRows}</div>
+        <div class="px-4 py-3 border-t border-gray-100 flex items-center justify-end gap-3">
+          <button onclick="discardHeld(${idx})" class="tap-btn px-4 py-2.5 text-[14px] text-gray-500 hover:text-brand-red rounded-lg hover:bg-red-50 flex items-center gap-1.5 min-h-[44px]">
+            <ion-icon name="trash-outline" style="font-size:16px;"></ion-icon> Discard
+          </button>
+          <button onclick="resumeHeld(${idx})" class="tap-btn px-4 py-2.5 text-[14px] font-semibold text-white bg-navy rounded-lg flex items-center gap-1.5 min-h-[44px]">
+            <ion-icon name="play-outline" style="font-size:16px;"></ion-icon> Resume
+          </button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+}
+function closeHeldInline() { const heldEl = document.getElementById('v3-held-inline'); heldEl.classList.add('hidden'); heldEl.classList.remove('flex', 'flex-col'); renderV3(); }
+function resumeHeld(idx) {
+  const h = heldSales[idx]; if (!h) return;
+  if (cart.length > 0) holdSale();
+  cart = [...h.cart]; setCustomer(h.customer);
+  heldSales.splice(idx, 1); updateHeldBadge(); closeHeldInline();
+}
+function discardHeld(idx) { heldSales.splice(idx, 1); updateHeldBadge(); if (heldSales.length === 0) closeHeldInline(); else openHeldPanel(); }
+
+// ===== Sales History =====
+function recordSale(method) {
+  const { sub, tax, total, couponDiscount, pointsDiscount, totalDiscount } = calcEffectiveTotals();
+  const now = new Date();
+  const id = 'TX-' + now.getFullYear() + String(now.getMonth()+1).padStart(2,'0') + String(now.getDate()).padStart(2,'0') + '-' + String(Math.floor(Math.random() * 9000) + 1000);
+  salesHistory.unshift({
+    id, at: now, total, sub, tax, method,
+    fbrInvoice: nextFbrInvoice(),
+    items: cart.reduce((s, i) => s + i.qty, 0),
+    products: cart.map(i => { const ep = getEffectivePrice(i); return { name: i.name, price: i.price, effectivePrice: ep, qty: i.qty, img: i.img, discount: i.discount || null }; }),
+    customer: customer ? customer.name : null,
+    customerPhone: customer ? customer.phone : null,
+    gstRate: 0.16,
+    totalDiscount: totalDiscount,
+    coupon: appliedCoupon ? { code: appliedCoupon.code, label: appliedCoupon.label, discount: couponDiscount } : null,
+    loyalty: redeemedPoints > 0 ? { pointsUsed: redeemedPoints, discount: pointsDiscount } : null,
+    staff: loggedInStaff ? loggedInStaff.name : 'Staff',
+  });
+  // Deduct redeemed points from customer (demo)
+  if (customer && redeemedPoints > 0) { customer.loyaltyPoints = Math.max(0, (customer.loyaltyPoints || 0) - redeemedPoints); }
+  // Earn points on this purchase (rate from LOYALTY_CONFIG)
+  if (customer) { customer.loyaltyPoints = (customer.loyaltyPoints || 0) + Math.floor(total / LOYALTY_CONFIG.earnPerRupees); }
+  return id;
+}
+
+// ===== Receipt =====
+function showReceipt(txId, method, cashTendered) {
+  const { sub, tax, total, couponDiscount, pointsDiscount, totalDiscount } = calcEffectiveTotals();
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('en-PK', { year:'numeric', month:'2-digit', day:'2-digit' });
+  const timeStr = now.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+  const saleRecord = salesHistory.find(s => s.id === txId);
+  const fbrInvoice = (saleRecord && saleRecord.fbrInvoice) || nextFbrInvoice();
+  const strnNumber = STORE_CONFIG.strn;
+  const methodLabel = { qr: 'PayFast QR', cash: 'Cash', card: 'Card (POS)' }[method] || method;
+  const itemCount = cart.reduce((s, i) => s + i.qty, 0);
+
+  // Build item rows in tabular format (like Jalal Sons: ITEM NAME / QTY / PRICE / GROSS / TOTAL)
+  const itemRows = cart.map(it => {
+    const ep = getEffectivePrice(it);
+    const gross = ep * it.qty;
+    const lineTotal = gross;
+    const hasDisc = it.discount && ep < it.price;
+    return `<tr class="border-b border-dotted border-gray-200">
+      <td colspan="4" class="pt-2 pb-0.5 text-[11px] font-medium text-black">${it.name}${hasDisc ? ` <span class="text-brand-green text-[9px] font-semibold">${it.discount.label}</span>` : ''}</td>
+    </tr>
+    <tr class="border-b border-dotted border-gray-200">
+      <td class="pb-2 text-[11px] text-gray-600 text-center">${it.qty}</td>
+      <td class="pb-2 text-[11px] text-gray-600 text-right">${ep.toFixed(2)}</td>
+      <td class="pb-2 text-[11px] text-gray-600 text-right">${gross.toFixed(2)}</td>
+      <td class="pb-2 text-[11px] font-semibold text-black text-right">${lineTotal.toFixed(2)}</td>
+    </tr>`;
+  }).join('');
+
+  // Cash change / balance section
+  let cashSection = '';
+  if (method === 'cash' && cashTendered) {
+    const change = cashTendered - total;
+    cashSection = `
+      <div class="flex justify-between text-[11px] py-1">
+        <span class="text-gray-600">${methodLabel}</span>
+        <span class="font-semibold text-black">${cashTendered.toFixed(2)}</span>
+      </div>
+      <div class="flex justify-between text-[11px] py-1 border-b border-dashed border-gray-300 pb-2 mb-2">
+        <span class="text-gray-600 font-medium">Bal. (Cash)</span>
+        <span class="font-bold text-black">${change.toFixed(2)}</span>
+      </div>`;
+  } else {
+    cashSection = `
+      <div class="flex justify-between text-[11px] py-1 border-b border-dashed border-gray-300 pb-2 mb-2">
+        <span class="text-gray-600">${methodLabel}</span>
+        <span class="font-semibold text-black">${total.toFixed(2)}</span>
+      </div>`;
+  }
+
+  // Coupon line
+  const couponLine = appliedCoupon && couponDiscount > 0
+    ? `<div class="flex justify-between text-[11px] py-0.5 text-brand-purple"><span>Coupon (${appliedCoupon.code})</span><span>-${couponDiscount.toFixed(2)}</span></div>`
+    : '';
+
+  // Points redeemed line
+  const pointsLine = redeemedPoints > 0 && pointsDiscount > 0
+    ? `<div class="flex justify-between text-[11px] py-0.5 text-amber-600"><span>Points (${redeemedPoints.toLocaleString()} pts)</span><span>-${pointsDiscount.toFixed(2)}</span></div>`
+    : '';
+
+  // Tax detail calculation (GST included in total)
+  const taxRate = 16;
+  const gstAmount = tax;
+
+
+
+  // Update success header
+  document.getElementById('receipt-success-header').className = 'bg-brand-green px-6 py-5 text-center';
+  document.getElementById('receipt-success-header').innerHTML = `
+    <div class="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-3">
+      <ion-icon name="checkmark-circle" class="text-white text-4xl"></ion-icon>
+    </div>
+    <p class="text-white text-[20px] font-bold">Payment Successful</p>
+    <p class="text-white/80 text-[15px] mt-1">Rs.${total.toLocaleString()} via ${methodLabel}</p>`;
+
+  document.getElementById('receipt-body').innerHTML = `
+    <!-- Store header / logo -->
+    <div class="text-center border-b border-dashed border-gray-300 pb-3 mb-3">
+      <div class="w-16 h-16 mx-auto mb-2 rounded-lg overflow-hidden">
+        <img src="../img/CLIFTON-MARKET icon.jpg" alt="Clifton Mart" class="w-full h-full object-contain">
+      </div>
+      <p class="text-[14px] font-bold text-black tracking-wide">${STORE_CONFIG.name}</p>
+      <p class="text-[10px] text-gray-500 mt-0.5">${STORE_CONFIG.address}</p>
+      <p class="text-[10px] text-gray-500">Tel: ${STORE_CONFIG.phone}</p>
+    </div>
+    <!-- Transaction metadata (like Jalal Sons) -->
+    <div class="text-[10px] text-gray-600 space-y-0.5 border-b border-dashed border-gray-300 pb-2 mb-2">
+      <div class="flex justify-between"><span>STRN:${strnNumber}</span><span>NTN:${STORE_CONFIG.ntn}</span></div>
+      <div class="flex justify-between"><span>TRANSACTION:</span><span class="font-mono">${txId}</span></div>
+      <div class="flex justify-between"><span>RECEIPT NO.:</span><span class="font-mono">${txId}</span></div>
+      <div class="flex justify-between"><span>TERMINAL:</span><span>${STORE_CONFIG.terminal}</span></div>
+      <div class="flex justify-between"><span>EMPLOYEE:</span><span>${loggedInStaff ? loggedInStaff.name : 'Staff'}</span></div>
+      <div class="flex justify-between"><span>DATE:${dateStr}</span><span>TIME:${timeStr}</span></div>
+      <div class="flex justify-between"><span>CUSTOMER NO.:</span><span>${customer ? (customer.userId || '1') : ''}</span></div>
+      <div class="flex justify-between"><span>CUST. NAME:</span><span>${customer ? customer.name : ''}</span></div>
+    </div>
+    <!-- Items table header (like Jalal Sons: ITEM NAME / QTY / PRICE / GROSS / TOTAL) -->
+    <div class="border-b border-dashed border-gray-300 pb-2 mb-2">
+      <table class="w-full text-[10px]">
+        <thead>
+          <tr class="border-b border-gray-300">
+            <th class="text-left font-semibold text-gray-500 pb-1 uppercase">Item Name</th>
+            <th class="text-center font-semibold text-gray-500 pb-1 uppercase w-8">Qty</th>
+            <th class="text-right font-semibold text-gray-500 pb-1 uppercase w-14">Price</th>
+            <th class="text-right font-semibold text-gray-500 pb-1 uppercase w-16">Gross</th>
+            <th class="text-right font-semibold text-gray-500 pb-1 uppercase w-16">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${itemRows}
+        </tbody>
+      </table>
+    </div>
+    <!-- Totals section (like Jalal Sons format) -->
+    <div class="border-b border-dashed border-gray-300 pb-2 mb-2 space-y-0.5">
+      ${totalDiscount > 0 ? `<div class="flex justify-between text-[11px]"><span class="text-gray-600">Discount</span><span class="font-semibold text-brand-green">${totalDiscount.toFixed(2)}</span></div>` : `<div class="flex justify-between text-[11px]"><span class="text-gray-600">Discount</span><span class="font-semibold text-black">0.00</span></div>`}
+      ${couponLine}
+      ${pointsLine}
+      <div class="flex justify-between text-[12px] font-bold pt-1">
+        <span class="text-black">Total</span>
+        <span class="text-black">${total.toFixed(2)}</span>
+      </div>
+      ${cashSection}
+    </div>
+    <!-- TAX DETAIL section (like Jalal Sons) -->
+    <div class="border-b border-dashed border-gray-300 pb-2 mb-2">
+      <p class="text-[10px] font-semibold text-gray-600 uppercase mb-1">Tax Detail</p>
+      <div class="flex justify-between text-[11px]">
+        <span class="text-gray-600">${taxRate}% MRP</span>
+        <span class="font-medium text-black">${gstAmount.toFixed(2)}</span>
+      </div>
+      <div class="flex justify-between text-[11px] mt-1 pt-1 border-t border-dotted border-gray-200">
+        <span class="text-gray-600 font-medium">GST included in total:</span>
+        <span class="font-semibold text-black">${gstAmount.toFixed(2)}</span>
+      </div>
+    </div>
+    <!-- Store Policies (like Jalal Sons) -->
+    <div class="border-b border-dashed border-gray-300 pb-2 mb-2">
+      <ul class="text-[9px] text-gray-500 space-y-0.5 list-disc list-inside leading-relaxed">
+        ${STORE_CONFIG.policies.map(p => `<li>${p}</li>`).join('')}
+      </ul>
+      <p class="text-[9px] text-gray-500 mt-1 font-medium">PRICES ARE INCLUSIVE OF TAXES WHERE APPLICABLE.</p>
+    </div>
+    <!-- FBR Invoice & QR (like Jalal Sons) -->
+    <div class="text-center pt-1">
+      <p class="text-[10px] text-gray-600 font-medium">FBR Invoice #</p>
+      <p class="text-[9px] font-mono text-black mt-0.5">${fbrInvoice}</p>
+      <div class="flex items-center justify-center gap-4 mt-3">
+        <div class="text-center">
+          <div class="w-10 h-12 flex items-center justify-center">
+            <div class="text-[8px] font-bold text-gray-600 border border-gray-400 px-1.5 py-1 rounded">
+              <p class="leading-none">FBR</p>
+            </div>
+          </div>
+          <p class="text-[7px] text-gray-400 mt-0.5 leading-tight">POS</p>
+        </div>
+        <div class="text-center">
+          <div id="fbr-qr" class="w-24 h-24 bg-white rounded flex items-center justify-center border border-gray-200 p-1"></div>
+          <p class="text-[7px] text-gray-400 mt-0.5">FBR Verification</p>
+        </div>
+      </div>
+    </div>
+    <!-- Thank you -->
+    <div class="text-center mt-3 pt-2 border-t border-dashed border-gray-200">
+      <p class="text-[10px] text-gray-500 font-medium">Thank you for shopping at Clifton Mart!</p>
+      <p class="text-[8px] text-gray-300 mt-1">Powered by Air Register</p>
+    </div>`;
+  renderFbrQr(fbrInvoice, total);
+  document.getElementById('receipt-modal').classList.remove('hidden');
+  document.getElementById('receipt-modal').classList.add('flex');
+}
+function renderFbrQr(fbrInvoice, amount) {
+  const el = document.getElementById('fbr-qr');
+  if (!el || typeof QRCode === 'undefined') return;
+  el.innerHTML = '';
+  new QRCode(el, { text: fbrVerifyUrl(fbrInvoice, amount), width: 88, height: 88, correctLevel: QRCode.CorrectLevel.M });
+}
+function closeReceipt() {
+  document.getElementById('receipt-modal').classList.add('hidden');
+  document.getElementById('receipt-modal').classList.remove('flex');
+}
+function printReceipt() {
+  window.print();
+}
+
+// ===== Cash Payment Modal =====
+let cashPaymentTotal = 0;
+function openCashModal() {
+  const { total } = calcEffectiveTotals();
+  cashPaymentTotal = total;
+  document.getElementById('cash-amount-due').textContent = `Rs.${total.toLocaleString()}`;
+  document.getElementById('cash-tendered-input').value = '';
+  document.getElementById('cash-change-display').classList.add('hidden');
+  document.getElementById('cash-error').classList.add('hidden');
+  document.getElementById('cash-confirm-btn').disabled = true;
+  // Generate quick cash buttons
+  renderCashQuickBtns(total);
+  document.getElementById('cash-modal').classList.remove('hidden');
+  document.getElementById('cash-modal').classList.add('flex');
+  setTimeout(() => document.getElementById('cash-tendered-input').focus(), 50);
+}
+function closeCashModal() {
+  document.getElementById('cash-modal').classList.add('hidden');
+  document.getElementById('cash-modal').classList.remove('flex');
+}
+function renderCashQuickBtns(total) {
+  // Round up to common denominations
+  const denominations = [50, 100, 500, 1000, 5000];
+  const suggestions = [];
+  // Exact amount
+  suggestions.push(total);
+  // Round up to nearest 10
+  const round10 = Math.ceil(total / 10) * 10;
+  if (round10 !== total) suggestions.push(round10);
+  // Round up to nearest denomination
+  for (const d of denominations) {
+    const rounded = Math.ceil(total / d) * d;
+    if (rounded > total && !suggestions.includes(rounded)) suggestions.push(rounded);
+    if (suggestions.length >= 4) break;
+  }
+  // Keep only 4 unique
+  const unique = [...new Set(suggestions)].sort((a, b) => a - b).slice(0, 4);
+  const el = document.getElementById('cash-quick-btns');
+  el.innerHTML = unique.map(v => `
+    <button onclick="setCashAmount(${v})" class="tap-btn py-2.5 border border-gray-200 rounded-lg text-center hover:bg-navy/5 hover:border-navy/30">
+      <p class="text-[13px] font-bold text-black">Rs.${v.toLocaleString()}</p>
+    </button>
+  `).join('');
+}
+function setCashAmount(amount) {
+  document.getElementById('cash-tendered-input').value = amount;
+  updateCashChange();
+}
+function updateCashChange() {
+  const input = parseInt(document.getElementById('cash-tendered-input').value) || 0;
+  const changeDisplay = document.getElementById('cash-change-display');
+  const errorEl = document.getElementById('cash-error');
+  const confirmBtn = document.getElementById('cash-confirm-btn');
+  errorEl.classList.add('hidden');
+  if (input <= 0) {
+    changeDisplay.classList.add('hidden');
+    confirmBtn.disabled = true;
+    return;
+  }
+  if (input >= cashPaymentTotal) {
+    const change = input - cashPaymentTotal;
+    document.getElementById('cash-change-amount').textContent = `Rs.${change.toLocaleString()}`;
+    changeDisplay.classList.remove('hidden');
+    confirmBtn.disabled = false;
+  } else {
+    changeDisplay.classList.add('hidden');
+    confirmBtn.disabled = true;
+    if (input > 0 && input < cashPaymentTotal) {
+      errorEl.classList.remove('hidden');
+    }
+  }
+}
+function payExactCash() {
+  document.getElementById('cash-tendered-input').value = cashPaymentTotal;
+  updateCashChange();
+  confirmCashPayment();
+}
+function confirmCashPayment() {
+  const input = parseInt(document.getElementById('cash-tendered-input').value) || 0;
+  if (input < cashPaymentTotal) return;
+  closeCashModal();
+  completePayment('cash', input);
+}
+
+// ===== Orders Screen =====
+function openOrdersScreen() {
+  const m = document.getElementById('main-register-screen');
+  m.classList.add('hidden'); m.classList.remove('flex');
+  const screen = document.getElementById('orders-screen');
+  screen.classList.remove('hidden'); screen.classList.add('flex');
+  const now = new Date();
+  document.getElementById('orders-date').textContent = now.toLocaleDateString('en-PK', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  const totalAmount = salesHistory.reduce((s, tx) => s + tx.total, 0);
+  const totalRefunds = salesHistory.reduce((s, tx) => s + (tx.refundAmount || 0), 0);
+  document.getElementById('orders-count-badge').textContent = `${salesHistory.length} order${salesHistory.length !== 1 ? 's' : ''}`;
+  document.getElementById('orders-total-badge').textContent = `Rs.${(totalAmount - totalRefunds).toLocaleString()}`;
+  const listEl = document.getElementById('orders-list');
+  const emptyEl = document.getElementById('orders-empty');
+  if (salesHistory.length === 0) { listEl.classList.add('hidden'); emptyEl.classList.remove('hidden'); }
+  else {
+    listEl.classList.remove('hidden'); emptyEl.classList.add('hidden');
+    listEl.innerHTML = salesHistory.map((tx, idx) => {
+      const time = tx.at.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const methodIcon = { cash: 'cash-outline', card: 'card-outline', qr: 'qr-code-outline' }[tx.method] || 'receipt-outline';
+      const methodColor = { cash: 'text-brand-green bg-green-50', card: 'text-brand-blue bg-blue-50', qr: 'text-brand-purple bg-purple-50' }[tx.method] || 'text-gray-500 bg-gray-50';
+      const methodLabel = { cash: 'Cash', card: 'Card', qr: 'QR Pay' }[tx.method] || tx.method;
+      const productRows = (tx.products || []).map(p => {
+        const ep = p.effectivePrice || p.price;
+        return `<div class="flex items-center gap-3 py-2"><div class="w-8 h-8 bg-gray-100 rounded-lg shrink-0 overflow-hidden"><img src="${p.img}" alt="${p.name}" class="w-full h-full object-cover"></div><span class="flex-1 text-[13px] text-gray-700 truncate">${p.name}</span><span class="text-[12px] text-gray-500">×${p.qty}</span><span class="text-[13px] font-medium text-black w-16 text-right">Rs.${(ep * p.qty).toLocaleString()}</span></div>`;
+      }).join('');
+      return `<div class="bg-white rounded-xl border ${tx.refunded ? 'border-red-200' : tx.partialRefund ? 'border-orange-200' : 'border-gray-200'} overflow-hidden">
+        <div class="p-4 flex items-center gap-4 cursor-pointer min-h-[64px]" onclick="toggleOrderDetail(${idx})">
+          <div class="w-11 h-11 rounded-xl ${methodColor} flex items-center justify-center shrink-0"><ion-icon name="${methodIcon}" class="text-xl"></ion-icon></div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2">
+              <p class="text-[14px] font-semibold text-black font-mono">${tx.id}</p>
+              <span class="text-[11px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 font-medium">${methodLabel}</span>
+              ${tx.coupon ? '<span class="text-[10px] px-2 py-0.5 rounded-full bg-purple-100 text-brand-purple font-semibold">' + tx.coupon.code + '</span>' : ''}
+              ${tx.loyalty ? '<span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-semibold">' + tx.loyalty.pointsUsed + ' pts</span>' : ''}
+              ${tx.refunded ? '<span class="text-[10px] px-2 py-0.5 rounded-full bg-red-100 text-brand-red font-bold">REFUNDED</span>' : tx.partialRefund ? '<span class="text-[10px] px-2 py-0.5 rounded-full bg-orange-100 text-brand-orange font-bold">PARTIAL</span>' : ''}
+            </div>
+            <p class="text-[12px] text-gray-500 mt-0.5">${tx.items} item${tx.items !== 1 ? 's' : ''} · ${tx.customer || 'Guest'} · ${time}</p>
+          </div>
+          <div class="text-right shrink-0">
+            <p class="text-[15px] font-bold ${tx.refunded ? 'text-gray-400 line-through' : 'text-navy'}">Rs.${tx.total.toLocaleString()}</p>
+            ${tx.refundAmount ? `<p class="text-[11px] text-brand-red font-medium">-Rs.${tx.refundAmount.toLocaleString()}</p>` : ''}
+          </div>
+          <ion-icon name="chevron-down-outline" class="text-gray-400 text-lg shrink-0"></ion-icon>
+        </div>
+        <div id="order-detail-${idx}" class="hidden border-t border-gray-100 px-4 py-3 bg-gray-50">
+          <div class="divide-y divide-gray-100">${productRows}</div>
+          ${tx.coupon ? `<div class="flex justify-between items-center py-2 border-t border-gray-100 mt-1"><div class="flex items-center gap-1.5"><ion-icon name="pricetag-outline" class="text-brand-purple text-sm"></ion-icon><span class="text-[12px] text-brand-purple font-medium">Coupon: ${tx.coupon.code}</span></div><span class="text-[12px] font-medium text-brand-purple">-Rs.${tx.coupon.discount.toLocaleString()}</span></div>` : ''}
+          ${tx.loyalty ? `<div class="flex justify-between items-center py-2 border-t border-gray-100 mt-1"><div class="flex items-center gap-1.5"><ion-icon name="star" class="text-amber-500 text-sm"></ion-icon><span class="text-[12px] text-amber-600 font-medium">${tx.loyalty.pointsUsed.toLocaleString()} pts redeemed</span></div><span class="text-[12px] font-medium text-amber-600">-Rs.${tx.loyalty.discount.toLocaleString()}</span></div>` : ''}
+          ${tx.returnedItems && tx.returnedItems.length > 0 ? `<div class="border-t border-red-200 mt-2 pt-2"><p class="text-[11px] text-brand-red font-semibold mb-1">Returned</p>${tx.returnedItems.map(r => `<div class="flex justify-between text-[12px] py-1"><span class="text-brand-red">${r.name} ×${r.qty}</span><span class="text-brand-red font-medium">-Rs.${(r.refundedAmount || r.price * r.qty).toLocaleString()}</span></div>`).join('')}</div>` : ''}
+          <div class="border-t border-gray-200 mt-3 pt-3 flex items-center justify-end gap-3">
+            ${tx.refunded ? '<span class="text-[12px] text-brand-red font-medium">Fully Refunded</span>' : tx.partialRefund ? `<span class="text-[12px] text-brand-orange font-medium">Partial: -Rs.${(tx.refundAmount||0).toLocaleString()}</span>` : `<button onclick="openRefundModal(${idx})" class="tap-btn px-5 py-2.5 text-[13px] font-medium text-brand-red border border-red-200 rounded-lg hover:bg-red-50 min-h-[40px]">Return</button>`}
+            <button onclick="printOrderReceipt(${idx})" class="tap-btn px-5 py-2.5 text-[13px] font-medium text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-100 min-h-[40px]">Print</button>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+}
+function closeOrdersScreen() { document.getElementById('orders-screen').classList.add('hidden'); document.getElementById('orders-screen').classList.remove('flex'); const m = document.getElementById('main-register-screen'); m.classList.remove('hidden'); m.classList.add('flex'); }
+function toggleOrderDetail(idx) { const d = document.getElementById('order-detail-' + idx); if (d) d.classList.toggle('hidden'); }
+
+// ===== Refund =====
+let refundingIdx = null;
+let refundSelectedItems = [];
+let refundType = 'refund';
+
+function openRefundModal(idx) {
+  const tx = salesHistory[idx]; if (!tx) return;
+  refundingIdx = idx; refundSelectedItems = []; refundType = 'refund';
+  document.getElementById('refund-order-id').textContent = tx.id;
+  document.getElementById('refund-date').textContent = tx.at.toLocaleDateString('en-PK', { day: 'numeric', month: 'short', year: 'numeric' }) + ' · ' + tx.at.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const methodLabels = { cash: 'Cash', card: 'Card', qr: 'QR Pay' };
+  document.getElementById('refund-method').textContent = methodLabels[tx.method] || tx.method;
+  document.getElementById('refund-customer').textContent = tx.customer || 'Guest';
+  const methodIcons = { cash: 'cash-outline', card: 'card-outline', qr: 'qr-code-outline' };
+  const methodColors = { cash: 'text-brand-green', card: 'text-brand-blue', qr: 'text-brand-purple' };
+  document.getElementById('refund-method-icon').setAttribute('name', methodIcons[tx.method] || 'card-outline');
+  document.getElementById('refund-method-icon').className = (methodColors[tx.method] || 'text-brand-blue') + ' text-lg';
+  document.getElementById('refund-method-label').textContent = `Refund via ${methodLabels[tx.method] || 'original method'}`;
+  const itemsEl = document.getElementById('refund-items');
+  itemsEl.innerHTML = (tx.products || []).map((p, i) => {
+    const ep = p.effectivePrice || p.price;
+    return `<label class="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-0 min-h-[52px]">
+      <input type="checkbox" onchange="toggleRefundItem(${i})" class="w-5 h-5 rounded border-gray-300 accent-navy">
+      <div class="w-9 h-9 bg-gray-100 rounded-lg shrink-0 overflow-hidden"><img src="${p.img}" alt="${p.name}" class="w-full h-full object-cover"></div>
+      <div class="flex-1 min-w-0"><span class="text-[13px] text-black truncate block">${p.name}</span></div>
+      <span class="text-[12px] text-gray-500">×${p.qty}</span>
+      <span class="text-[13px] font-medium text-black">Rs.${(ep * p.qty).toLocaleString()}</span>
+    </label>`;
+  }).join('');
+  document.getElementById('refund-reason').value = '';
+  document.querySelectorAll('.refund-reason-btn').forEach(b => b.classList.remove('border-navy', 'bg-navy/5'));
+  setReturnType('refund'); updateRefundAmount();
+  document.getElementById('refund-modal').classList.remove('hidden');
+  document.getElementById('refund-modal').classList.add('flex');
+}
+function toggleRefundItem(itemIdx) { const idx = refundSelectedItems.indexOf(itemIdx); if (idx === -1) refundSelectedItems.push(itemIdx); else refundSelectedItems.splice(idx, 1); updateRefundAmount(); }
+function updateRefundAmount() {
+  const tx = salesHistory[refundingIdx]; if (!tx) return;
+  let total = 0;
+  if (refundSelectedItems.length === tx.products.length) { total = tx.total; }
+  else { const orderSubtotal = tx.products.reduce((s, p) => s + (p.effectivePrice || p.price) * p.qty, 0); let sel = 0; refundSelectedItems.forEach(i => { const p = tx.products[i]; if (p) sel += (p.effectivePrice || p.price) * p.qty; }); total = orderSubtotal > 0 ? Math.round((sel / orderSubtotal) * tx.total) : 0; }
+  document.getElementById('refund-amount').textContent = `Rs.${total.toLocaleString()}`;
+  document.getElementById('refund-items-count').textContent = `${refundSelectedItems.length} item${refundSelectedItems.length !== 1 ? 's' : ''} selected`;
+  document.getElementById('refund-confirm-btn').disabled = refundSelectedItems.length === 0;
+}
+function setReturnType(type) {
+  refundType = type;
+  const r = document.getElementById('return-type-refund'); const e = document.getElementById('return-type-exchange');
+  const ms = document.getElementById('refund-method-section'); const cl = document.getElementById('refund-confirm-label');
+  if (type === 'refund') { r.className = 'tap-btn p-4 border-2 border-navy bg-navy/5 rounded-xl text-left min-h-[60px]'; e.className = 'tap-btn p-4 border-2 border-gray-200 rounded-xl text-left min-h-[60px]'; ms.classList.remove('hidden'); cl.textContent = 'Confirm Refund'; }
+  else { e.className = 'tap-btn p-4 border-2 border-navy bg-navy/5 rounded-xl text-left min-h-[60px]'; r.className = 'tap-btn p-4 border-2 border-gray-200 rounded-xl text-left min-h-[60px]'; ms.classList.add('hidden'); cl.textContent = 'Confirm Exchange'; }
+}
+function setReturnReason(reason) { document.getElementById('refund-reason').value = reason; document.querySelectorAll('.refund-reason-btn').forEach(b => { if (b.textContent.trim().includes(reason.split('/')[0])) b.classList.add('border-navy', 'bg-navy/5'); else b.classList.remove('border-navy', 'bg-navy/5'); }); }
+function closeRefundModal() { document.getElementById('refund-modal').classList.add('hidden'); document.getElementById('refund-modal').classList.remove('flex'); refundingIdx = null; refundSelectedItems = []; }
+
+function processRefund() {
+  if (refundingIdx === null || refundSelectedItems.length === 0) return;
+  const tx = salesHistory[refundingIdx];
+  const reason = document.getElementById('refund-reason').value || 'No reason provided';
+  const orderSubtotal = tx.products.reduce((s, p) => s + (p.effectivePrice || p.price) * p.qty, 0);
+  let selectedSubtotal = 0; const returnedItems = [];
+  refundSelectedItems.forEach(i => { const p = tx.products[i]; if (p) { selectedSubtotal += (p.effectivePrice || p.price) * p.qty; returnedItems.push(p); } });
+  let refundAmount;
+  if (refundSelectedItems.length === tx.products.length) { refundAmount = tx.total; } else { refundAmount = orderSubtotal > 0 ? Math.round((selectedSubtotal / orderSubtotal) * tx.total) : 0; }
+  returnedItems.forEach(r => { const itemSub = (r.effectivePrice || r.price) * r.qty; r.refundedAmount = orderSubtotal > 0 ? Math.round((itemSub / orderSubtotal) * tx.total) : 0; });
+  if (refundSelectedItems.length === tx.products.length) { tx.refunded = true; } else { tx.partialRefund = true; }
+  tx.refundedAt = new Date(); tx.refundReason = reason; tx.refundType = refundType; tx.refundAmount = refundAmount; tx.returnedItems = returnedItems;
+  if (tx.method === 'cash' && refundType === 'refund') { cashRefundsTotal += refundAmount; }
+  closeRefundModal(); openOrdersScreen();
+}
+
+function printOrderReceipt(idx) {
+  const tx = salesHistory[idx]; if (!tx) return;
+  const now = tx.at;
+  const dateStr = now.toLocaleDateString('en-PK', { year:'numeric', month:'2-digit', day:'2-digit' });
+  const timeStr = now.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+  const methodLabel = { qr: 'PayFast QR', cash: 'Cash', card: 'Card (POS)' }[tx.method] || tx.method;
+  const staffName = tx.staff || (loggedInStaff ? loggedInStaff.name : 'Staff');
+  if (!tx.fbrInvoice) { tx.fbrInvoice = nextFbrInvoice(); }
+  const fbrInvoice = tx.fbrInvoice;
+  const strnNumber = STORE_CONFIG.strn;
+
+  // Item rows in tabular format (like Jalal Sons)
+  const itemRows = (tx.products || []).map(p => {
+    const ep = p.effectivePrice || p.price;
+    const gross = ep * p.qty;
+    const lineTotal = gross;
+    const hasDisc = p.discount && ep < p.price;
+    return `<tr class="border-b border-dotted border-gray-200">
+      <td colspan="4" class="pt-2 pb-0.5 text-[11px] font-medium text-black">${p.name}${hasDisc ? ` <span class="text-brand-green text-[9px] font-semibold">${p.discount.label}</span>` : ''}</td>
+    </tr>
+    <tr class="border-b border-dotted border-gray-200">
+      <td class="pb-2 text-[11px] text-gray-600 text-center">${p.qty}</td>
+      <td class="pb-2 text-[11px] text-gray-600 text-right">${ep.toFixed(2)}</td>
+      <td class="pb-2 text-[11px] text-gray-600 text-right">${gross.toFixed(2)}</td>
+      <td class="pb-2 text-[11px] font-semibold text-black text-right">${lineTotal.toFixed(2)}</td>
+    </tr>`;
+  }).join('');
+
+  // Refund section
+  let refundSection = '';
+  if (tx.refunded || tx.partialRefund) {
+    refundSection = `<div class="border border-red-200 bg-red-50 rounded-lg px-3 py-3 mb-2">
+      <p class="text-[11px] font-bold text-brand-red mb-1.5">${tx.refunded ? '⚠ FULL REFUND' : '⚠ PARTIAL REFUND'}</p>
+      ${(tx.returnedItems || []).map(r => `<div class="flex justify-between text-[11px] py-0.5"><span class="text-brand-red">${r.name} ×${r.qty}</span><span class="text-brand-red font-medium">-Rs.${(r.refundedAmount || r.price * r.qty).toLocaleString()}</span></div>`).join('')}
+      <div class="flex justify-between text-[11px] font-bold pt-1.5 mt-1.5 border-t border-red-200"><span class="text-brand-red">Refund Total</span><span class="text-brand-red">-Rs.${(tx.refundAmount||0).toLocaleString()}</span></div>
+      ${tx.refundReason ? `<p class="text-[10px] text-gray-500 mt-1">Reason: ${tx.refundReason}</p>` : ''}
+    </div>`;
+  }
+
+  // Tax amount
+  const taxAmount = tx.tax || 0;
+
+  // Update the success header for reprints
+  document.getElementById('receipt-success-header').className = 'bg-navy px-6 py-5 text-center';
+  document.getElementById('receipt-success-header').innerHTML = `
+    <div class="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-3">
+      <ion-icon name="receipt-outline" class="text-white text-4xl"></ion-icon>
+    </div>
+    <p class="text-white text-[20px] font-bold">Order Receipt</p>
+    <p class="text-white/80 text-[15px] mt-1">${tx.id}</p>`;
+
+  document.getElementById('receipt-body').innerHTML = `
+    <!-- Store header / logo -->
+    <div class="text-center border-b border-dashed border-gray-300 pb-3 mb-3">
+      <div class="w-16 h-16 mx-auto mb-2 rounded-lg overflow-hidden">
+        <img src="../img/CLIFTON-MARKET icon.jpg" alt="Clifton Mart" class="w-full h-full object-contain">
+      </div>
+      <p class="text-[14px] font-bold text-black tracking-wide">${STORE_CONFIG.name}</p>
+      <p class="text-[10px] text-gray-500 mt-0.5">${STORE_CONFIG.address}</p>
+      <p class="text-[10px] text-gray-500">Tel: ${STORE_CONFIG.phone}</p>
+    </div>
+    <!-- Transaction metadata (like Jalal Sons) -->
+    <div class="text-[10px] text-gray-600 space-y-0.5 border-b border-dashed border-gray-300 pb-2 mb-2">
+      <div class="flex justify-between"><span>STRN:${strnNumber}</span><span>NTN:${STORE_CONFIG.ntn}</span></div>
+      <div class="flex justify-between"><span>TRANSACTION:</span><span class="font-mono">${tx.id}</span></div>
+      <div class="flex justify-between"><span>RECEIPT NO.:</span><span class="font-mono">${tx.id}</span></div>
+      <div class="flex justify-between"><span>TERMINAL:</span><span>${STORE_CONFIG.terminal}</span></div>
+      <div class="flex justify-between"><span>EMPLOYEE:</span><span>${staffName}</span></div>
+      <div class="flex justify-between"><span>DATE:${dateStr}</span><span>TIME:${timeStr}</span></div>
+      <div class="flex justify-between"><span>CUSTOMER NO.:</span><span>${tx.customer ? '1' : ''}</span></div>
+      <div class="flex justify-between"><span>CUST. NAME:</span><span>${tx.customer || ''}</span></div>
+    </div>
+    <!-- Items table header (like Jalal Sons) -->
+    <div class="border-b border-dashed border-gray-300 pb-2 mb-2">
+      <table class="w-full text-[10px]">
+        <thead>
+          <tr class="border-b border-gray-300">
+            <th class="text-left font-semibold text-gray-500 pb-1 uppercase">Item Name</th>
+            <th class="text-center font-semibold text-gray-500 pb-1 uppercase w-8">Qty</th>
+            <th class="text-right font-semibold text-gray-500 pb-1 uppercase w-14">Price</th>
+            <th class="text-right font-semibold text-gray-500 pb-1 uppercase w-16">Gross</th>
+            <th class="text-right font-semibold text-gray-500 pb-1 uppercase w-16">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${itemRows}
+        </tbody>
+      </table>
+    </div>
+    <!-- Totals section (like Jalal Sons) -->
+    <div class="border-b border-dashed border-gray-300 pb-2 mb-2 space-y-0.5">
+      ${tx.totalDiscount ? `<div class="flex justify-between text-[11px]"><span class="text-gray-600">Discount</span><span class="font-semibold text-brand-green">${tx.totalDiscount.toFixed(2)}</span></div>` : `<div class="flex justify-between text-[11px]"><span class="text-gray-600">Discount</span><span class="font-semibold text-black">0.00</span></div>`}
+      ${tx.coupon ? `<div class="flex justify-between text-[11px] text-brand-purple"><span>Coupon (${tx.coupon.code})</span><span>-${tx.coupon.discount.toFixed(2)}</span></div>` : ''}
+      ${tx.loyalty ? `<div class="flex justify-between text-[11px] text-amber-600"><span>Points (${tx.loyalty.pointsUsed.toLocaleString()} pts)</span><span>-${tx.loyalty.discount.toFixed(2)}</span></div>` : ''}
+      <div class="flex justify-between text-[12px] font-bold pt-1">
+        <span class="text-black">Total</span>
+        <span class="${tx.refunded ? 'text-gray-400 line-through' : 'text-black'}">${tx.total.toFixed(2)}</span>
+      </div>
+      <div class="flex justify-between text-[11px] py-1">
+        <span class="text-gray-600">${methodLabel}</span>
+        <span class="font-semibold text-black">${tx.total.toFixed(2)}</span>
+      </div>
+    </div>
+    ${refundSection}
+    <!-- TAX DETAIL section (like Jalal Sons) -->
+    <div class="border-b border-dashed border-gray-300 pb-2 mb-2">
+      <p class="text-[10px] font-semibold text-gray-600 uppercase mb-1">Tax Detail</p>
+      <div class="flex justify-between text-[11px]">
+        <span class="text-gray-600">16% MRP</span>
+        <span class="font-medium text-black">${taxAmount.toFixed(2)}</span>
+      </div>
+      <div class="flex justify-between text-[11px] mt-1 pt-1 border-t border-dotted border-gray-200">
+        <span class="text-gray-600 font-medium">GST included in total:</span>
+        <span class="font-semibold text-black">${taxAmount.toFixed(2)}</span>
+      </div>
+    </div>
+    <!-- Store Policies (like Jalal Sons) -->
+    <div class="border-b border-dashed border-gray-300 pb-2 mb-2">
+      <ul class="text-[9px] text-gray-500 space-y-0.5 list-disc list-inside leading-relaxed">
+        ${STORE_CONFIG.policies.map(p => `<li>${p}</li>`).join('')}
+      </ul>
+      <p class="text-[9px] text-gray-500 mt-1 font-medium">PRICES ARE INCLUSIVE OF TAXES WHERE APPLICABLE.</p>
+    </div>
+    <!-- FBR Invoice & QR (like Jalal Sons) -->
+    <div class="text-center pt-1">
+      <p class="text-[10px] text-gray-600 font-medium">FBR Invoice #</p>
+      <p class="text-[9px] font-mono text-black mt-0.5">${fbrInvoice}</p>
+      <div class="flex items-center justify-center gap-4 mt-3">
+        <div class="text-center">
+          <div class="w-10 h-12 flex items-center justify-center">
+            <div class="text-[8px] font-bold text-gray-600 border border-gray-400 px-1.5 py-1 rounded">
+              <p class="leading-none">FBR</p>
+            </div>
+          </div>
+          <p class="text-[7px] text-gray-400 mt-0.5 leading-tight">POS</p>
+        </div>
+        <div class="text-center">
+          <div id="fbr-qr" class="w-24 h-24 bg-white rounded flex items-center justify-center border border-gray-200 p-1"></div>
+          <p class="text-[7px] text-gray-400 mt-0.5">FBR Verification</p>
+        </div>
+      </div>
+    </div>
+    <!-- Thank you -->
+    <div class="text-center mt-3 pt-2 border-t border-dashed border-gray-200">
+      <p class="text-[10px] text-gray-500 font-medium">Thank you for shopping at Clifton Mart!</p>
+      <p class="text-[8px] text-gray-300 mt-1">Powered by Air Register</p>
+    </div>`;
+  renderFbrQr(fbrInvoice, tx.total);
+  document.getElementById('receipt-modal').classList.remove('hidden');
+  document.getElementById('receipt-modal').classList.add('flex');
+}
+
+// ===== Opening Balance =====
+function openOpeningBalanceModal() {
+  document.getElementById('opening-modal').classList.remove('hidden');
+  document.getElementById('opening-modal').classList.add('flex');
+  const input = document.getElementById('opening-input');
+  input.value = openingBalance || '';
+  setTimeout(() => input.focus(), 50);
+}
+function closeOpeningBalanceModal() { document.getElementById('opening-modal').classList.add('hidden'); document.getElementById('opening-modal').classList.remove('flex'); }
+function saveOpeningBalance() {
+  openingBalance = parseInt(document.getElementById('opening-input').value) || 0;
+  document.getElementById('opening-bal-display').textContent = `Float: Rs.${openingBalance.toLocaleString()}`;
+  closeOpeningBalanceModal();
+  const scan = document.getElementById('scan-input'); if (scan) scan.focus();
+}
+
+// ===== Close Day =====
+function openCloseDay() {
+  const m = document.getElementById('main-register-screen');
+  m.classList.add('hidden'); m.classList.remove('flex');
+  const screen = document.getElementById('closeday-screen');
+  screen.classList.remove('hidden'); screen.classList.add('flex');
+  const now = new Date();
+  document.getElementById('closeday-date').textContent = now.toLocaleDateString('en-PK', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  document.getElementById('closeday-subtitle').textContent = now.toLocaleDateString('en-PK', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  let cashTotal = 0, cardTotal = 0, qrTotal = 0, cashCount = 0, cardCount = 0, qrCount = 0, totalRefundAmount = 0, refundCount = 0;
+  let couponTotal = 0, couponCount = 0, pointsRsTotal = 0, pointsPtsTotal = 0, pointsCount = 0, itemDiscTotal = 0;
+  salesHistory.forEach(tx => {
+    if (tx.method === 'cash') { cashTotal += tx.total; cashCount++; }
+    else if (tx.method === 'card') { cardTotal += tx.total; cardCount++; }
+    else { qrTotal += tx.total; qrCount++; }
+    if ((tx.refunded || tx.partialRefund) && tx.refundAmount) { totalRefundAmount += tx.refundAmount; refundCount++; }
+    if (tx.coupon) { couponTotal += tx.coupon.discount || 0; couponCount++; }
+    if (tx.loyalty) { pointsRsTotal += tx.loyalty.discount || 0; pointsPtsTotal += tx.loyalty.pointsUsed || 0; pointsCount++; }
+    if (tx.totalDiscount) itemDiscTotal += tx.totalDiscount;
+  });
+  const grossTotal = cashTotal + cardTotal + qrTotal;
+  const systemTotal = grossTotal - totalRefundAmount;
+  // Shift info (US_APP02_V03_347 AC2)
+  document.getElementById('cd-staff-name').textContent = loggedInStaff ? `${loggedInStaff.name} (${loggedInStaff.id})` : '—';
+  document.getElementById('cd-shift-start').textContent = shiftStartAt ? shiftStartAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—';
+  document.getElementById('cd-shift-end').textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' (now)';
+  document.getElementById('cd-system-total').textContent = `Rs.${systemTotal.toLocaleString()}`;
+  document.getElementById('cd-tx-count-label').textContent = `${salesHistory.length} transaction${salesHistory.length !== 1 ? 's' : ''}`;
+  document.getElementById('cd-cash-total').textContent = `Rs.${cashTotal.toLocaleString()}`;
+  document.getElementById('cd-cash-count').textContent = `${cashCount} tx`;
+  document.getElementById('cd-digital-total').textContent = `Rs.${(cardTotal + qrTotal).toLocaleString()}`;
+  document.getElementById('cd-digital-count').textContent = `${cardCount + qrCount} tx`;
+  const pct = (v) => systemTotal > 0 ? Math.round((v / systemTotal) * 100) : 0;
+  document.getElementById('cd-cash-pct').textContent = pct(cashTotal);
+  document.getElementById('cd-cash-bar').style.width = pct(cashTotal) + '%';
+  document.getElementById('cd-cash-bar-val').textContent = `Rs.${cashTotal.toLocaleString()}`;
+  document.getElementById('cd-card-pct').textContent = pct(cardTotal);
+  document.getElementById('cd-card-bar').style.width = pct(cardTotal) + '%';
+  document.getElementById('cd-card-bar-val').textContent = `Rs.${cardTotal.toLocaleString()}`;
+  document.getElementById('cd-qr-pct').textContent = pct(qrTotal);
+  document.getElementById('cd-qr-bar').style.width = pct(qrTotal) + '%';
+  document.getElementById('cd-qr-bar-val').textContent = `Rs.${qrTotal.toLocaleString()}`;
+  document.getElementById('cd-total-sales-line').textContent = `Rs.${systemTotal.toLocaleString()}`;
+  document.getElementById('cd-gross-sales-line').textContent = `Rs.${grossTotal.toLocaleString()}`;
+  document.getElementById('cd-cash-bar-count').textContent = `${cashCount} tx`;
+  document.getElementById('cd-card-bar-count').textContent = `${cardCount} tx`;
+  document.getElementById('cd-qr-bar-count').textContent = `${qrCount} tx`;
+  const refundRow = document.getElementById('cd-refund-row');
+  if (totalRefundAmount > 0) { refundRow.classList.remove('hidden'); document.getElementById('cd-refund-total').textContent = `-Rs.${totalRefundAmount.toLocaleString()}`; document.getElementById('cd-refund-count').textContent = refundCount; } else { refundRow.classList.add('hidden'); }
+  // Discounts & Loyalty summary
+  document.getElementById('cd-coupon-count').textContent = couponCount;
+  document.getElementById('cd-coupon-total').textContent = `-Rs.${couponTotal.toLocaleString()}`;
+  document.getElementById('cd-points-count').textContent = pointsCount;
+  document.getElementById('cd-points-pts').textContent = pointsPtsTotal.toLocaleString();
+  document.getElementById('cd-points-total').textContent = `-Rs.${pointsRsTotal.toLocaleString()}`;
+  document.getElementById('cd-item-disc-total').textContent = `-Rs.${itemDiscTotal.toLocaleString()}`;
+  // Card reconciliation (US_APP02_V03_347 AC7)
+  document.getElementById('cd-pos-card-total').textContent = `Rs.${cardTotal.toLocaleString()}`;
+  document.getElementById('cd-card-terminal').value = '';
+  document.getElementById('cd-card-diff-row').classList.add('hidden');
+  document.getElementById('cd-opening-display').textContent = `Rs.${openingBalance.toLocaleString()}`;
+  recalcCashDrawer();
+  document.getElementById('cd-actual').value = '';
+  document.getElementById('cd-diff-row').classList.add('hidden');
+  document.getElementById('cd-notes').value = '';
+}
+function calcCardDifference() {
+  let cardTotal = 0;
+  salesHistory.forEach(tx => { if (tx.method === 'card') cardTotal += tx.total; });
+  const input = document.getElementById('cd-card-terminal');
+  const row = document.getElementById('cd-card-diff-row');
+  const el = document.getElementById('cd-card-difference');
+  if (!input.value) { row.classList.add('hidden'); return; }
+  const diff = (parseInt(input.value) || 0) - cardTotal;
+  row.classList.remove('hidden'); row.classList.add('flex');
+  if (diff === 0) { el.textContent = 'Rs.0 — Matched ✓'; el.className = 'font-bold text-[15px] text-brand-green'; row.className = 'py-3 px-4 rounded-xl flex justify-between items-center bg-green-50'; }
+  else if (diff > 0) { el.textContent = `+Rs.${diff.toLocaleString()} Over`; el.className = 'font-bold text-[15px] text-brand-orange'; row.className = 'py-3 px-4 rounded-xl flex justify-between items-center bg-orange-50'; }
+  else { el.textContent = `-Rs.${Math.abs(diff).toLocaleString()} Short`; el.className = 'font-bold text-[15px] text-brand-red'; row.className = 'py-3 px-4 rounded-xl flex justify-between items-center bg-red-50'; }
+}
+function recalcCashDrawer() {
+  let cashTotal = 0, totalRefunds = 0;
+  salesHistory.forEach(tx => { if (tx.method === 'cash') { cashTotal += tx.total; if ((tx.refunded || tx.partialRefund) && tx.refundType === 'refund') totalRefunds += tx.refundAmount || 0; } });
+  const netCash = cashTotal - totalRefunds;
+  const expected = openingBalance + netCash;
+  document.getElementById('cd-cashin').textContent = `+Rs.${cashTotal.toLocaleString()}`;
+  document.getElementById('cd-cashout').textContent = totalRefunds > 0 ? `-Rs.${totalRefunds.toLocaleString()}` : `-Rs.0`;
+  document.getElementById('cd-net-cash').textContent = `Rs.${netCash.toLocaleString()}`;
+  document.getElementById('cd-expected').textContent = `Rs.${expected.toLocaleString()}`;
+}
+function closeCloseDay() { document.getElementById('closeday-screen').classList.add('hidden'); document.getElementById('closeday-screen').classList.remove('flex'); const m = document.getElementById('main-register-screen'); m.classList.remove('hidden'); m.classList.add('flex'); }
+
+function calcDifference() {
+  let cashTotal = 0, totalRefunds = 0;
+  salesHistory.forEach(tx => { if (tx.method === 'cash') { cashTotal += tx.total; if ((tx.refunded || tx.partialRefund) && tx.refundType === 'refund') totalRefunds += tx.refundAmount || 0; } });
+  const expected = openingBalance + (cashTotal - totalRefunds);
+  const actual = parseInt(document.getElementById('cd-actual').value) || 0;
+  const diff = actual - expected;
+  const diffRow = document.getElementById('cd-diff-row');
+  const diffEl = document.getElementById('cd-difference');
+  if (!document.getElementById('cd-actual').value) { diffRow.classList.add('hidden'); return; }
+  diffRow.classList.remove('hidden'); diffRow.classList.add('flex');
+  if (diff === 0) { diffEl.textContent = 'Rs.0 — Balanced ✓'; diffEl.className = 'font-bold text-[15px] text-brand-green'; diffRow.className = 'py-3 px-4 rounded-xl flex justify-between items-center bg-green-50'; }
+  else if (diff > 0) { diffEl.textContent = `+Rs.${diff.toLocaleString()} Over`; diffEl.className = 'font-bold text-[15px] text-brand-orange'; diffRow.className = 'py-3 px-4 rounded-xl flex justify-between items-center bg-orange-50'; }
+  else { diffEl.textContent = `-Rs.${Math.abs(diff).toLocaleString()} Short`; diffEl.className = 'font-bold text-[15px] text-brand-red'; diffRow.className = 'py-3 px-4 rounded-xl flex justify-between items-center bg-red-50'; }
+}
+function submitCloseDay() {
+  const actual = document.getElementById('cd-actual').value;
+  if (!actual) { document.getElementById('cd-actual').classList.add('border-brand-red'); setTimeout(() => document.getElementById('cd-actual').classList.remove('border-brand-red'), 1500); return; }
+  // US_APP02_V03_348 AC6: cannot close shift with held orders
+  if (heldSales.length > 0) {
+    alert(`You have ${heldSales.length} held order${heldSales.length !== 1 ? 's' : ''}. Resume or discard them before closing.`);
+    return;
+  }
+  showShiftReport();
+}
+
+// ===== Shift Closing Report (US_APP02_V03_347) =====
+function buildShiftReportData() {
+  let cashTotal = 0, cardTotal = 0, qrTotal = 0, cashCount = 0, cardCount = 0, qrCount = 0;
+  let totalRefundAmount = 0, refundCount = 0; const refundMethods = new Set();
+  let couponTotal = 0, couponCount = 0, pointsRsTotal = 0, pointsPtsTotal = 0, pointsCount = 0;
+  salesHistory.forEach(tx => {
+    if (tx.method === 'cash') { cashTotal += tx.total; cashCount++; }
+    else if (tx.method === 'card') { cardTotal += tx.total; cardCount++; }
+    else { qrTotal += tx.total; qrCount++; }
+    if ((tx.refunded || tx.partialRefund) && tx.refundAmount) { totalRefundAmount += tx.refundAmount; refundCount++; refundMethods.add({ cash: 'Cash', card: 'Card', qr: 'QR' }[tx.method] || tx.method); }
+    if (tx.coupon) { couponTotal += tx.coupon.discount || 0; couponCount++; }
+    if (tx.loyalty) { pointsRsTotal += tx.loyalty.discount || 0; pointsPtsTotal += tx.loyalty.pointsUsed || 0; pointsCount++; }
+  });
+  let cashRefunds = 0;
+  salesHistory.forEach(tx => { if (tx.method === 'cash' && (tx.refunded || tx.partialRefund) && tx.refundType === 'refund') cashRefunds += tx.refundAmount || 0; });
+  const grossTotal = cashTotal + cardTotal + qrTotal;
+  const netTotal = grossTotal - totalRefundAmount;
+  const expected = openingBalance + cashTotal - cashRefunds;
+  const actual = parseInt(document.getElementById('cd-actual').value) || 0;
+  const cardTerminal = document.getElementById('cd-card-terminal').value !== '' ? (parseInt(document.getElementById('cd-card-terminal').value) || 0) : null;
+  return {
+    staff: loggedInStaff ? loggedInStaff.name : 'Staff', staffId: loggedInStaff ? loggedInStaff.id : '—',
+    shiftStart: shiftStartAt, shiftEnd: new Date(), register: 'Register 1',
+    txCount: salesHistory.length, grossTotal, netTotal,
+    cashTotal, cardTotal, qrTotal, cashCount, cardCount, qrCount,
+    refundCount, totalRefundAmount, refundMethods: [...refundMethods],
+    couponTotal, couponCount, pointsRsTotal, pointsPtsTotal, pointsCount,
+    openingBalance, cashRefunds, expected, actual, difference: actual - expected,
+    cardTerminal, cardDifference: cardTerminal !== null ? cardTerminal - cardTotal : null,
+    notes: (document.getElementById('cd-notes').value || '').trim(),
+  };
+}
+function showShiftReport() {
+  const r = buildShiftReportData();
+  const now = new Date();
+  const fmt = (d) => d ? d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—';
+  const rs = (v) => `Rs.${(v || 0).toLocaleString()}`;
+  const line = (label, val, bold) => `<div class="flex justify-between py-1.5 ${bold ? 'font-bold text-black' : 'text-gray-600'}"><span>${label}</span><span class="${bold ? '' : 'font-medium text-black'}">${val}</span></div>`;
+  const sectionTitle = (t) => `<p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mt-4 mb-1 pb-1 border-b border-dashed border-gray-300">${t}</p>`;
+  const diffLabel = r.difference === 0 ? 'Rs.0 — Balanced' : (r.difference > 0 ? `+${rs(r.difference)} Over` : `-${rs(Math.abs(r.difference))} Short`);
+  document.getElementById('shift-report-generated').textContent = 'Generated ' + now.toLocaleString('en-PK', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+  document.getElementById('shift-report-body').innerHTML = `
+    <div class="text-center border-b border-dashed border-gray-300 pb-3 mb-2">
+      <p class="text-[15px] font-bold text-black">${STORE_CONFIG.name} — Shift Closing Report</p>
+      <p class="text-[12px] text-gray-500 mt-0.5">${now.toLocaleDateString('en-PK', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</p>
+    </div>
+    ${sectionTitle('Shift')}
+    ${line('Staff', `${r.staff} (${r.staffId})`)}
+    ${line('Register', r.register)}
+    ${line('Shift Start', fmt(r.shiftStart))}
+    ${line('Shift End', fmt(r.shiftEnd))}
+    ${sectionTitle('Sales Summary')}
+    ${line('Total Transactions', r.txCount)}
+    ${line('Gross Sales', rs(r.grossTotal))}
+    ${line('Refunds', `-${rs(r.totalRefundAmount)}`)}
+    ${line('Net Sales', rs(r.netTotal), true)}
+    ${sectionTitle('Payment Breakdown')}
+    ${line(`Cash (${r.cashCount} tx)`, rs(r.cashTotal))}
+    ${line(`Card (${r.cardCount} tx)`, rs(r.cardTotal))}
+    ${line(`QR / App (${r.qrCount} tx)`, rs(r.qrTotal))}
+    ${sectionTitle('Refunds')}
+    ${line('Refund Count', r.refundCount)}
+    ${line('Refund Amount', `-${rs(r.totalRefundAmount)}`)}
+    ${line('Methods', r.refundMethods.length ? r.refundMethods.join(', ') : '—')}
+    ${sectionTitle('Discounts & Loyalty')}
+    ${line(`Coupon Discounts (${r.couponCount})`, `-${rs(r.couponTotal)}`)}
+    ${line(`Points Redeemed (${r.pointsPtsTotal.toLocaleString()} pts)`, `-${rs(r.pointsRsTotal)}`)}
+    ${sectionTitle('Cash Drawer')}
+    ${line('Opening Balance', rs(r.openingBalance))}
+    ${line('Cash Received', `+${rs(r.cashTotal)}`)}
+    ${line('Cash Out (Refunds)', `-${rs(r.cashRefunds)}`)}
+    ${line('Expected in Drawer', rs(r.expected))}
+    ${line('Actual Counted', rs(r.actual))}
+    ${line('Difference', diffLabel, true)}
+    ${sectionTitle('Card Reconciliation')}
+    ${line('POS Card Sales', rs(r.cardTotal))}
+    ${line('Terminal Total', r.cardTerminal !== null ? rs(r.cardTerminal) : 'Not entered')}
+    ${r.cardTerminal !== null ? line('Card Difference', (r.cardDifference >= 0 ? '+' : '-') + rs(Math.abs(r.cardDifference)), true) : ''}
+    ${r.notes ? sectionTitle('Notes') + `<p class="text-gray-600 py-1.5">${r.notes}</p>` : ''}
+    <div class="mt-5 pt-4 border-t border-dashed border-gray-300">
+      <p class="text-[11px] text-gray-400">Signature: ______________________________</p>
+      <p class="text-[10px] text-gray-400 mt-3">Generated at ${now.toLocaleString('en-PK')} · Powered by Air Register</p>
+    </div>`;
+  // Persist report (US_APP02_V03_347 AC9 — saved for manager review, demo: localStorage)
+  try {
+    const saved = JSON.parse(localStorage.getItem(SHIFT_REPORTS_KEY) || '[]');
+    saved.unshift({ ...r, shiftStart: r.shiftStart ? r.shiftStart.toISOString() : null, shiftEnd: r.shiftEnd.toISOString(), generatedAt: now.toISOString() });
+    localStorage.setItem(SHIFT_REPORTS_KEY, JSON.stringify(saved.slice(0, 50)));
+  } catch (e) { /* storage unavailable in demo — ignore */ }
+  document.getElementById('shift-report-modal').classList.remove('hidden');
+  document.getElementById('shift-report-modal').classList.add('flex');
+}
+function printShiftReport() {
+  document.body.classList.add('print-report');
+  window.print();
+  setTimeout(() => document.body.classList.remove('print-report'), 500);
+}
+
+// ===== End Shift & Logout (US_APP02_V03_348) =====
+function openEndShiftConfirm() {
+  document.getElementById('endshift-title').textContent = `End shift for ${loggedInStaff ? loggedInStaff.name : 'Staff'}?`;
+  document.getElementById('endshift-modal').classList.remove('hidden');
+  document.getElementById('endshift-modal').classList.add('flex');
+}
+function closeEndShiftConfirm() {
+  document.getElementById('endshift-modal').classList.add('hidden');
+  document.getElementById('endshift-modal').classList.remove('flex');
+}
+function confirmEndShift() {
+  closeEndShiftConfirm();
+  document.getElementById('shift-report-modal').classList.add('hidden');
+  document.getElementById('shift-report-modal').classList.remove('flex');
+  // Clear all session state (AC3) — salesHistory would sync to backend before clearing in real app (AC4)
+  cart = []; heldSales = []; salesHistory = []; appliedCoupon = null; redeemedPoints = 0;
+  customer = null; loggedInStaff = null; shiftStartAt = null;
+  openingBalance = 0; cashRefundsTotal = 0;
+  document.getElementById('opening-bal-display').textContent = 'Float: Rs.0';
+  updateHeldBadge();
+  setCustomer(null);
+  renderV3();
+  // Hide all screens, show login (AC2 — register locked)
+  ['main-register-screen', 'orders-screen', 'closeday-screen', 'help-screen'].forEach(id => {
+    const el = document.getElementById(id); el.classList.add('hidden'); el.classList.remove('flex');
+  });
+  document.getElementById('login-screen').classList.remove('hidden');
+  document.getElementById('login-user').value = '';
+  document.getElementById('login-pin').value = '';
+  document.getElementById('login-error').classList.add('hidden');
+  setTimeout(() => document.getElementById('login-user').focus(), 100);
+  // Reset customer display (V4) to idle
+  notifyV4State('idle');
+}
+
+// ===== Coupon =====
+function openCouponModal() {
+  document.getElementById('coupon-modal').classList.remove('hidden');
+  document.getElementById('coupon-modal').classList.add('flex');
+  document.getElementById('coupon-error').classList.add('hidden');
+  document.getElementById('coupon-success').classList.add('hidden');
+  const input = document.getElementById('coupon-input');
+  input.value = '';
+  setTimeout(() => input.focus(), 50);
+  renderCouponSuggestions();
+}
+function closeCouponModal() {
+  document.getElementById('coupon-modal').classList.add('hidden');
+  document.getElementById('coupon-modal').classList.remove('flex');
+}
+function clearCouponError() {
+  document.getElementById('coupon-error').classList.add('hidden');
+  document.getElementById('coupon-success').classList.add('hidden');
+}
+function renderCouponSuggestions() {
+  const { sub } = calcTotals(cart, null);
+  const el = document.getElementById('coupon-suggestions');
+  el.innerHTML = COUPONS.map(c => {
+    const eligible = sub >= c.minOrder;
+    return `<button onclick="selectCouponSuggestion('${c.code}')" class="tap-btn flex-shrink-0 w-[180px] flex flex-col items-start gap-1.5 p-3 border ${eligible ? 'border-purple-200 hover:border-brand-purple hover:bg-purple-50/50' : 'border-gray-100 opacity-50'} rounded-xl text-left" ${eligible ? '' : 'disabled'}>
+      <div class="flex items-center gap-2">
+        <span class="text-[12px] font-bold font-mono ${eligible ? 'text-black' : 'text-gray-400'} truncate">${c.code}</span>
+        <span class="text-[10px] px-1.5 py-0.5 rounded-full ${eligible ? 'bg-purple-100 text-brand-purple' : 'bg-gray-100 text-gray-400'} font-semibold whitespace-nowrap">${c.label}</span>
+      </div>
+      <p class="text-[11px] ${eligible ? 'text-gray-500' : 'text-gray-400'} line-clamp-2 leading-tight">${c.description}</p>
+      ${!eligible ? `<p class="text-[10px] text-brand-red">Min Rs.${c.minOrder.toLocaleString()}</p>` : ''}
+    </button>`;
+  }).join('');
+}
+function selectCouponSuggestion(code) {
+  document.getElementById('coupon-input').value = code;
+  applyCouponCode();
+}
+function applyCouponCode() {
+  const input = document.getElementById('coupon-input');
+  const code = (input.value || '').trim().toUpperCase();
+  const errorEl = document.getElementById('coupon-error');
+  const errorMsg = document.getElementById('coupon-error-msg');
+  const successEl = document.getElementById('coupon-success');
+  const successMsg = document.getElementById('coupon-success-msg');
+  errorEl.classList.add('hidden');
+  successEl.classList.add('hidden');
+  if (!code) { errorMsg.textContent = 'Please enter a coupon code'; errorEl.classList.remove('hidden'); return; }
+  const coupon = COUPONS.find(c => c.code === code);
+  if (!coupon) { errorMsg.textContent = 'Invalid coupon code. Please try again.'; errorEl.classList.remove('hidden'); input.classList.add('border-brand-red'); setTimeout(() => input.classList.remove('border-brand-red'), 1500); return; }
+  const { sub } = calcTotals(cart, null);
+  if (sub < coupon.minOrder) { errorMsg.textContent = `Minimum order of Rs.${coupon.minOrder.toLocaleString()} required. Current subtotal: Rs.${sub.toLocaleString()}`; errorEl.classList.remove('hidden'); return; }
+  const discount = calcCouponDiscount(coupon, sub);
+  appliedCoupon = coupon;
+  successMsg.textContent = `${coupon.code} applied! You save Rs.${discount.toLocaleString()}`;
+  successEl.classList.remove('hidden');
+  renderV3();
+  setTimeout(() => closeCouponModal(), 800);
+}
+function removeCoupon() {
+  appliedCoupon = null;
+  renderV3();
+}
+
+// ===== Loyalty Points Redemption =====
+function openRedeemModal() {
+  if (!customer || !customer.loyaltyPoints || customer.loyaltyPoints < LOYALTY_CONFIG.minRedeemPoints) return;
+  document.getElementById('redeem-modal').classList.remove('hidden');
+  document.getElementById('redeem-modal').classList.add('flex');
+  document.getElementById('redeem-error').classList.add('hidden');
+  const pts = customer.loyaltyPoints;
+  const val = Math.round(pts / LOYALTY_CONFIG.redemptionRate);
+  document.getElementById('redeem-balance').textContent = `${pts.toLocaleString()} points`;
+  document.getElementById('redeem-tier').textContent = customer.loyaltyTier || 'Member';
+  document.getElementById('redeem-value').textContent = `Rs.${val.toLocaleString()}`;
+  document.getElementById('redeem-min-pts').textContent = LOYALTY_CONFIG.minRedeemPoints;
+  document.getElementById('redeem-input').value = '';
+  document.getElementById('redeem-preview-val').textContent = 'Rs.0';
+  document.getElementById('redeem-subtitle').textContent = customer.name;
+  renderQuickRedeemBtns();
+  setTimeout(() => document.getElementById('redeem-input').focus(), 50);
+}
+function closeRedeemModal() {
+  document.getElementById('redeem-modal').classList.add('hidden');
+  document.getElementById('redeem-modal').classList.remove('flex');
+}
+function renderQuickRedeemBtns() {
+  const pts = customer ? customer.loyaltyPoints : 0;
+  const { totalBeforePoints } = calcTotals(cart, appliedCoupon, 0);
+  const maxRedeemRs = Math.floor(totalBeforePoints * (LOYALTY_CONFIG.maxRedeemPercent / 100));
+  const maxRedeemPts = Math.min(pts, maxRedeemRs * LOYALTY_CONFIG.redemptionRate);
+  const options = [
+    { label: '25%', points: Math.floor(maxRedeemPts * 0.25) },
+    { label: '50%', points: Math.floor(maxRedeemPts * 0.5) },
+    { label: 'Max', points: maxRedeemPts },
+  ].filter(o => o.points >= LOYALTY_CONFIG.minRedeemPoints);
+  const el = document.getElementById('redeem-quick-btns');
+  if (options.length === 0) {
+    el.innerHTML = '<p class="col-span-3 text-[11px] text-gray-400 text-center py-2">Add items to cart first</p>';
+    return;
+  }
+  el.innerHTML = options.map(o => {
+    const rsVal = Math.round(o.points / LOYALTY_CONFIG.redemptionRate);
+    return `<button onclick="setRedeemPoints(${o.points})" class="tap-btn p-2.5 border border-amber-200 rounded-xl text-center hover:bg-amber-50 hover:border-amber-400">
+      <p class="text-[12px] font-bold text-black">${o.points.toLocaleString()} pts</p>
+      <p class="text-[11px] text-amber-600">${o.label} · Rs.${rsVal.toLocaleString()}</p>
+    </button>`;
+  }).join('');
+}
+function setRedeemPoints(pts) {
+  document.getElementById('redeem-input').value = pts;
+  updateRedeemPreview();
+}
+function updateRedeemPreview() {
+  const input = parseInt(document.getElementById('redeem-input').value) || 0;
+  const rsVal = Math.round(input / LOYALTY_CONFIG.redemptionRate);
+  document.getElementById('redeem-preview-val').textContent = `Rs.${rsVal.toLocaleString()}`;
+  document.getElementById('redeem-error').classList.add('hidden');
+}
+function confirmRedeem() {
+  const input = parseInt(document.getElementById('redeem-input').value) || 0;
+  const errorEl = document.getElementById('redeem-error');
+  const errorMsg = document.getElementById('redeem-error-msg');
+  errorEl.classList.add('hidden');
+  if (!customer) { errorMsg.textContent = 'No customer linked'; errorEl.classList.remove('hidden'); return; }
+  const pts = customer.loyaltyPoints || 0;
+  if (input < LOYALTY_CONFIG.minRedeemPoints) { errorMsg.textContent = `Minimum ${LOYALTY_CONFIG.minRedeemPoints} points required`; errorEl.classList.remove('hidden'); return; }
+  if (input > pts) { errorMsg.textContent = `Customer only has ${pts.toLocaleString()} points`; errorEl.classList.remove('hidden'); return; }
+  // Check max % of order
+  const { totalBeforePoints } = calcTotals(cart, appliedCoupon, 0);
+  const maxRedeemRs = Math.floor(totalBeforePoints * (LOYALTY_CONFIG.maxRedeemPercent / 100));
+  const maxRedeemPts = maxRedeemRs * LOYALTY_CONFIG.redemptionRate;
+  if (input > maxRedeemPts) { errorMsg.textContent = `Max ${LOYALTY_CONFIG.maxRedeemPercent}% of order total (${maxRedeemPts.toLocaleString()} pts)`; errorEl.classList.remove('hidden'); return; }
+  if (cart.length === 0) { errorMsg.textContent = 'Add items to cart first'; errorEl.classList.remove('hidden'); return; }
+  redeemedPoints = input;
+  renderV3();
+  closeRedeemModal();
+}
+function removePoints() {
+  redeemedPoints = 0;
+  renderV3();
+}
+
+// ===== Help & Support (US_COMMON_518-521) =====
+const FAQ_ITEMS = [
+  { q: 'How do I add a product without a barcode?', a: 'Type the product name in the search bar at the top of the Register screen. Matching products appear in a dropdown — tap one to add it to the cart. Products without barcodes show "NO-BARCODE" in the cart.' },
+  { q: 'How do I reprint a receipt for a past sale?', a: 'Tap "Orders" in the header, find the transaction, tap it to expand the details, then tap "Print". The full receipt including the FBR invoice number and QR code is regenerated exactly as originally issued.' },
+  { q: 'How do I process a return or refund?', a: 'Open "Orders", expand the transaction, and tap "Return". Select the items to return, choose Refund or Exchange, pick a reason, and confirm. Refunds always go back to the original payment method. Cash refunds are deducted from the drawer and reflected in Close Day.' },
+  { q: 'What do I do if the cash drawer does not balance at Close Day?', a: 'Recount the cash carefully, check for missed refunds or held orders, and enter the actual amount in "Actual Cash Count". The difference (over/short) is recorded on the shift closing report. Add an explanation in the Notes field for the manager.' },
+  { q: 'How do I close my shift and log out?', a: 'Tap "Close" in the header, count the drawer, enter the Actual Cash Count, and tap "Close Day". Review the Shift Closing Report, print it if needed, then tap "End Shift & Logout". Resolve any held orders first — the register locks until the next staff logs in.' },
+  { q: 'What is the FBR invoice number and QR code on receipts?', a: 'Every receipt carries an FBR (Federal Board of Revenue) invoice number and a verification QR code, as required for POS-integrated retailers in Pakistan. Customers can scan the QR to verify the invoice with FBR. Never hand-edit or skip these.' },
+];
+let reportCategory = null;
+
+function openHelpScreen() {
+  const m = document.getElementById('main-register-screen');
+  m.classList.add('hidden'); m.classList.remove('flex');
+  const screen = document.getElementById('help-screen');
+  screen.classList.remove('hidden'); screen.classList.add('flex');
+  document.getElementById('report-staff-id').textContent = loggedInStaff ? loggedInStaff.id : '—';
+  renderFaq();
+  updateTicketsBadge();
+  switchHelpTab('faq');
+}
+function closeHelpScreen() {
+  document.getElementById('help-screen').classList.add('hidden');
+  document.getElementById('help-screen').classList.remove('flex');
+  const m = document.getElementById('main-register-screen');
+  m.classList.remove('hidden'); m.classList.add('flex');
+}
+function switchHelpTab(tab) {
+  const tabs = ['faq', 'contact', 'report', 'tickets'];
+  tabs.forEach(t => {
+    const btn = document.getElementById('help-tab-' + t);
+    const panel = document.getElementById('help-panel-' + t);
+    if (t === tab) {
+      btn.classList.add('font-semibold', 'text-navy', 'border-navy');
+      btn.classList.remove('font-medium', 'text-gray-500', 'border-transparent');
+      panel.classList.remove('hidden');
+    } else {
+      btn.classList.remove('font-semibold', 'text-navy', 'border-navy');
+      btn.classList.add('font-medium', 'text-gray-500', 'border-transparent');
+      panel.classList.add('hidden');
+    }
+  });
+  if (tab === 'tickets') renderTickets();
+}
+function renderFaq() {
+  const el = document.getElementById('faq-list');
+  el.innerHTML = FAQ_ITEMS.map((f, i) => `
+    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <button onclick="toggleFaq(${i})" class="tap-btn w-full flex items-center justify-between gap-3 px-5 py-4 text-left min-h-[56px]">
+        <span class="text-[15px] font-semibold text-black">${f.q}</span>
+        <ion-icon id="faq-chevron-${i}" name="chevron-down-outline" class="text-gray-400 text-lg shrink-0"></ion-icon>
+      </button>
+      <div id="faq-answer-${i}" class="hidden px-5 pb-4 -mt-1">
+        <p class="text-[14px] text-gray-600 leading-relaxed">${f.a}</p>
+      </div>
+    </div>`).join('');
+}
+function toggleFaq(i) {
+  const ans = document.getElementById('faq-answer-' + i);
+  const chev = document.getElementById('faq-chevron-' + i);
+  const open = ans.classList.contains('hidden');
+  ans.classList.toggle('hidden');
+  chev.setAttribute('name', open ? 'chevron-up-outline' : 'chevron-down-outline');
+}
+
+// --- Tickets storage (schema per US_COMMON_521) ---
+function loadTickets() {
+  try { return JSON.parse(localStorage.getItem(TICKETS_KEY) || '[]'); } catch (e) { return []; }
+}
+function saveTicket(ticket) {
+  const tickets = loadTickets();
+  tickets.unshift(ticket);
+  try { localStorage.setItem(TICKETS_KEY, JSON.stringify(tickets)); } catch (e) { /* demo — ignore */ }
+}
+function createTicket(type, category, subject, message) {
+  const id = 'TKT-' + Date.now().toString(36).toUpperCase().slice(-6);
+  saveTicket({
+    id, type, category, subject, message,
+    status: 'open', unread: false,
+    createdAt: new Date().toISOString(),
+    staff: loggedInStaff ? loggedInStaff.name : 'Staff',
+    staffId: loggedInStaff ? loggedInStaff.id : null,
+  });
+  return id;
+}
+function updateTicketsBadge() {
+  const n = loadTickets().length;
+  const badge = document.getElementById('help-tickets-badge');
+  if (n > 0) { badge.classList.remove('hidden'); badge.textContent = n; } else { badge.classList.add('hidden'); }
+}
+
+// --- Contact Us (US_COMMON_519: in-app form only, no external channels) ---
+function validateContactForm() {
+  const subject = (document.getElementById('contact-subject').value || '').trim();
+  const message = (document.getElementById('contact-message').value || '').trim();
+  document.getElementById('contact-msg-count').textContent = message.length;
+  document.getElementById('contact-submit-btn').disabled = subject.length < 3 || message.length < 10;
+}
+function submitContact() {
+  const subject = (document.getElementById('contact-subject').value || '').trim();
+  const message = (document.getElementById('contact-message').value || '').trim();
+  if (subject.length < 3 || message.length < 10) return;
+  const topic = document.getElementById('contact-topic').value;
+  const id = createTicket('inquiry', topic, subject, message);
+  document.getElementById('contact-subject').value = '';
+  document.getElementById('contact-message').value = '';
+  validateContactForm();
+  updateTicketsBadge();
+  switchHelpTab('tickets');
+  showHelpToast(`Ticket ${id} created`);
+}
+
+// --- Report a Problem (US_COMMON_520) ---
+function setReportCategory(cat, btn) {
+  reportCategory = cat;
+  document.querySelectorAll('.report-cat-btn').forEach(b => {
+    b.classList.remove('border-navy', 'bg-navy/5');
+    b.classList.add('border-gray-200');
+  });
+  btn.classList.add('border-navy', 'bg-navy/5');
+  btn.classList.remove('border-gray-200');
+  validateReportForm();
+}
+function validateReportForm() {
+  const message = (document.getElementById('report-message').value || '').trim();
+  document.getElementById('report-msg-count').textContent = message.length;
+  document.getElementById('report-submit-btn').disabled = !reportCategory || message.length < 10;
+}
+function submitReport() {
+  const message = (document.getElementById('report-message').value || '').trim();
+  if (!reportCategory || message.length < 10) return;
+  const id = createTicket('report', reportCategory, reportCategory, message);
+  document.getElementById('report-message').value = '';
+  reportCategory = null;
+  document.querySelectorAll('.report-cat-btn').forEach(b => { b.classList.remove('border-navy', 'bg-navy/5'); b.classList.add('border-gray-200'); });
+  validateReportForm();
+  updateTicketsBadge();
+  switchHelpTab('tickets');
+  showHelpToast(`Ticket ${id} created`);
+}
+
+// --- My Tickets (US_COMMON_521) ---
+function renderTickets() {
+  const tickets = loadTickets();
+  const listEl = document.getElementById('tickets-list');
+  const emptyEl = document.getElementById('tickets-empty');
+  if (tickets.length === 0) { listEl.classList.add('hidden'); emptyEl.classList.remove('hidden'); return; }
+  listEl.classList.remove('hidden'); emptyEl.classList.add('hidden');
+  listEl.innerHTML = tickets.map(t => {
+    const isReport = t.type === 'report';
+    const typeBadge = isReport
+      ? '<span class="text-[11px] px-2 py-0.5 rounded-full bg-red-50 text-brand-red font-semibold">Report</span>'
+      : '<span class="text-[11px] px-2 py-0.5 rounded-full bg-blue-50 text-brand-blue font-semibold">Inquiry</span>';
+    const statusColors = { open: 'bg-green-50 text-brand-green', replied: 'bg-purple-50 text-brand-purple', closed: 'bg-gray-100 text-gray-500' };
+    const statusLabel = (t.status || 'open').charAt(0).toUpperCase() + (t.status || 'open').slice(1);
+    const when = new Date(t.createdAt).toLocaleString('en-PK', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+    return `<div class="bg-white rounded-xl border border-gray-200 p-4">
+      <div class="flex items-center gap-2 mb-1.5 flex-wrap">
+        <span class="text-[13px] font-bold text-black font-mono">${t.id}</span>
+        ${typeBadge}
+        <span class="text-[11px] px-2 py-0.5 rounded-full ${statusColors[t.status] || statusColors.open} font-semibold">${statusLabel}</span>
+        <span class="text-[12px] text-gray-400 ml-auto">${when}</span>
+      </div>
+      <p class="text-[15px] font-semibold text-black">${t.subject}</p>
+      <p class="text-[13px] text-gray-500 mt-1 leading-relaxed">${t.message}</p>
+      <p class="text-[12px] text-gray-400 mt-2">${t.category} · by ${t.staff || 'Staff'}</p>
+    </div>`;
+  }).join('');
+}
+function showHelpToast(msg) {
+  const existing = document.getElementById('help-toast');
+  if (existing) existing.remove();
+  const toast = document.createElement('div');
+  toast.id = 'help-toast';
+  toast.className = 'fixed bottom-6 left-1/2 -translate-x-1/2 bg-navy text-white text-[14px] font-semibold px-6 py-3.5 rounded-xl shadow-2xl z-[95] flex items-center gap-2';
+  toast.innerHTML = `<ion-icon name="checkmark-circle" style="font-size:20px;" class="text-brand-green"></ion-icon> ${msg}`;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 2500);
+}
+
+// ===== Init =====
+document.addEventListener('DOMContentLoaded', () => {
+  renderV3(); updateHeldBadge();
+  const loginInput = document.getElementById('login-user');
+  if (loginInput) loginInput.focus();
+});
+</script>
+</body>
+</html>

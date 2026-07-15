@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Air Register — Add Product</title>
+<style>
+  :root{
+    --ink:#1C1F26;
+    --ink-soft:#5B6270;
+    --line:#E3E5EA;
+    --surface:#FFFFFF;
+    --bg:#F5F6F8;
+    --brand:#2E5D4B;
+    --brand-soft:#E9F1EC;
+    --amber:#B9762F;
+    --amber-soft:#FBF0E4;
+    --red:#B4483C;
+    --red-soft:#FBEDEB;
+    --radius:10px;
+    --mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, sans-serif;
+    color:var(--ink);
+  }
+  .shell{
+    max-width:900px;
+    margin:0 auto;
+    padding:32px 24px 40px;
+  }
+  .top{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    margin-bottom:22px;
+    gap:16px;
+  }
+  .eyebrow{
+    font-size:11px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--brand);
+    font-weight:700;
+    margin-bottom:6px;
+  }
+  h1{ font-size:22px; margin:0; letter-spacing:-0.01em; }
+  .sub{ color:var(--ink-soft); font-size:13.5px; margin-top:4px; }
+  .actions{ display:flex; gap:10px; flex-shrink:0; }
+  button{
+    font-family:inherit; font-size:13.5px; font-weight:600;
+    border-radius:8px; padding:10px 18px; cursor:pointer; border:1px solid transparent;
+  }
+  .btn-ghost{ background:var(--surface); border-color:var(--line); color:var(--ink); }
+  .btn-primary{ background:var(--brand); color:#fff; }
+  .btn-primary:hover{background:#254c3d;}
+  .btn-primary:disabled{background:#A7B4AE; cursor:not-allowed;}
+  .btn-ghost:hover{background:#F0F1F3;}
+
+  /* toast / summary banner */
+  .banner{
+    display:none;
+    border-radius:8px;
+    padding:13px 16px;
+    font-size:13px;
+    margin-bottom:16px;
+    align-items:flex-start;
+    gap:10px;
+  }
+  .banner.show{display:flex;}
+  .banner.error{ background:var(--red-soft); color:var(--red); border:1px solid #EFCFC8; }
+  .banner.success{ background:var(--brand-soft); color:var(--brand); border:1px solid #C7DED2; }
+  .banner ul{margin:4px 0 0 16px; padding:0;}
+
+  .panel{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:24px;
+    margin-bottom:18px;
+  }
+  .panel-head{
+    display:flex; align-items:center; justify-content:space-between; margin-bottom:18px;
+  }
+  .panel-head h2{ font-size:14px; margin:0; font-weight:700; }
+  .panel-head .tag{ font-size:11px; color:var(--ink-soft); font-family:var(--mono); }
+  .grid{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .field{ display:flex; flex-direction:column; gap:6px; }
+  .field.full{grid-column:1/-1;}
+  label{ font-size:12.5px; font-weight:600; color:var(--ink); }
+  label .opt{ font-weight:400; color:var(--ink-soft); }
+  input[type=text], input[type=number], input[type=date], select, textarea{
+    font-family:inherit; font-size:13.5px; padding:9px 11px;
+    border:1px solid var(--line); border-radius:7px; background:#fff; color:var(--ink); width:100%;
+  }
+  input:focus, select:focus, textarea:focus{
+    outline:2px solid var(--brand); outline-offset:1px; border-color:var(--brand);
+  }
+  textarea{resize:vertical; min-height:70px;}
+  select#category{ border-color:var(--brand); background:var(--brand-soft); font-weight:600; }
+
+  .field.invalid input, .field.invalid select{ border-color:var(--red); background:var(--red-soft); }
+  .err-msg{ font-size:11.5px; color:var(--red); display:none; }
+  .field.invalid .err-msg{ display:block; }
+
+  .helper{ font-size:11.5px; color:var(--ink-soft); margin-top:2px; }
+
+  .dyn-badge{
+    display:inline-flex; align-items:center; gap:6px; background:var(--amber-soft); color:var(--amber);
+    font-size:11px; font-weight:700; padding:4px 9px; border-radius:20px;
+  }
+  .dyn-badge svg{width:11px;height:11px;}
+
+  .switch-row{
+    display:flex; align-items:center; justify-content:space-between; padding:14px 16px;
+    background:#FAFAFB; border:1px solid var(--line); border-radius:8px;
+  }
+  .switch-row .txt strong{font-size:13px;display:block;}
+  .switch-row .txt span{font-size:11.5px;color:var(--ink-soft);}
+  .toggle{ width:38px;height:22px;background:#D7DAE0;border-radius:20px;position:relative;cursor:pointer;flex-shrink:0;transition:background .15s; }
+  .toggle.on{background:var(--brand);}
+  .toggle::after{ content:'';position:absolute;top:2px;left:2px;width:18px;height:18px;background:#fff;border-radius:50%;transition:left .15s;box-shadow:0 1px 2px rgba(0,0,0,.2); }
+  .toggle.on::after{left:18px;}
+
+  .variant-card{
+    border:1px dashed var(--line); border-radius:8px; padding:14px; margin-bottom:10px;
+    display:grid; grid-template-columns:1fr 1fr 1fr auto; gap:10px; align-items:start;
+  }
+  .variant-remove{ background:none;border:none;color:var(--red);font-size:12px;font-weight:600;cursor:pointer;padding:9px 4px; align-self:center; }
+  .add-variant{
+    background:none; border:1.5px dashed var(--brand); color:var(--brand);
+    width:100%; padding:11px; border-radius:8px; font-weight:600; font-size:13px;
+  }
+  .add-variant:hover{background:var(--brand-soft);}
+  .variant-empty{ font-size:12.5px; color:var(--ink-soft); padding:10px 0; }
+
+  .upload-box{
+    border:1.5px dashed var(--line); border-radius:8px; padding:22px; text-align:center;
+    color:var(--ink-soft); font-size:12.5px; background:#FAFAFB; cursor:pointer; transition:border-color .15s, background .15s;
+  }
+  .upload-box.drag{ border-color:var(--brand); background:var(--brand-soft); }
+  .upload-box strong{color:var(--ink);display:block;font-size:13px;margin-bottom:2px;}
+  .thumbs{ display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; }
+  .thumb{ position:relative; width:72px; height:72px; border-radius:7px; overflow:hidden; border:1px solid var(--line); }
+  .thumb img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .thumb button{
+    position:absolute; top:2px; right:2px; width:18px; height:18px; padding:0; border-radius:50%;
+    background:rgba(0,0,0,.6); color:#fff; font-size:11px; line-height:1; border:none;
+  }
+
+  .hidden{display:none !important;}
+
+  .footer-bar{
+    background:var(--surface); border:1px solid var(--line);
+    margin-top:8px; padding:14px 24px; border-radius:var(--radius);
+    display:flex; justify-content:space-between; align-items:center;
+  }
+  .footer-bar .note{font-size:12px;color:var(--ink-soft);}
+
+  /* success overlay */
+  .overlay{
+    position:fixed; inset:0; background:rgba(28,31,38,.45); display:none; align-items:center; justify-content:center; z-index:50;
+  }
+  .overlay.show{display:flex;}
+  .success-card{
+    background:#fff; border-radius:12px; padding:32px; width:380px; text-align:center;
+  }
+  .success-card .icon{
+    width:48px;height:48px;border-radius:50%;background:var(--brand-soft);color:var(--brand);
+    display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:22px;
+  }
+  .success-card h3{ margin:0 0 6px; font-size:16px; }
+  .success-card p{ margin:0 0 20px; font-size:13px; color:var(--ink-soft); }
+  .success-card .sku-tag{ font-family:var(--mono); font-size:12px; background:#F5F6F8; padding:8px 10px; border-radius:6px; margin-bottom:20px; }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <div class="top">
+    <div>
+      <div class="eyebrow">Air Register · Catalog</div>
+      <h1>Add product</h1>
+      <div class="sub">Fields adjust automatically based on the category you choose.</div>
+    </div>
+    <div class="actions">
+      <button class="btn-ghost" onclick="saveDraft()">Save as draft</button>
+      <button class="btn-primary" id="publishBtn" onclick="publish()">Publish product</button>
+    </div>
+  </div>
+
+  <div class="banner error" id="errorBanner">
+    <div>⚠</div>
+    <div>
+      <strong>Fix the following before publishing:</strong>
+      <ul id="errorList"></ul>
+    </div>
+  </div>
+  <div class="banner success" id="successBanner">
+    <div>✓</div>
+    <div id="successText"></div>
+  </div>
+
+  <!-- GENERAL INFO -->
+  <div class="panel">
+    <div class="panel-head">
+      <h2>General information</h2>
+      <span class="tag">applies to every category</span>
+    </div>
+    <div class="grid">
+      <div class="field full" id="f-name">
+        <label>Product name</label>
+        <input type="text" id="name" placeholder="e.g. Men's Slim Fit Kurta — Blue">
+        <span class="err-msg">Product name is required</span>
+      </div>
+
+      <div class="field">
+        <label>Category</label>
+        <select id="category" onchange="handleCategory()">
+          <option value="clothing">Clothing & Apparel</option>
+          <option value="grocery">Grocery & Fresh</option>
+          <option value="electronics">Electronics</option>
+        </select>
+        <div class="helper">Choosing a category loads its specific fields below</div>
+      </div>
+
+      <div class="field">
+        <label>Sub-category</label>
+        <select id="subcategory">
+          <option>Men</option>
+          <option>Women</option>
+          <option>Kids</option>
+        </select>
+      </div>
+
+      <div class="field" id="f-sku">
+        <label>SKU / Barcode</label>
+        <input type="text" id="sku" placeholder="Scan or enter code" oninput="clearFieldError('f-sku')">
+        <span class="err-msg" id="sku-err">SKU is required</span>
+      </div>
+
+      <div class="field">
+        <label>Brand</label>
+        <input type="text" value="Alkaram Studio" disabled>
+      </div>
+
+      <div class="field" id="f-price">
+        <label>Base price (PKR)</label>
+        <input type="number" id="price" placeholder="0.00" min="0" step="0.01" oninput="clearFieldError('f-price')">
+        <span class="err-msg">Enter a price greater than 0</span>
+      </div>
+
+      <div class="field" id="f-stock">
+        <label>Store stock quantity <span class="opt">(this store only)</span></label>
+        <input type="number" id="stock" placeholder="0" min="0" oninput="clearFieldError('f-stock')">
+        <span class="err-msg">Stock can't be negative</span>
+      </div>
+
+      <div class="field full">
+        <label>Description</label>
+        <textarea id="description" placeholder="Fabric, fit, care instructions, or anything a customer should know..."></textarea>
+      </div>
+
+      <div class="field full">
+        <label>Product images <span class="opt">(at least 1 required)</span></label>
+        <div class="upload-box" id="uploadBox" onclick="document.getElementById('fileInput').click()">
+          <strong>Drop images here or click to upload</strong>
+          Recommended: square images, at least 3 angles for apparel
+          <input type="file" id="fileInput" accept="image/*" multiple class="hidden" onchange="handleFiles(this.files)">
+        </div>
+        <div class="thumbs" id="thumbs"></div>
+        <span class="err-msg" id="image-err" style="display:none;">Upload at least one product image</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- CLOTHING SPECIFIC -->
+  <div class="panel" id="panel-clothing">
+    <div class="panel-head">
+      <h2>Apparel details</h2>
+      <span class="dyn-badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 2v20M2 12h20"/></svg>
+        SHOWN FOR CLOTHING
+      </span>
+    </div>
+    <div class="grid">
+      <div class="field">
+        <label>Material / Fabric</label>
+        <input type="text" placeholder="e.g. Lawn, Cotton, Linen">
+      </div>
+      <div class="field">
+        <label>Size chart <span class="opt">(optional)</span></label>
+        <input type="text" placeholder="Upload size chart image">
+      </div>
+    </div>
+
+    <div style="margin-top:20px;">
+      <label style="margin-bottom:10px;display:block;">Size & colour variants — each has its own stock</label>
+      <div id="variantList"></div>
+      <div class="variant-empty hidden" id="variantEmpty">No variants added yet — clothing products need at least one size/colour combination.</div>
+      <button class="add-variant" type="button" onclick="addVariant()">+ Add another size / colour variant</button>
+      <span class="err-msg" id="variant-err" style="display:none; margin-top:8px;">Add at least one variant with a size and stock quantity</span>
+    </div>
+  </div>
+
+  <!-- GROCERY SPECIFIC -->
+  <div class="panel hidden" id="panel-grocery">
+    <div class="panel-head">
+      <h2>Grocery details</h2>
+      <span class="dyn-badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 2v20M2 12h20"/></svg>
+        SHOWN FOR GROCERY
+      </span>
+    </div>
+    <div class="grid">
+      <div class="field">
+        <label>Unit of measurement</label>
+        <select id="unit"><option>Kilogram (kg)</option><option>Gram (g)</option><option>Litre (L)</option><option>Piece</option></select>
+      </div>
+      <div class="field">
+        <label>Pack size</label>
+        <input type="text" placeholder="e.g. 500g, 1kg, 1L">
+      </div>
+      <div class="field" id="f-expiry">
+        <label>Expiry date <span class="opt" id="expiry-req"></span></label>
+        <input type="date" id="expiry" oninput="clearFieldError('f-expiry')">
+        <span class="err-msg">Expiry date is required for perishable items</span>
+      </div>
+      <div class="field">
+        <label>Batch number</label>
+        <input type="text" placeholder="e.g. BN-2026-0417">
+      </div>
+      <div class="field full">
+        <label>Storage type</label>
+        <select><option>Dry / Room temperature</option><option>Refrigerated</option><option>Frozen</option></select>
+      </div>
+    </div>
+    <div class="switch-row" style="margin-top:16px;">
+      <div class="txt">
+        <strong>Perishable item</strong>
+        <span id="perishable-note">Requires an expiry date · returns turned off on the marketplace</span>
+      </div>
+      <div class="toggle on" id="perishableToggle" onclick="togglePerishable()"></div>
+    </div>
+  </div>
+
+  <!-- ELECTRONICS SPECIFIC -->
+  <div class="panel hidden" id="panel-electronics">
+    <div class="panel-head">
+      <h2>Electronics details</h2>
+      <span class="dyn-badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 2v20M2 12h20"/></svg>
+        SHOWN FOR ELECTRONICS
+      </span>
+    </div>
+    <div class="grid">
+      <div class="field"><label>Model number</label><input type="text" id="modelNumber" placeholder="e.g. WH-1000XM5"></div>
+      <div class="field"><label>Warranty period</label><input type="text" placeholder="e.g. 1 Year"></div>
+      <div class="field full"><label>Key specifications</label><textarea placeholder="Battery life, connectivity, dimensions..."></textarea></div>
+    </div>
+  </div>
+
+  <!-- MARKETPLACE SETTINGS -->
+  <div class="panel">
+    <div class="panel-head">
+      <h2>Marketplace visibility</h2>
+      <span class="tag">applies to every category</span>
+    </div>
+    <div class="switch-row">
+      <div class="txt">
+        <strong>List this product on the customer marketplace app</strong>
+        <span id="marketplace-note">Live once published — visible to customers browsing all brands</span>
+      </div>
+      <div class="toggle on" id="marketplaceToggle" onclick="toggleMarketplace()"></div>
+    </div>
+  </div>
+
+  <div class="footer-bar">
+    <span class="note" id="draftNote">Draft not saved yet</span>
+    <div class="actions">
+      <button class="btn-ghost" onclick="resetForm()">Cancel</button>
+      <button class="btn-primary" onclick="publish()">Publish product</button>
+    </div>
+  </div>
+
+</div>
+
+<div class="overlay" id="successOverlay">
+  <div class="success-card">
+    <div class="icon">✓</div>
+    <h3 id="ovTitle">Product published</h3>
+    <p id="ovDesc">It's now live in-store and on the marketplace app.</p>
+    <div class="sku-tag" id="ovSku">SKU: —</div>
+    <button class="btn-primary" style="width:100%;" onclick="closeOverlay()">Add another product</button>
+  </div>
+</div>
+
+<script>
+let variantCount = 0;
+let images = []; // {name, url}
+const existingSkus = ['CL-1001','GR-2002']; // simulated existing SKUs for duplicate check
+
+function handleCategory(){
+  const val = document.getElementById('category').value;
+  ['clothing','grocery','electronics'].forEach(cat=>{
+    document.getElementById('panel-'+cat).classList.toggle('hidden', cat !== val);
+  });
+  clearBanners();
+}
+function addVariant(){
+  variantCount++;
+  const id = 'v'+variantCount;
+  const wrap = document.createElement('div');
+  wrap.className = 'variant-card';
+  wrap.id = id;
+  wrap.innerHTML = `
+    <div class="field"><label class="opt">Size</label>
+      <select><option value="">Select</option><option>S</option><option>M</option><option>L</option><option>XL</option></select>
+    </div>
+    <div class="field"><label class="opt">Colour</label><input type="text" placeholder="e.g. Navy Blue"></div>
+    <div class="field"><label class="opt">Stock</label><input type="number" placeholder="0" min="0"></div>
+    <button class="variant-remove" type="button" onclick="removeVariant('${id}')">Remove</button>
+  `;
+  document.getElementById('variantList').appendChild(wrap);
+  updateVariantEmptyState();
+  clearFieldError('variant-err', true);
+}
+function removeVariant(id){
+  const el = document.getElementById(id);
+  if(el) el.remove();
+  updateVariantEmptyState();
+}
+function updateVariantEmptyState(){
+  const has = document.getElementById('variantList').children.length > 0;
+  document.getElementById('variantEmpty').classList.toggle('hidden', has);
+}
+
+function togglePerishable(){
+  const t = document.getElementById('perishableToggle');
+  t.classList.toggle('on');
+  const on = t.classList.contains('on');
+  document.getElementById('expiry-req').textContent = on ? '(required)' : '(optional)';
+  document.getElementById('perishable-note').textContent = on
+    ? 'Requires an expiry date · returns turned off on the marketplace'
+    : 'Non-perishable · standard return policy applies';
+}
+function toggleMarketplace(){
+  const t = document.getElementById('marketplaceToggle');
+  t.classList.toggle('on');
+  document.getElementById('marketplace-note').textContent = t.classList.contains('on')
+    ? 'Live once published — visible to customers browsing all brands'
+    : 'In-store only — sold through POS, hidden from the marketplace app';
+}
+
+/* image upload with drag & drop + preview */
+const uploadBox = document.getElementById('uploadBox');
+['dragover','dragleave','drop'].forEach(evt=>{
+  uploadBox.addEventListener(evt, e=>{
+    e.preventDefault();
+    uploadBox.classList.toggle('drag', evt === 'dragover');
+    if(evt === 'drop') handleFiles(e.dataTransfer.files);
+  });
+});
+function handleFiles(fileList){
+  Array.from(fileList).forEach(file=>{
+    if(!file.type.startsWith('image/')) return;
+    const url = URL.createObjectURL(file);
+    images.push({name:file.name, url});
+  });
+  renderThumbs();
+  document.getElementById('image-err').style.display = 'none';
+}
+function renderThumbs(){
+  const box = document.getElementById('thumbs');
+  box.innerHTML = '';
+  images.forEach((img, i)=>{
+    const el = document.createElement('div');
+    el.className = 'thumb';
+    el.innerHTML = `<img src="${img.url}"><button onclick="removeImage(${i})">×</button>`;
+    box.appendChild(el);
+  });
+}
+function removeImage(i){
+  images.splice(i,1);
+  renderThumbs();
+}
+
+function clearFieldError(fieldId, isSpanOnly){
+  if(isSpanOnly){
+    document.getElementById(fieldId).style.display = 'none';
+    return;
+  }
+  document.getElementById(fieldId).classList.remove('invalid');
+}
+function markInvalid(fieldId){
+  document.getElementById(fieldId).classList.add('invalid');
+}
+function clearBanners(){
+  document.getElementById('errorBanner').classList.remove('show');
+  document.getElementById('successBanner').classList.remove('show');
+}
+
+function validate(forDraft){
+  const errors = [];
+  // reset states
+  ['f-name','f-sku','f-price','f-stock','f-expiry'].forEach(id=>document.getElementById(id).classList.remove('invalid'));
+  document.getElementById('variant-err').style.display = 'none';
+  document.getElementById('image-err').style.display = 'none';
+
+  const name = document.getElementById('name').value.trim();
+  const sku = document.getElementById('sku').value.trim();
+  const price = parseFloat(document.getElementById('price').value);
+  const stock = document.getElementById('stock').value;
+  const category = document.getElementById('category').value;
+
+  if(!name){ errors.push('Product name is missing'); markInvalid('f-name'); }
+
+  if(!forDraft){
+    if(!sku){ errors.push('SKU / barcode is missing'); markInvalid('f-sku'); document.getElementById('sku-err').textContent='SKU is required'; }
+    else if(existingSkus.includes(sku)){ errors.push(`SKU "${sku}" already exists on another product`); markInvalid('f-sku'); document.getElementById('sku-err').textContent='This SKU is already in use'; }
+
+    if(isNaN(price) || price <= 0){ errors.push('Base price must be greater than 0'); markInvalid('f-price'); }
+    if(stock === '' || parseInt(stock) < 0){ errors.push('Stock quantity can\'t be negative'); markInvalid('f-stock'); }
+    if(images.length === 0){ errors.push('At least one product image is required'); document.getElementById('image-err').style.display='block'; }
+
+    if(category === 'clothing'){
+      const cards = document.querySelectorAll('#variantList .variant-card');
+      let validVariant = false;
+      cards.forEach(card=>{
+        const size = card.querySelector('select').value;
+        const stockVal = card.querySelectorAll('input')[1].value;
+        if(size && stockVal !== '' && parseInt(stockVal) >= 0) validVariant = true;
+      });
+      if(cards.length === 0 || !validVariant){
+        errors.push('Add at least one size/colour variant with stock');
+        document.getElementById('variant-err').style.display = 'block';
+      }
+    }
+
+    if(category === 'grocery'){
+      const perishable = document.getElementById('perishableToggle').classList.contains('on');
+      const expiry = document.getElementById('expiry').value;
+      if(perishable && !expiry){
+        errors.push('Expiry date is required for perishable grocery items');
+        markInvalid('f-expiry');
+      }
+    }
+  }
+
+  return errors;
+}
+
+function showErrors(errors){
+  const list = document.getElementById('errorList');
+  list.innerHTML = '';
+  errors.forEach(e=>{
+    const li = document.createElement('li');
+    li.textContent = e;
+    list.appendChild(li);
+  });
+  document.getElementById('successBanner').classList.remove('show');
+  document.getElementById('errorBanner').classList.add('show');
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function saveDraft(){
+  const errors = validate(true);
+  if(errors.length){ showErrors(errors); return; }
+  clearBanners();
+  document.getElementById('draftNote').textContent = 'Saved as draft · ' + new Date().toLocaleTimeString();
+  document.getElementById('successText').textContent = 'Draft saved. You can finish this listing anytime from Catalog → Drafts.';
+  document.getElementById('errorBanner').classList.remove('show');
+  document.getElementById('successBanner').classList.add('show');
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function publish(){
+  const errors = validate(false);
+  if(errors.length){ showErrors(errors); return; }
+
+  const category = document.getElementById('category').value;
+  const sku = document.getElementById('sku').value.trim();
+  const onMarketplace = document.getElementById('marketplaceToggle').classList.contains('on');
+
+  document.getElementById('ovTitle').textContent = 'Product published';
+  document.getElementById('ovDesc').textContent = onMarketplace
+    ? 'It\'s now live in-store and on the marketplace app.'
+    : 'It\'s now live in-store only. Marketplace listing is turned off.';
+  document.getElementById('ovSku').textContent = 'SKU: ' + sku + '  ·  ' + category;
+  document.getElementById('successOverlay').classList.add('show');
+}
+
+function closeOverlay(){
+  document.getElementById('successOverlay').classList.remove('show');
+  resetForm();
+}
+
+function resetForm(){
+  document.getElementById('name').value = '';
+  document.getElementById('sku').value = '';
+  document.getElementById('price').value = '';
+  document.getElementById('stock').value = '';
+  document.getElementById('description').value = '';
+  images = [];
+  renderThumbs();
+  document.getElementById('variantList').innerHTML = '';
+  variantCount = 0;
+  updateVariantEmptyState();
+  clearBanners();
+  document.getElementById('draftNote').textContent = 'Draft not saved yet';
+  ['f-name','f-sku','f-price','f-stock','f-expiry'].forEach(id=>document.getElementById(id).classList.remove('invalid'));
+}
+
+handleCategory();
+updateVariantEmptyState();
+addVariant();
+</script>
+</body>
+</html>

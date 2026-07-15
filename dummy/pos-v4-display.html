@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1024, initial-scale=1.0">
+<title>Air Register — V4 Customer Display</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        navy: { dark: '#0a1535', DEFAULT: '#1a2d6b', light: '#2a4494' },
+        brand: { blue: '#3366cc', green: '#2dd36f', orange: '#ff9800', red: '#eb445a', purple: '#7c4dff' },
+        page: '#f4f6f9',
+        border: '#e8ecf1'
+      },
+      fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] }
+    }
+  }
+}
+</script>
+<script src="https://unpkg.com/ionicons@7.1.0/dist/ionicons.js"></script>
+<style>
+  html, body { margin:0; padding:0; background:#f4f6f9; color:#111; overflow:hidden; }
+  body { min-height:100vh; font-family:'Plus Jakarta Sans', sans-serif; }
+  /* Smooth state transitions */
+  .v4-state { transition: opacity 0.3s ease; }
+  @keyframes slideInUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+  .cart-item-enter { animation: slideInUp 0.25s ease forwards; }
+  @keyframes pulse-green { 0%,100% { box-shadow: 0 0 0 0 rgba(45,211,111,0.4); } 50% { box-shadow: 0 0 0 12px rgba(45,211,111,0); } }
+  .pulse-ring { animation: pulse-green 2s ease-in-out infinite; }
+</style>
+</head>
+<body class="h-screen w-screen">
+
+<div id="v4-container" class="w-full h-full relative">
+
+  <!-- ======== STATE: Idle (3 rotating slides) ======== -->
+  <div data-v4-state="idle" class="v4-state w-full h-full">
+    <!-- Slide 1: Brand splash -->
+    <div data-slide="splash" class="w-full h-full relative overflow-hidden" style="background:linear-gradient(135deg,#0a1535 0%,#1a2d6b 45%,#2a4494 100%);">
+      <div class="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-white/5"></div>
+      <div class="absolute -bottom-40 -left-24 w-[500px] h-[500px] rounded-full bg-white/5"></div>
+      <div class="absolute top-16 right-24 w-24 h-24 rounded-full bg-brand-purple/20"></div>
+      <div class="relative h-full flex flex-col items-center justify-center text-white px-12">
+        <div class="w-32 h-32 bg-white rounded-[2rem] flex items-center justify-center shadow-2xl mb-8">
+          <ion-icon name="storefront" class="text-navy" style="font-size:80px;"></ion-icon>
+        </div>
+        <h1 class="text-white text-6xl font-bold tracking-tight">Air Register</h1>
+        <p class="text-white/60 text-base mt-4 tracking-[0.3em] uppercase">Shop · Scan · Pay</p>
+        <div class="mt-14 flex items-center gap-2 text-white/40 font-normal" style="font-size:14px;">
+          <span class="w-1.5 h-1.5 rounded-full bg-brand-green"></span>
+          <span>Register ready · Clifton Mart</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 2: Download app for in-store payment -->
+    <div data-slide="ad-pay" class="hidden w-full h-full relative overflow-hidden bg-white">
+      <div class="absolute left-0 top-0 bottom-0 w-1/2 overflow-hidden">
+        <img src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=900&auto=format&fit=crop&q=70" alt="Pay in store" class="w-full h-full object-cover"
+          onerror="this.replaceWith(Object.assign(document.createElement('div'), {className:'w-full h-full bg-gradient-to-br from-indigo-500 to-indigo-900'}))">
+        <div class="absolute inset-0 bg-gradient-to-r from-navy/20 to-transparent"></div>
+      </div>
+      <div class="absolute right-0 top-0 bottom-0 w-1/2 flex items-center px-12">
+        <div class="w-full">
+          <span class="inline-block bg-navy/5 text-navy text-[12px] font-bold px-3 py-1.5 rounded-full tracking-[0.2em] uppercase">Download</span>
+          <h2 class="text-navy text-5xl font-bold leading-[1.05] mt-5 tracking-tight">Pay faster<br>next time</h2>
+          <p class="text-gray-500 text-base mt-5 leading-relaxed">Get the Air Register app to pay with<br>one tap at any participating store.</p>
+          <div class="mt-8 flex items-center gap-5">
+            <div class="p-3 bg-white border-2 border-navy rounded-xl shadow-sm">
+              <svg viewBox="0 0 21 21" class="w-28 h-28" shape-rendering="crispEdges">
+                <rect width="21" height="21" fill="#fff"/>
+                <g fill="#0a1535">
+                  <rect x="0" y="0" width="7" height="7"/><rect x="1" y="1" width="5" height="5" fill="#fff"/><rect x="2" y="2" width="3" height="3"/>
+                  <rect x="14" y="0" width="7" height="7"/><rect x="15" y="1" width="5" height="5" fill="#fff"/><rect x="16" y="2" width="3" height="3"/>
+                  <rect x="0" y="14" width="7" height="7"/><rect x="1" y="15" width="5" height="5" fill="#fff"/><rect x="2" y="16" width="3" height="3"/>
+                  <rect x="8" y="0" width="1" height="1"/><rect x="10" y="0" width="1" height="1"/><rect x="12" y="0" width="1" height="1"/>
+                  <rect x="9" y="2" width="1" height="1"/><rect x="13" y="2" width="1" height="1"/>
+                  <rect x="8" y="4" width="1" height="1"/><rect x="10" y="4" width="1" height="1"/>
+                </g>
+              </svg>
+            </div>
+            <div>
+              <p class="text-[12px] text-gray-500 uppercase tracking-widest">Scan to install</p>
+              <p class="text-[15px] font-semibold text-black mt-1">Open camera on your phone</p>
+              <div class="flex items-center gap-3 mt-3">
+                <span class="inline-flex items-center gap-1.5 bg-gray-100 px-3 py-1.5 rounded-md"><ion-icon name="logo-apple" class="text-black"></ion-icon><span class="text-[12px] font-medium text-black">iOS</span></span>
+                <span class="inline-flex items-center gap-1.5 bg-gray-100 px-3 py-1.5 rounded-md"><ion-icon name="logo-google-playstore" class="text-black"></ion-icon><span class="text-[12px] font-medium text-black">Android</span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 3: Download app for EC -->
+    <div data-slide="ad-ec" class="hidden w-full h-full relative overflow-hidden bg-white">
+      <div class="absolute right-0 top-0 bottom-0 w-1/2 overflow-hidden">
+        <img src="https://images.unsplash.com/photo-1607082349566-187342175e2f?w=900&auto=format&fit=crop&q=70" alt="Shop online" class="w-full h-full object-cover"
+          onerror="this.replaceWith(Object.assign(document.createElement('div'), {className:'w-full h-full bg-gradient-to-br from-orange-400 to-red-600'}))">
+        <div class="absolute inset-0 bg-gradient-to-l from-transparent to-white/20"></div>
+      </div>
+      <div class="absolute left-0 top-0 bottom-0 w-1/2 flex items-center px-12">
+        <div class="w-full">
+          <span class="inline-block bg-brand-orange/10 text-brand-orange text-[12px] font-bold px-3 py-1.5 rounded-full tracking-[0.2em] uppercase">Shop online</span>
+          <h2 class="text-navy text-5xl font-bold leading-[1.05] mt-5 tracking-tight">Shop from<br>your home</h2>
+          <p class="text-gray-500 text-base mt-5 leading-relaxed">Groceries, fashion, electronics &amp; more,<br>delivered in hours from local stores.</p>
+          <div class="mt-8 flex items-center gap-5">
+            <div class="p-3 bg-white border-2 border-navy rounded-xl shadow-sm">
+              <svg viewBox="0 0 21 21" class="w-28 h-28" shape-rendering="crispEdges">
+                <rect width="21" height="21" fill="#fff"/>
+                <g fill="#0a1535">
+                  <rect x="0" y="0" width="7" height="7"/><rect x="1" y="1" width="5" height="5" fill="#fff"/><rect x="2" y="2" width="3" height="3"/>
+                  <rect x="14" y="0" width="7" height="7"/><rect x="15" y="1" width="5" height="5" fill="#fff"/><rect x="16" y="2" width="3" height="3"/>
+                  <rect x="0" y="14" width="7" height="7"/><rect x="1" y="15" width="5" height="5" fill="#fff"/><rect x="2" y="16" width="3" height="3"/>
+                  <rect x="8" y="0" width="1" height="1"/><rect x="12" y="0" width="1" height="1"/>
+                  <rect x="9" y="2" width="1" height="1"/><rect x="11" y="2" width="1" height="1"/><rect x="13" y="2" width="1" height="1"/>
+                  <rect x="10" y="4" width="1" height="1"/><rect x="12" y="4" width="1" height="1"/>
+                </g>
+              </svg>
+            </div>
+            <div>
+              <p class="text-[12px] text-gray-500 uppercase tracking-widest">Scan to install</p>
+              <p class="text-[15px] font-semibold text-black mt-1">Get the Air Register app</p>
+              <div class="flex items-center gap-3 mt-3">
+                <span class="inline-flex items-center gap-1.5 bg-gray-100 px-3 py-1.5 rounded-md"><ion-icon name="bicycle-outline" class="text-black"></ion-icon><span class="text-[12px] font-medium text-black">Same-day delivery</span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======== STATE: Scanning (cart mirror + sidebar) ======== -->
+  <div data-v4-state="scanning" class="v4-state hidden w-full h-full bg-white flex-col">
+    <div class="bg-navy text-white px-6 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <span class="w-2 h-2 rounded-full bg-brand-green"></span>
+        <p style="font-size:16px;" class="font-semibold">Your receipt · live</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <img src="../img/CLIFTON-MARKET icon.jpg" alt="Clifton Mart" style="height:30px;" class="object-contain">
+        <p style="font-size:12px;" class="text-white/60">Clifton Mart · Reg 1</p>
+      </div>
+    </div>
+    <div class="flex-1 flex overflow-hidden">
+      <!-- LEFT: receipt-style cart -->
+      <div class="flex-1 flex flex-col min-w-0">
+        <div class="px-6 py-3 border-b border-gray-100 flex items-center justify-between bg-gray-50">
+          <p class="text-[12px] uppercase tracking-wider text-gray-500 font-semibold">Items</p>
+          <p class="text-[12px] text-gray-500"><span id="v4-items-count">0</span> items</p>
+        </div>
+        <div id="v4-cart" class="flex-1 overflow-y-auto px-6 py-3"></div>
+        <div class="bg-gray-50 border-t border-gray-200 px-6 py-4 space-y-1.5 text-[13px]">
+          <div class="flex justify-between"><span class="text-gray-500">Subtotal</span><span id="v4-subtotal" class="font-medium text-black">Rs.0</span></div>
+          <div id="v4-discount-line" class="hidden flex justify-between"><span class="text-brand-green font-medium">Savings</span><span id="v4-discount" class="font-medium text-brand-green">-Rs.0</span></div>
+          <div id="v4-coupon-line" class="hidden flex justify-between"><span class="text-brand-purple font-medium" id="v4-coupon-label">Coupon</span><span id="v4-coupon-amount" class="font-medium text-brand-purple">-Rs.0</span></div>
+          <div class="flex justify-between"><span class="text-gray-500">Tax (16%) <span id="v4-gst-mode" class="text-[10px] px-1.5 py-0.5 rounded-full bg-gray-100 font-semibold text-gray-600 ml-1">excl</span></span><span id="v4-tax" class="font-medium text-black">Rs.0</span></div>
+          <div id="v4-points-line" class="hidden flex justify-between"><span class="text-amber-600 font-medium" id="v4-points-label">Points</span><span id="v4-points-amount" class="font-medium text-amber-600">-Rs.0</span></div>
+          <div class="flex justify-between items-baseline border-t-2 border-dashed border-gray-300 pt-3 mt-2">
+            <span class="text-[14px] font-bold text-black tracking-wide">TOTAL</span>
+            <span id="v4-total" class="text-4xl font-bold text-navy">Rs.0</span>
+          </div>
+        </div>
+      </div>
+      <!-- RIGHT: context sidebar -->
+      <div id="v4-sidebar" class="w-80 border-l border-gray-200 flex flex-col shrink-0">
+        <!-- GUEST sidebar — QR always visible for instant scanning -->
+        <div data-sidebar="guest" class="w-full h-full flex flex-col bg-gradient-to-b from-gray-50 to-white">
+          <!-- QR payment section — always visible -->
+          <div class="flex-1 flex flex-col items-center justify-center px-6 text-center">
+            <p class="text-[11px] text-gray-400 uppercase tracking-[0.2em] font-semibold mb-3">Scan to pay instantly</p>
+            <div class="relative p-4 bg-white border-3 border-navy rounded-2xl shadow-lg mb-4">
+              <svg viewBox="0 0 21 21" class="w-40 h-40" shape-rendering="crispEdges">
+                <rect width="21" height="21" fill="#fff"/>
+                <g fill="#0a1535">
+                  <rect x="0" y="0" width="7" height="7"/><rect x="1" y="1" width="5" height="5" fill="#fff"/><rect x="2" y="2" width="3" height="3"/>
+                  <rect x="14" y="0" width="7" height="7"/><rect x="15" y="1" width="5" height="5" fill="#fff"/><rect x="16" y="2" width="3" height="3"/>
+                  <rect x="0" y="14" width="7" height="7"/><rect x="1" y="15" width="5" height="5" fill="#fff"/><rect x="2" y="16" width="3" height="3"/>
+                  <rect x="8" y="0" width="1" height="1"/><rect x="10" y="0" width="1" height="1"/><rect x="12" y="0" width="1" height="1"/>
+                  <rect x="9" y="2" width="1" height="1"/><rect x="11" y="2" width="1" height="1"/><rect x="13" y="2" width="1" height="1"/>
+                  <rect x="8" y="4" width="1" height="1"/><rect x="10" y="4" width="1" height="1"/><rect x="12" y="4" width="1" height="1"/>
+                  <rect x="0" y="8" width="1" height="1"/><rect x="2" y="8" width="1" height="1"/><rect x="4" y="8" width="1" height="1"/>
+                  <rect x="8" y="8" width="1" height="1"/><rect x="10" y="8" width="1" height="1"/><rect x="12" y="8" width="1" height="1"/><rect x="14" y="8" width="1" height="1"/><rect x="16" y="8" width="1" height="1"/><rect x="18" y="8" width="1" height="1"/><rect x="20" y="8" width="1" height="1"/>
+                  <rect x="9" y="10" width="1" height="1"/><rect x="11" y="10" width="1" height="1"/><rect x="13" y="10" width="1" height="1"/><rect x="15" y="10" width="1" height="1"/><rect x="17" y="10" width="1" height="1"/>
+                  <rect x="8" y="12" width="1" height="1"/><rect x="10" y="12" width="1" height="1"/><rect x="12" y="12" width="1" height="1"/><rect x="14" y="12" width="1" height="1"/><rect x="16" y="12" width="1" height="1"/>
+                </g>
+              </svg>
+              <div class="absolute inset-4 flex items-center justify-center pointer-events-none">
+                <div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center border-2 border-navy shadow-sm">
+                  <span class="text-navy font-bold text-[9px] leading-tight text-center">Air<br>Reg</span>
+                </div>
+              </div>
+            </div>
+            <p class="text-[14px] font-semibold text-black">Open Air Register app</p>
+            <p class="text-[12px] text-gray-500 mt-1.5 leading-relaxed">Scan this QR while items are<br>being added — pay instantly!</p>
+            <div class="mt-4 flex items-center gap-2 bg-brand-green/10 text-brand-green px-3 py-1.5 rounded-full">
+              <span class="w-2 h-2 rounded-full bg-brand-green animate-pulse"></span>
+              <span class="text-[11px] font-semibold">Ready to accept payment</span>
+            </div>
+          </div>
+          <!-- Footer -->
+          <div class="px-6 py-4 border-t border-gray-200 bg-white">
+            <p class="text-[11px] text-gray-400 uppercase tracking-widest text-center mb-2">Also accepted</p>
+            <div class="flex items-center justify-center gap-4 text-[12px] text-gray-500">
+              <span class="flex items-center gap-1.5"><ion-icon name="cash-outline" style="font-size:18px;" class="text-brand-green"></ion-icon>Cash</span>
+              <span class="flex items-center gap-1.5"><ion-icon name="card-outline" style="font-size:18px;" class="text-brand-blue"></ion-icon>Card</span>
+            </div>
+          </div>
+        </div>
+        <!-- KNOWN sidebar — full customer profile (no QR, customer already identified) -->
+        <div data-sidebar="known" class="hidden w-full h-full flex flex-col bg-gradient-to-b from-emerald-50 via-white to-white">
+          <!-- Customer greeting -->
+          <div class="px-4 pt-5 pb-4 text-center shrink-0 border-b border-gray-100">
+            <div class="w-14 h-14 rounded-full bg-brand-green text-white flex items-center justify-center font-bold text-2xl shadow-md mx-auto mb-2">
+              <span id="v4-cust-initial">A</span>
+            </div>
+            <p class="text-[11px] text-brand-green font-semibold tracking-wide">Assalam-u-Alaikum</p>
+            <p class="text-[17px] text-black font-bold mt-1" id="v4-cust-name">Ahmed Hassan</p>
+            <p class="text-[12px] text-gray-400 mt-0.5" id="v4-cust-area">Clifton, Karachi</p>
+          </div>
+          <!-- Loyalty + Stats combined -->
+          <div class="flex-1 flex flex-col px-4 py-4 gap-3 overflow-hidden">
+            <!-- Points highlight -->
+            <div class="bg-gradient-to-br from-amber-50 to-amber-100/60 border border-amber-200/80 rounded-xl px-4 py-3.5 shrink-0">
+              <div class="flex items-center justify-between">
+                <div class="flex items-baseline gap-1.5">
+                  <ion-icon name="star" class="text-amber-500 text-lg relative top-[2px]"></ion-icon>
+                  <span class="text-[22px] font-extrabold text-black" id="v4-cust-points">1,240</span>
+                </div>
+                <span class="text-[10px] px-2.5 py-1 rounded-full bg-amber-500 text-white font-bold uppercase tracking-wide" id="v4-cust-tier">Gold</span>
+              </div>
+              <div class="mt-2 h-1.5 bg-amber-200/60 rounded-full overflow-hidden">
+                <div id="v4-cust-pts-bar" class="h-full bg-amber-500 rounded-full transition-all" style="width:50%"></div>
+              </div>
+              <div class="flex justify-between items-center mt-2">
+                <span class="text-[11px] text-gray-500">= <strong id="v4-cust-pts-value" class="text-black">Rs.124</strong> value</span>
+                <span class="text-[10px] text-amber-600 font-medium" id="v4-cust-pts-next">1260 to Platinum</span>
+              </div>
+            </div>
+            <!-- Redeem hint -->
+            <div class="bg-brand-green/8 border border-brand-green/20 rounded-lg px-3 py-2.5 flex items-center gap-2.5 shrink-0">
+              <div class="w-8 h-8 rounded-full bg-brand-green/15 flex items-center justify-center shrink-0">
+                <ion-icon name="gift-outline" class="text-brand-green text-base"></ion-icon>
+              </div>
+              <div class="min-w-0">
+                <p class="text-[11px] font-semibold text-black">Redeem points today!</p>
+                <p class="text-[10px] text-gray-500">Ask cashier to apply discount</p>
+              </div>
+            </div>
+          </div>
+          <!-- Footer -->
+          <div class="px-4 py-2.5 border-t border-gray-100 text-center shrink-0">
+            <p class="text-[10px] text-gray-300 tracking-widest">─── Thank you · Clifton Mart ───</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======== STATE: Ready to pay (QR) ======== -->
+  <div data-v4-state="qr" class="v4-state hidden w-full h-full bg-white flex-col">
+    <div class="bg-navy text-white px-6 py-3 flex items-center justify-between">
+      <p class="text-[14px] font-semibold">Ready to pay · Scan with Air Register</p>
+      <p class="text-[12px] text-white/60">Expires in <span id="qr-timer">04:58</span></p>
+    </div>
+    <div class="flex-1 flex overflow-hidden">
+      <!-- items summary -->
+      <div class="w-96 bg-gray-50 border-r border-gray-200 flex flex-col">
+        <div class="px-6 py-3 border-b border-gray-200 bg-white">
+          <p class="text-[12px] uppercase tracking-wider text-gray-500 font-semibold">Your items</p>
+        </div>
+        <div id="v4-qr-items" class="flex-1 overflow-y-auto p-3 space-y-1.5"></div>
+        <div class="bg-white border-t border-gray-200 px-6 py-4 space-y-1.5 text-[13px]">
+          <div class="flex justify-between"><span class="text-gray-500">Subtotal</span><span id="qr-subtotal" class="text-black">Rs.0</span></div>
+          <div class="flex justify-between"><span class="text-gray-500">Tax (16%) <span id="qr-gst-mode" class="text-[10px] px-1.5 py-0.5 rounded-full bg-gray-100 font-semibold text-gray-600 ml-1">excl</span></span><span id="qr-tax" class="text-black">Rs.0</span></div>
+          <div class="flex justify-between items-baseline border-t border-gray-200 pt-3 mt-2">
+            <span class="text-[14px] font-bold text-black">Amount due</span>
+            <span id="qr-amount" class="text-3xl font-bold text-navy">Rs.0</span>
+          </div>
+        </div>
+      </div>
+      <!-- QR area -->
+      <div class="flex-1 flex flex-col items-center justify-center px-8 py-6 bg-white">
+        <p class="text-navy font-semibold text-base mb-4">Open the Air Register app</p>
+        <div class="relative p-5 bg-white border-4 border-navy rounded-2xl shadow-lg">
+          <svg viewBox="0 0 21 21" class="w-52 h-52" shape-rendering="crispEdges">
+            <rect width="21" height="21" fill="#fff"/>
+            <g fill="#0a1535">
+              <rect x="0" y="0" width="7" height="7"/><rect x="1" y="1" width="5" height="5" fill="#fff"/><rect x="2" y="2" width="3" height="3"/>
+              <rect x="14" y="0" width="7" height="7"/><rect x="15" y="1" width="5" height="5" fill="#fff"/><rect x="16" y="2" width="3" height="3"/>
+              <rect x="0" y="14" width="7" height="7"/><rect x="1" y="15" width="5" height="5" fill="#fff"/><rect x="2" y="16" width="3" height="3"/>
+              <rect x="8" y="0" width="1" height="1"/><rect x="10" y="0" width="1" height="1"/><rect x="12" y="0" width="1" height="1"/>
+              <rect x="9" y="2" width="1" height="1"/><rect x="11" y="2" width="1" height="1"/><rect x="13" y="2" width="1" height="1"/>
+              <rect x="8" y="4" width="1" height="1"/><rect x="10" y="4" width="1" height="1"/><rect x="12" y="4" width="1" height="1"/>
+              <rect x="0" y="8" width="1" height="1"/><rect x="2" y="8" width="1" height="1"/><rect x="4" y="8" width="1" height="1"/>
+              <rect x="8" y="8" width="1" height="1"/><rect x="10" y="8" width="1" height="1"/><rect x="12" y="8" width="1" height="1"/><rect x="14" y="8" width="1" height="1"/><rect x="16" y="8" width="1" height="1"/><rect x="18" y="8" width="1" height="1"/><rect x="20" y="8" width="1" height="1"/>
+              <rect x="9" y="10" width="1" height="1"/><rect x="11" y="10" width="1" height="1"/><rect x="13" y="10" width="1" height="1"/><rect x="15" y="10" width="1" height="1"/><rect x="17" y="10" width="1" height="1"/>
+              <rect x="8" y="12" width="1" height="1"/><rect x="10" y="12" width="1" height="1"/><rect x="12" y="12" width="1" height="1"/><rect x="14" y="12" width="1" height="1"/><rect x="16" y="12" width="1" height="1"/>
+            </g>
+          </svg>
+          <div class="absolute inset-5 flex items-center justify-center pointer-events-none">
+            <div class="w-12 h-12 bg-white rounded-xl flex items-center justify-center border-2 border-navy">
+              <span class="text-navy font-bold text-[12px] leading-tight text-center">Air<br>Register</span>
+            </div>
+          </div>
+        </div>
+        <p class="text-black text-[13px] mt-5 font-medium">Tap "Scan to Pay" in the app</p>
+        <p class="text-gray-500 text-[12px] mt-1.5">Choose cash or card in your app</p>
+        <p class="text-gray-500 text-[12px] mt-4">No app? Ask staff for assistance</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======== STATE: Success ======== -->
+  <div data-v4-state="success" class="v4-state hidden w-full h-full bg-gradient-to-br from-brand-green to-emerald-600 flex-col items-center justify-center text-white text-center px-8">
+    <div class="w-28 h-28 bg-white/15 rounded-full flex items-center justify-center mb-6 backdrop-blur pulse-ring">
+      <ion-icon name="checkmark-circle" class="text-8xl"></ion-icon>
+    </div>
+    <h1 class="text-4xl font-bold" id="success-greeting">Thank you!</h1>
+    <p class="text-white/80 mt-3 text-base" id="success-subtitle">Your payment was received</p>
+    <div class="mt-7 bg-white/10 rounded-xl px-7 py-4 backdrop-blur">
+      <p class="text-[12px] text-white/60 uppercase tracking-widest">Receipt</p>
+      <p id="success-receipt" class="text-lg font-mono mt-1">#TX-20260509-0014</p>
+    </div>
+    <div id="success-amount-box" class="mt-4 bg-white/10 rounded-xl px-7 py-3 backdrop-blur">
+      <p class="text-[12px] text-white/60 uppercase tracking-widest">Amount Paid</p>
+      <p id="success-amount" class="text-2xl font-bold mt-1">Rs.0</p>
+    </div>
+    <p class="text-white/70 text-[12px] mt-6">See you again at Clifton Mart</p>
+  </div>
+
+</div>
+
+<!-- Toast notification -->
+<div id="v4-toast-container" class="fixed top-4 left-1/2 -translate-x-1/2 z-50"></div>
+
+<script src="pos-shared.js"></script>
+<script>
+// ===== V4 State =====
+let currentState = 'idle';
+let customer = null;
+let qrTimerHandle = null;
+let idleSlideTimer = null;
+let currentSlide = 0;
+let successTimeout = null;
+let lastCartData = null;
+
+// ===== State switcher =====
+function setV4State(state) {
+  currentState = state;
+  document.querySelectorAll('.v4-state').forEach(el => {
+    const is = el.dataset.v4State === state;
+    el.classList.toggle('hidden', !is);
+    el.classList.toggle('flex', is);
+  });
+}
+
+function setSidebar(which) {
+  document.querySelectorAll('#v4-sidebar > [data-sidebar]').forEach(el => {
+    const is = el.dataset.sidebar === which;
+    el.classList.toggle('hidden', !is);
+    el.classList.toggle('flex', is);
+  });
+}
+
+function showIdleSlide(i) {
+  const slides = document.querySelectorAll('[data-v4-state="idle"] > [data-slide]');
+  slides.forEach((s, idx) => { s.classList.toggle('hidden', idx !== i); });
+  currentSlide = i;
+}
+
+// Auto-rotate idle slides every 8 seconds
+function startIdleRotation() {
+  stopIdleRotation();
+  idleSlideTimer = setInterval(() => {
+    if (currentState !== 'idle') return;
+    currentSlide = (currentSlide + 1) % 3;
+    showIdleSlide(currentSlide);
+  }, 8000);
+}
+function stopIdleRotation() {
+  if (idleSlideTimer) { clearInterval(idleSlideTimer); idleSlideTimer = null; }
+}
+
+function showToast(msg) {
+  const container = document.getElementById('v4-toast-container');
+  const toast = document.createElement('div');
+  toast.className = 'bg-black/80 text-white text-[13px] font-medium px-4 py-2 rounded-full shadow-lg';
+  toast.textContent = msg;
+  container.appendChild(toast);
+  setTimeout(() => toast.remove(), 2800);
+}
+
+// ===== Render cart on scanning state =====
+function renderCart(cart, count, sub, tax, total, coupon, redeemedPoints) {
+  const list = document.getElementById('v4-cart');
+  list.innerHTML = cart.map(it => {
+    const ep = getEffectivePrice(it);
+    const hasDiscount = it.discount && ep < it.price;
+    const lineTotal = ep * it.qty;
+    return `
+    <div class="flex items-center justify-between py-3 border-b border-dashed border-gray-200 last:border-0 cart-item-enter">
+      <div class="flex items-center gap-3 min-w-0">
+        <div class="w-12 h-12 rounded-lg shrink-0 overflow-hidden border border-gray-200 bg-gray-50">
+          <img src="${it.img}" alt="${it.name}" class="w-full h-full object-cover" onerror="this.parentElement.innerHTML='<div class=\\'w-full h-full flex items-center justify-center\\'><ion-icon name=\\'${it.icon || 'bag-outline'}\\' class=\\'text-gray-400 text-2xl\\'></ion-icon></div>'">
+        </div>
+        <div class="min-w-0">
+          <p class="text-[15px] text-black truncate font-medium">${it.name}</p>
+          <div class="flex items-center gap-2 mt-0.5">
+            ${hasDiscount
+              ? `<span class="text-[12px] text-gray-400 line-through">Rs.${it.price}</span><span class="text-[12px] text-brand-green font-semibold">Rs.${ep}</span><span class="text-[10px] bg-green-100 text-brand-green px-1.5 py-0.5 rounded-full font-medium">${it.discount.label}</span>`
+              : `<span class="text-[12px] text-gray-500">Rs.${ep.toLocaleString()} × ${it.qty}</span>`
+            }
+            ${hasDiscount ? `<span class="text-[12px] text-gray-500">× ${it.qty}</span>` : ''}
+          </div>
+        </div>
+      </div>
+      <p class="text-[16px] font-bold text-navy whitespace-nowrap ml-3">Rs.${lineTotal.toLocaleString()}</p>
+    </div>`;
+  }).join('');
+
+  document.getElementById('v4-items-count').textContent = count;
+  document.getElementById('v4-subtotal').textContent = `Rs.${sub.toLocaleString()}`;
+  document.getElementById('v4-tax').textContent = `Rs.${tax.toLocaleString()}`;
+  document.getElementById('v4-total').textContent = `Rs.${total.toLocaleString()}`;
+
+  // Item discount line
+  const totalDiscount = cart.reduce((s, i) => s + (i.price - getEffectivePrice(i)) * i.qty, 0);
+  const discLine = document.getElementById('v4-discount-line');
+  if (totalDiscount > 0) {
+    discLine.classList.remove('hidden'); discLine.classList.add('flex');
+    document.getElementById('v4-discount').textContent = `-Rs.${totalDiscount.toLocaleString()}`;
+  } else {
+    discLine.classList.add('hidden'); discLine.classList.remove('flex');
+  }
+
+  // Coupon line
+  const couponLine = document.getElementById('v4-coupon-line');
+  if (coupon) {
+    const couponDisc = calcCouponDiscount(coupon, sub);
+    if (couponDisc > 0) {
+      couponLine.classList.remove('hidden'); couponLine.classList.add('flex');
+      document.getElementById('v4-coupon-label').textContent = `Coupon (${coupon.code})`;
+      document.getElementById('v4-coupon-amount').textContent = `-Rs.${couponDisc.toLocaleString()}`;
+    } else {
+      couponLine.classList.add('hidden'); couponLine.classList.remove('flex');
+    }
+  } else {
+    couponLine.classList.add('hidden'); couponLine.classList.remove('flex');
+  }
+
+  // Points line
+  const pointsLine = document.getElementById('v4-points-line');
+  if (redeemedPoints && redeemedPoints > 0) {
+    const pointsDisc = Math.round(redeemedPoints / LOYALTY_CONFIG.redemptionRate);
+    pointsLine.classList.remove('hidden'); pointsLine.classList.add('flex');
+    document.getElementById('v4-points-label').textContent = `Loyalty (${redeemedPoints.toLocaleString()} pts)`;
+    document.getElementById('v4-points-amount').textContent = `-Rs.${pointsDisc.toLocaleString()}`;
+  } else {
+    pointsLine.classList.add('hidden'); pointsLine.classList.remove('flex');
+  }
+}
+
+// ===== Render QR items =====
+function renderQrItems(cart, sub, tax, total) {
+  const list = document.getElementById('v4-qr-items');
+  list.innerHTML = cart.map(it => {
+    const ep = getEffectivePrice(it);
+    const lineTotal = ep * it.qty;
+    const hasDiscount = it.discount && ep < it.price;
+    return `
+    <div class="flex items-center justify-between py-2.5 px-3 text-[12px] border-b border-gray-100 last:border-0">
+      <div class="flex items-center gap-2.5 min-w-0">
+        <div class="w-9 h-9 rounded-lg border border-gray-200 shrink-0 overflow-hidden bg-gray-50">
+          <img src="${it.img}" alt="${it.name}" class="w-full h-full object-cover" onerror="this.parentElement.innerHTML='<div class=\\'w-full h-full flex items-center justify-center\\'><ion-icon name=\\'${it.icon || 'bag-outline'}\\' class=\\'text-gray-400 text-sm\\'></ion-icon></div>'">
+        </div>
+        <div class="min-w-0">
+          <p class="font-medium text-black truncate">${it.name}</p>
+          <div class="flex items-center gap-1.5">
+            <span class="text-gray-500">×${it.qty}</span>
+            ${hasDiscount ? `<span class="text-[10px] text-brand-green font-semibold">${it.discount.label}</span>` : ''}
+          </div>
+        </div>
+      </div>
+      <p class="font-semibold text-navy whitespace-nowrap ml-2">Rs.${lineTotal.toLocaleString()}</p>
+    </div>`;
+  }).join('');
+  document.getElementById('qr-subtotal').textContent = `Rs.${sub.toLocaleString()}`;
+  document.getElementById('qr-tax').textContent = `Rs.${tax.toLocaleString()}`;
+  document.getElementById('qr-amount').textContent = `Rs.${total.toLocaleString()}`;
+}
+
+function startQrTimer() {
+  if (qrTimerHandle) clearInterval(qrTimerHandle);
+  let seconds = 5 * 60 - 2;
+  const el = document.getElementById('qr-timer');
+  qrTimerHandle = setInterval(() => {
+    seconds -= 1;
+    const m = String(Math.floor(seconds / 60)).padStart(2, '0');
+    const s = String(seconds % 60).padStart(2, '0');
+    if (el) el.textContent = `${m}:${s}`;
+    if (seconds <= 0) {
+      clearInterval(qrTimerHandle); qrTimerHandle = null;
+      if (el) el.textContent = 'Expired';
+      showToast('⏰ QR expired. Ask cashier to re-issue.');
+    }
+  }, 1000);
+}
+
+// ===== Listen for messages from V3 =====
+posListen((type, payload) => {
+  switch (type) {
+    case 'cart-update':
+      lastCartData = payload;
+      // Use V3's display values (GST incl/excl aware) so both screens always match
+      renderCart(payload.cart, payload.count,
+        payload.displaySub !== undefined ? payload.displaySub : payload.sub,
+        payload.displayTax !== undefined ? payload.displayTax : payload.tax,
+        payload.displayTotal !== undefined ? payload.displayTotal : payload.total,
+        payload.coupon, payload.redeemedPoints);
+      // Sync GST mode label
+      const gstMode = payload.gstIncluded ? 'incl' : 'excl';
+      const v4GstEl = document.getElementById('v4-gst-mode');
+      const qrGstEl = document.getElementById('qr-gst-mode');
+      if (v4GstEl) v4GstEl.textContent = gstMode;
+      if (qrGstEl) qrGstEl.textContent = gstMode;
+      break;
+
+    case 'customer-update':
+      customer = payload.customer;
+      if (customer) {
+        document.getElementById('v4-cust-initial').textContent = customer.initial;
+        document.getElementById('v4-cust-name').textContent = customer.name;
+        document.getElementById('v4-cust-area').textContent = customer.area || 'Karachi';
+        // Loyalty points
+        const pts = customer.loyaltyPoints || 0;
+        const ptsValue = Math.round(pts / LOYALTY_CONFIG.redemptionRate);
+        document.getElementById('v4-cust-points').textContent = pts.toLocaleString();
+        document.getElementById('v4-cust-tier').textContent = customer.loyaltyTier || 'Member';
+        document.getElementById('v4-cust-pts-value').textContent = `Rs.${ptsValue.toLocaleString()}`;
+        // Points progress bar (thresholds from shared LOYALTY_CONFIG)
+        const tierThresholds = LOYALTY_CONFIG.tierThresholds;
+        const currentTier = customer.loyaltyTier || 'Member';
+        const nextTierPts = tierThresholds[currentTier] || 5000;
+        const pctBar = Math.min(100, Math.round((pts / nextTierPts) * 100));
+        document.getElementById('v4-cust-pts-bar').style.width = pctBar + '%';
+        const nextTierName = currentTier === 'Member' ? 'Silver' : currentTier === 'Silver' ? 'Gold' : currentTier === 'Gold' ? 'Platinum' : 'Max';
+        document.getElementById('v4-cust-pts-next').textContent = nextTierName === 'Max'
+          ? '🎉 Max tier!'
+          : `${(nextTierPts - pts).toLocaleString()} to ${nextTierName}`;
+        setSidebar('known');
+      } else {
+        setSidebar('guest');
+      }
+      break;
+
+    case 'state-change':
+      const state = payload.state;
+      if (successTimeout) { clearTimeout(successTimeout); successTimeout = null; }
+      if (state === 'idle') {
+        setV4State('idle');
+        startIdleRotation();
+      } else if (state === 'scanning') {
+        setV4State('scanning');
+        stopIdleRotation();
+      } else if (state === 'qr') {
+        setV4State('qr');
+        stopIdleRotation();
+        if (payload.cart) {
+          renderQrItems(payload.cart,
+            payload.displaySub !== undefined ? payload.displaySub : payload.sub,
+            payload.displayTax !== undefined ? payload.displayTax : payload.tax,
+            payload.displayTotal !== undefined ? payload.displayTotal : payload.total);
+        } else if (lastCartData && lastCartData.cart) {
+          renderQrItems(lastCartData.cart,
+            lastCartData.displaySub !== undefined ? lastCartData.displaySub : lastCartData.sub,
+            lastCartData.displayTax !== undefined ? lastCartData.displayTax : lastCartData.tax,
+            lastCartData.displayTotal !== undefined ? lastCartData.displayTotal : lastCartData.total);
+        }
+        startQrTimer();
+      } else if (state === 'success') {
+        if (qrTimerHandle) { clearInterval(qrTimerHandle); qrTimerHandle = null; }
+        document.getElementById('success-receipt').textContent = '#' + (payload.txId || '');
+        document.getElementById('success-greeting').textContent = payload.customerName
+          ? `Thanks, ${payload.customerName}!` : 'Thank you!';
+        // Show amount from last cart data
+        if (lastCartData && lastCartData.total) {
+          document.getElementById('success-amount').textContent = `Rs.${lastCartData.total.toLocaleString()}`;
+          document.getElementById('success-amount-box').classList.remove('hidden');
+        }
+        document.getElementById('success-subtitle').textContent = 'Your payment was received';
+        setV4State('success');
+        stopIdleRotation();
+        // Auto-return to idle after 10 seconds (cashier controls via "New Sale")
+        successTimeout = setTimeout(() => {
+          setV4State('idle');
+          startIdleRotation();
+          lastCartData = null;
+        }, 10000);
+      }
+      break;
+
+    case 'qr-expired':
+      if (qrTimerHandle) { clearInterval(qrTimerHandle); qrTimerHandle = null; }
+      const timer = document.getElementById('qr-timer');
+      if (timer) timer.textContent = 'Expired';
+      showToast('⏰ QR expired. Ask cashier to re-issue.');
+      break;
+  }
+});
+
+// ===== Init =====
+document.addEventListener('DOMContentLoaded', () => {
+  setV4State('idle');
+  setSidebar('guest');
+  showIdleSlide(0);
+  startIdleRotation();
+});
+</script>
+</body>
+</html>

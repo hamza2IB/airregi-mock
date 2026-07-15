@@ -1,0 +1,1186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Air Register — Warehouse Inventory Manager</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        navy: { dark: '#0a1535', DEFAULT: '#1a2d6b', light: '#2a4494' },
+        brand: { blue: '#3366cc', green: '#2dd36f', orange: '#ff9800', red: '#eb445a', purple: '#7c4dff' },
+        page: '#f4f6f9',
+        border: '#e8ecf1'
+      },
+      fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] }
+    }
+  }
+}
+</script>
+<script src="https://unpkg.com/ionicons@7.1.0/dist/ionicons.js"></script>
+<style>
+html,body{margin:0;padding:0;background:#f4f6f9;color:#111;font-family:'Plus Jakarta Sans',sans-serif;min-height:100vh;}
+.sidebar-link{display:flex;align-items:center;gap:12px;padding:10px 16px;border-radius:8px;font-size:13px;font-weight:500;color:rgba(255,255,255,0.65);transition:all 0.15s;cursor:pointer;}
+.sidebar-link:hover{background:rgba(255,255,255,0.08);color:#fff;}
+.sidebar-link.active{background:rgba(255,255,255,0.12);color:#fff;font-weight:600;}
+.sidebar-link ion-icon{font-size:20px;}
+.page-section{display:none;}.page-section.active{display:block;}
+.stat-card{background:#fff;border-radius:12px;padding:20px;border:1px solid #e8ecf1;transition:box-shadow 0.2s,transform 0.2s;}
+.stat-card:hover{box-shadow:0 8px 24px rgba(26,45,107,0.08);transform:translateY(-2px);}
+.btn-primary{background:#1a2d6b;color:#fff;font-size:12px;font-weight:600;padding:10px 20px;border-radius:8px;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:background 0.15s;}
+.btn-primary:hover{background:#2a4494;}
+.btn-secondary{background:#f4f6f9;color:#1a2d6b;font-size:12px;font-weight:600;padding:10px 20px;border-radius:8px;border:1px solid #e8ecf1;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all 0.15s;}
+.btn-secondary:hover{background:#e8ecf1;}
+.btn-success{background:#2dd36f;color:#fff;font-size:12px;font-weight:600;padding:10px 20px;border-radius:8px;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
+.btn-danger{background:#eb445a;color:#fff;font-size:12px;font-weight:600;padding:10px 20px;border-radius:8px;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
+.btn-warning{background:#ff9800;color:#fff;font-size:12px;font-weight:600;padding:10px 20px;border-radius:8px;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
+.input-field{width:100%;background:#fff;border:1.5px solid #e8ecf1;border-radius:8px;padding:10px 14px;font-size:13px;font-family:inherit;transition:border-color 0.2s;}
+.input-field:focus{outline:none;border-color:#1a2d6b;box-shadow:0 0 0 3px rgba(26,45,107,0.06);}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:600;}
+.badge-green{background:rgba(45,211,111,0.1);color:#2dd36f;}
+.badge-orange{background:rgba(255,152,0,0.1);color:#ff9800;}
+.badge-red{background:rgba(235,68,90,0.1);color:#eb445a;}
+.badge-blue{background:rgba(51,102,204,0.1);color:#3366cc;}
+.badge-purple{background:rgba(124,77,255,0.1);color:#7c4dff;}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#0a1535;color:#fff;padding:12px 20px;border-radius:12px;font-size:12px;font-weight:500;z-index:300;display:flex;align-items:center;gap:8px;opacity:0;transition:opacity 0.3s,transform 0.3s;pointer-events:none;}
+.toast.show{opacity:1;pointer-events:auto;}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:80;display:none;align-items:center;justify-content:center;padding:16px;}
+.modal-overlay.open{display:flex;}
+@media(max-width:768px){
+  aside{display:none!important;}
+  .mobile-nav{display:flex!important;}
+  main{padding-bottom:80px!important;}
+  .sm-hide{display:none!important;}
+  .sm-full{grid-template-columns:1fr!important;}
+  .sm-stack{flex-direction:column!important;align-items:stretch!important;}
+}
+.mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #e8ecf1;z-index:100;padding:8px 0 env(safe-area-inset-bottom,8px);}
+.mobile-nav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0;background:none;border:none;cursor:pointer;color:#94a3b8;font-size:10px;font-family:inherit;}
+.mobile-nav button.active{color:#1a2d6b;font-weight:600;}
+.mobile-nav button ion-icon{font-size:22px;}
+*:focus-visible{outline:none;}input:focus,select:focus,textarea:focus{outline:none;}
+</style>
+</head>
+<body>
+<div class="flex min-h-screen">
+
+<!-- ━━━━ SIDEBAR ━━━━ -->
+<aside class="w-[250px] bg-navy-dark flex flex-col shrink-0 sticky top-0 h-screen overflow-y-auto">
+  <div class="px-5 py-5 flex items-center gap-3 border-b border-white/10">
+    <div class="w-9 h-9 bg-white rounded-xl flex items-center justify-center shadow-sm">
+      <ion-icon name="business" class="text-navy" style="font-size:20px;"></ion-icon>
+    </div>
+    <div>
+      <p class="text-white font-bold text-[14px] leading-tight">Warehouse Hub</p>
+      <p class="text-white/40 text-[10px] uppercase tracking-wider">Inventory Manager</p>
+    </div>
+  </div>
+  <nav class="flex-1 px-3 py-4 space-y-1">
+    <div class="sidebar-link active" onclick="navTo('dashboard')">
+      <ion-icon name="grid-outline"></ion-icon><span>Dashboard</span>
+    </div>
+    <div class="sidebar-link" onclick="navTo('products')">
+      <ion-icon name="cube-outline"></ion-icon><span>Products</span>
+    </div>
+    <div class="sidebar-link" onclick="navTo('add-product')">
+      <ion-icon name="add-circle-outline"></ion-icon><span>Add Product</span>
+    </div>
+    <div class="sidebar-link" onclick="navTo('bulk-upload')">
+      <ion-icon name="cloud-upload-outline"></ion-icon><span>Bulk Upload</span>
+    </div>
+    <div class="sidebar-link" onclick="navTo('print-barcodes')">
+      <ion-icon name="barcode-outline"></ion-icon><span>Print Barcodes</span>
+    </div>
+    <div class="sidebar-link" onclick="navTo('online-orders')">
+      <ion-icon name="bag-handle-outline"></ion-icon><span>Online Orders</span>
+      <span id="order-badge" class="ml-auto w-5 h-5 bg-brand-red text-white text-[9px] font-bold rounded-full flex items-center justify-center">3</span>
+    </div>
+    <div class="sidebar-link" onclick="navTo('store-requests')">
+      <ion-icon name="paper-plane-outline"></ion-icon><span>Store Requests</span>
+      <span id="store-req-badge" class="ml-auto w-5 h-5 bg-brand-purple text-white text-[9px] font-bold rounded-full flex items-center justify-center">2</span>
+    </div>
+    <div class="sidebar-link" onclick="navTo('transfers')">
+      <ion-icon name="bus-outline"></ion-icon><span>Transfers</span>
+    </div>
+    <div class="sidebar-link" onclick="navTo('purchase-orders')">
+      <ion-icon name="cart-outline"></ion-icon><span>Purchase Orders</span>
+    </div>
+  </nav>
+  <div class="px-4 py-4 border-t border-white/10">
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 rounded-full bg-brand-blue text-white flex items-center justify-center font-bold text-[10px]">WM</div>
+      <div class="flex-1 min-w-0">
+        <p class="text-white text-[11px] font-semibold truncate">Warehouse Manager</p>
+        <p class="text-white/40 text-[10px]">Main Warehouse</p>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- ━━━━ MAIN ━━━━ -->
+<main class="flex-1 min-w-0">
+
+<!-- Header -->
+<header class="bg-white border-b border-border px-6 py-4 flex items-center justify-between sticky top-0 z-40">
+  <div>
+    <h1 id="page-title" class="text-[18px] font-bold text-navy-dark">Dashboard</h1>
+    <p id="page-subtitle" class="text-[11px] text-gray-500 mt-0.5">Warehouse overview & operations</p>
+  </div>
+  <div class="flex items-center gap-3 sm-hide">
+    <span class="text-[11px] text-gray-400">Jul 6, 2026 · Main Warehouse</span>
+  </div>
+</header>
+
+<!-- ━━━━ DASHBOARD ━━━━ -->
+<div id="sec-dashboard" class="page-section active p-6">
+  <div class="grid grid-cols-4 sm-full gap-4 mb-6">
+    <div class="stat-card">
+      <div class="flex items-center gap-2 mb-2">
+        <div class="w-8 h-8 rounded-lg bg-navy/5 flex items-center justify-center"><ion-icon name="cube-outline" class="text-navy text-base"></ion-icon></div>
+        <p class="text-[10px] text-gray-500 uppercase tracking-wider font-medium">Total SKUs</p>
+      </div>
+      <p id="dash-total" class="text-[26px] font-extrabold text-navy-dark">0</p>
+      <p class="text-[10px] text-gray-400 mt-1">In product catalog</p>
+    </div>
+    <div class="stat-card">
+      <div class="flex items-center gap-2 mb-2">
+        <div class="w-8 h-8 rounded-lg bg-brand-orange/10 flex items-center justify-center"><ion-icon name="alert-circle-outline" class="text-brand-orange text-base"></ion-icon></div>
+        <p class="text-[10px] text-gray-500 uppercase tracking-wider font-medium">Low Stock</p>
+      </div>
+      <p id="dash-low" class="text-[26px] font-extrabold text-brand-orange">0</p>
+      <p class="text-[10px] text-gray-400 mt-1">Need reorder</p>
+    </div>
+    <div class="stat-card">
+      <div class="flex items-center gap-2 mb-2">
+        <div class="w-8 h-8 rounded-lg bg-brand-blue/10 flex items-center justify-center"><ion-icon name="bag-handle-outline" class="text-brand-blue text-base"></ion-icon></div>
+        <p class="text-[10px] text-gray-500 uppercase tracking-wider font-medium">Pending Orders</p>
+      </div>
+      <p id="dash-orders" class="text-[26px] font-extrabold text-brand-blue">0</p>
+      <p class="text-[10px] text-gray-400 mt-1">Online orders to fulfill</p>
+    </div>
+    <div class="stat-card">
+      <div class="flex items-center gap-2 mb-2">
+        <div class="w-8 h-8 rounded-lg bg-brand-purple/10 flex items-center justify-center"><ion-icon name="paper-plane-outline" class="text-brand-purple text-base"></ion-icon></div>
+        <p class="text-[10px] text-gray-500 uppercase tracking-wider font-medium">Store Requests</p>
+      </div>
+      <p id="dash-requests" class="text-[26px] font-extrabold text-brand-purple">0</p>
+      <p class="text-[10px] text-gray-400 mt-1">Pending from branches</p>
+    </div>
+  </div>
+
+  <!-- Low Stock -->
+  <div class="bg-white rounded-xl border border-border p-5 mb-6">
+    <div class="flex items-center justify-between mb-4">
+      <div class="flex items-center gap-2">
+        <ion-icon name="warning-outline" class="text-brand-orange text-lg"></ion-icon>
+        <p class="text-[14px] font-semibold text-navy-dark">Low Warehouse Stock</p>
+      </div>
+      <button onclick="navTo('purchase-orders')" class="text-[11px] text-brand-blue font-medium hover:underline">Create PO →</button>
+    </div>
+    <div id="dash-low-stock" class="space-y-2"></div>
+  </div>
+
+  <!-- Recent Activity -->
+  <div class="bg-white rounded-xl border border-border p-5">
+    <p class="text-[14px] font-semibold text-navy-dark mb-4">Recent Activity</p>
+    <div class="space-y-3">
+      <div class="flex items-center gap-3 py-2 border-b border-gray-100">
+        <div class="w-8 h-8 rounded-lg bg-brand-green/10 flex items-center justify-center"><ion-icon name="add-circle-outline" class="text-brand-green text-sm"></ion-icon></div>
+        <div class="flex-1"><p class="text-[12px] text-gray-700">Added <strong>Samsung 65" QLED TV</strong> to catalog</p><p class="text-[10px] text-gray-400">30 min ago</p></div>
+      </div>
+      <div class="flex items-center gap-3 py-2 border-b border-gray-100">
+        <div class="w-8 h-8 rounded-lg bg-brand-blue/10 flex items-center justify-center"><ion-icon name="bus-outline" class="text-brand-blue text-sm"></ion-icon></div>
+        <div class="flex-1"><p class="text-[12px] text-gray-700">Transfer <strong>#TRF-2043</strong> dispatched to Clifton Branch</p><p class="text-[10px] text-gray-400">1 hr ago</p></div>
+      </div>
+      <div class="flex items-center gap-3 py-2 border-b border-gray-100">
+        <div class="w-8 h-8 rounded-lg bg-brand-purple/10 flex items-center justify-center"><ion-icon name="bag-handle-outline" class="text-brand-purple text-sm"></ion-icon></div>
+        <div class="flex-1"><p class="text-[12px] text-gray-700">Order <strong>#OD-1045</strong> shipped to customer</p><p class="text-[10px] text-gray-400">2 hrs ago</p></div>
+      </div>
+      <div class="flex items-center gap-3 py-2">
+        <div class="w-8 h-8 rounded-lg bg-brand-green/10 flex items-center justify-center"><ion-icon name="cart-outline" class="text-brand-green text-sm"></ion-icon></div>
+        <div class="flex-1"><p class="text-[12px] text-gray-700">PO <strong>#PO-320</strong> received from supplier — 500 units</p><p class="text-[10px] text-gray-400">4 hrs ago</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ━━━━ PRODUCTS ━━━━ -->
+<div id="sec-products" class="page-section p-6">
+  <div class="flex items-center justify-between mb-5 sm-stack gap-3">
+    <div class="flex items-center gap-3">
+      <div class="relative">
+        <ion-icon name="search-outline" class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></ion-icon>
+        <input id="prod-search" type="text" placeholder="Search products..." class="input-field pl-9 w-[240px]" oninput="renderProducts()">
+      </div>
+      <select id="prod-cat-filter" class="input-field w-[140px]" onchange="renderProducts()">
+        <option value="">All Categories</option>
+        <option value="Grocery">Grocery</option>
+        <option value="Clothing">Clothing</option>
+        <option value="Electronics">Electronics</option>
+      </select>
+      <select id="prod-stock-filter" class="input-field w-[130px]" onchange="renderProducts()">
+        <option value="">All Status</option>
+        <option value="low">Low Stock</option>
+        <option value="out">Out of Stock</option>
+        <option value="in">In Stock</option>
+      </select>
+    </div>
+    <div class="flex gap-2">
+      <button class="btn-secondary" onclick="navTo('bulk-upload')"><ion-icon name="cloud-upload-outline"></ion-icon>Bulk Upload</button>
+      <button class="btn-primary" onclick="navTo('add-product')"><ion-icon name="add-outline"></ion-icon>Add Product</button>
+    </div>
+  </div>
+  <div class="bg-white rounded-xl border border-border overflow-hidden">
+    <table class="w-full">
+      <thead>
+        <tr class="bg-gray-50 border-b border-border">
+          <th class="text-left px-4 py-3 text-[10px] uppercase tracking-wider text-gray-500 font-semibold">Product</th>
+          <th class="text-left px-4 py-3 text-[10px] uppercase tracking-wider text-gray-500 font-semibold sm-hide">SKU</th>
+          <th class="text-left px-4 py-3 text-[10px] uppercase tracking-wider text-gray-500 font-semibold sm-hide">Barcode</th>
+          <th class="text-left px-4 py-3 text-[10px] uppercase tracking-wider text-gray-500 font-semibold sm-hide">Category</th>
+          <th class="text-left px-4 py-3 text-[10px] uppercase tracking-wider text-gray-500 font-semibold">Price</th>
+          <th class="text-left px-4 py-3 text-[10px] uppercase tracking-wider text-gray-500 font-semibold">W/H Stock</th>
+          <th class="text-left px-4 py-3 text-[10px] uppercase tracking-wider text-gray-500 font-semibold">Status</th>
+          <th class="text-right px-4 py-3 text-[10px] uppercase tracking-wider text-gray-500 font-semibold">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="prod-table-body" class="divide-y divide-gray-100"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ━━━━ ADD PRODUCT ━━━━ -->
+<div id="sec-add-product" class="page-section p-6">
+  <div class="bg-white rounded-xl border border-border p-6 max-w-2xl">
+    <div class="flex items-center justify-between mb-5">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-navy/10 flex items-center justify-center"><ion-icon name="cube-outline" class="text-navy text-xl"></ion-icon></div>
+        <div>
+          <h2 class="text-[16px] font-bold text-navy-dark">Add New Product</h2>
+          <p class="text-[11px] text-gray-400">Add to master catalog — distributes to all branches</p>
+        </div>
+      </div>
+      <span id="ap-draft-badge" class="text-[10px] text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">Unsaved</span>
+    </div>
+
+    <form id="add-product-form" onsubmit="return addProduct(event)" class="space-y-5">
+
+      <!-- GENERAL INFORMATION -->
+      <div class="bg-gray-50 rounded-xl border border-gray-100 p-5">
+        <div class="flex items-center justify-between mb-4">
+          <p class="text-[10px] uppercase tracking-wider font-semibold text-gray-500">General Information</p>
+          <span class="text-[10px] text-gray-400 font-mono">all categories</span>
+        </div>
+        <div class="grid grid-cols-2 gap-4 sm-full">
+          <div class="col-span-2"><label class="block text-[11px] text-gray-600 font-medium mb-1">Product Name *</label><input type="text" id="ap-name" required class="input-field" placeholder="e.g. Nestle Pure Life Water 1.5L"></div>
+          <div>
+            <label class="block text-[11px] text-gray-600 font-medium mb-1">Category *</label>
+            <select id="ap-category" required class="input-field font-semibold border-2 border-navy/30" onchange="apCategoryChanged()">
+              <option value="">Select Category</option>
+              <option value="Grocery">Grocery & Fresh</option>
+              <option value="Clothing">Clothing & Apparel</option>
+              <option value="Electronics">Electronics & Appliances</option>
+            </select>
+            <p class="text-[9px] text-gray-400 mt-1">Category-specific fields appear below</p>
+          </div>
+          <div><label class="block text-[11px] text-gray-600 font-medium mb-1">Subcategory *</label>
+            <select id="ap-subcategory" class="input-field"><option value="">Select category first</option></select>
+          </div>
+          <div><label class="block text-[11px] text-gray-600 font-medium mb-1">SKU / Barcode *</label>
+            <div class="relative"><ion-icon name="barcode-outline" class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></ion-icon>
+            <input type="text" id="ap-sku" required class="input-field pl-9 font-mono" placeholder="Scan or enter code"></div>
+          </div>
+          <div><label class="block text-[11px] text-gray-600 font-medium mb-1">Brand</label><input type="text" id="ap-brand" class="input-field" placeholder="e.g. Nestle, Samsung, Alkaram"></div>
+          <div><label class="block text-[11px] text-gray-600 font-medium mb-1">Base Price (PKR) *</label>
+            <input type="number" id="ap-price" required min="1" class="input-field" placeholder="0">
+          </div>
+          <div><label class="block text-[11px] text-gray-600 font-medium mb-1">Warehouse Stock Qty *</label>
+            <input type="number" id="ap-stock" required min="0" class="input-field text-[14px] font-bold" placeholder="0">
+          </div>
+          <div class="col-span-2"><label class="block text-[11px] text-gray-600 font-medium mb-1">Description</label><textarea id="ap-desc" class="input-field" rows="2" placeholder="Product description for catalog and marketplace..."></textarea></div>
+          <div class="col-span-2">
+            <label class="block text-[11px] text-gray-600 font-medium mb-1">Product Images <span class="text-gray-400 font-normal">(at least 1)</span></label>
+            <div id="ap-upload-box" onclick="document.getElementById('ap-file-input').click()" class="border-2 border-dashed border-gray-200 rounded-lg p-5 text-center cursor-pointer hover:border-navy/30 hover:bg-navy/[0.02] transition">
+              <ion-icon name="cloud-upload-outline" class="text-gray-300 text-2xl mb-1"></ion-icon>
+              <p class="text-[12px] font-medium text-gray-600">Drop images or click to upload</p>
+              <p class="text-[10px] text-gray-400 mt-0.5">Square images recommended · 3 angles for apparel</p>
+              <input type="file" id="ap-file-input" accept="image/*" multiple class="hidden">
+            </div>
+            <div id="ap-thumbs" class="flex gap-2 flex-wrap mt-2"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- GROCERY SPECIFIC -->
+      <div id="ap-panel-grocery" class="hidden bg-brand-orange/[0.03] rounded-xl border border-brand-orange/20 p-5">
+        <div class="flex items-center justify-between mb-4">
+          <p class="text-[10px] uppercase tracking-wider font-semibold text-brand-orange">Grocery Details</p>
+          <span class="text-[9px] bg-brand-orange/10 text-brand-orange px-2 py-0.5 rounded-full font-bold">CATEGORY-SPECIFIC</span>
+        </div>
+        <div class="grid grid-cols-2 gap-4 sm-full">
+          <div><label class="block text-[11px] text-gray-600 font-medium mb-1">Unit of Measurement</label>
+            <select id="ap-unit" class="input-field">
+              <option value="Piece">Piece</option>
+              <option value="Kilogram">Kilogram (kg)</option>
+              <option value="Gram">Gram (g)</option>
+              <option value="Litre">Litre (L)</option>
+              <option value="Pack">Pack</option>
+            </select>
+          </div>
+          <div><label class="block text-[11px] text-gray-600 font-medium mb-1">Pack Size</label>
+            <input type="text" id="ap-packsize" class="input-field" placeholder="e.g. 500g, 1L, 12 pcs">
+          </div>
+          <div><label class="block text-[11px] text-gray-600 font-medium mb-1">Expiry Date</label>
+            <input type="date" id="ap-expiry" class="input-field">
+          </div>
+          <div><label class="block text-[11px] text-gray-600 font-medium mb-1">Batch Number</label>
+            <input type="text" id="ap-batch" class="input-field font-mono" placeholder="e.g. BN-2026-0706">
+          </div>
+          <div class="col-span-2"><label class="block text-[11px] text-gray-600 font-medium mb-1">Storage Type</label>
+            <select id="ap-storage" class="input-field">
+              <option>Dry / Room temperature</option>
+              <option>Refrigerated</option>
+              <option>Frozen</option>
+            </select>
+          </div>
+          <div class="col-span-2">
+            <div class="flex items-center justify-between p-3.5 bg-white border border-gray-200 rounded-xl">
+              <div>
+                <p class="text-[12px] font-semibold text-navy-dark">Perishable Item</p>
+                <p class="text-[10px] text-gray-500">Requires expiry date · returns turned off</p>
+              </div>
+              <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" id="ap-perishable" class="w-4 h-4 rounded border-gray-300 text-brand-orange"><span class="text-[12px] text-gray-600">Yes</span></label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CLOTHING SPECIFIC -->
+      <div id="ap-panel-clothing" class="hidden bg-brand-purple/[0.03] rounded-xl border border-brand-purple/20 p-5">
+        <div class="flex items-center justify-between mb-4">
+          <p class="text-[10px] uppercase tracking-wider font-semibold text-brand-purple">Apparel Details</p>
+          <span class="text-[9px] bg-brand-purple/10 text-brand-purple px-2 py-0.5 rounded-full font-bold">CATEGORY-SPECIFIC</span>
+        </div>
+        <div class="grid grid-cols-2 gap-4 sm-full">
+          <div><label class="block text-[11px] text-gray-600 font-medium mb-1">Material / Fabric</label>
+            <input type="text" id="ap-material" class="input-field" placeholder="e.g. Cotton Lawn, Linen">
+          </div>
+          <div><label class="block text-[11px] text-gray-600 font-medium mb-1">Fit / Style</label>
+            <select id="ap-fit" class="input-field">
+              <option value="">Select</option>
+              <option>Slim</option>
+              <option>Regular</option>
+              <option>Loose</option>
+              <option>Free Size</option>
+            </select>
+          </div>
+        </div>
+        <!-- Variants -->
+        <div class="mt-4">
+          <div class="flex items-center justify-between mb-3">
+            <label class="text-[11px] text-gray-600 font-semibold">Size & Colour Variants</label>
+            <span class="text-[10px] text-gray-400">Each variant has its own stock</span>
+          </div>
+          <div id="ap-variant-list" class="space-y-2"></div>
+          <p id="ap-variant-empty" class="text-[11px] text-gray-400 py-2">No variants yet — clothing products need at least one size/colour.</p>
+          <button type="button" onclick="apAddVariant()" class="mt-2 w-full py-2.5 border-2 border-dashed border-brand-purple/30 text-brand-purple text-[12px] font-semibold rounded-lg hover:bg-brand-purple/5 transition">
+            + Add Size / Colour Variant
+          </button>
+        </div>
+      </div>
+
+      <!-- ELECTRONICS SPECIFIC -->
+      <div id="ap-panel-electronics" class="hidden bg-brand-blue/[0.03] rounded-xl border border-brand-blue/20 p-5">
+        <div class="flex items-center justify-between mb-4">
+          <p class="text-[10px] uppercase tracking-wider font-semibold text-brand-blue">Electronics Details</p>
+          <span class="text-[9px] bg-brand-blue/10 text-brand-blue px-2 py-0.5 rounded-full font-bold">CATEGORY-SPECIFIC</span>
+        </div>
+        <div class="grid grid-cols-2 gap-4 sm-full">
+          <div><label class="block text-[11px] text-gray-600 font-medium mb-1">Model Number</label>
+            <input type="text" id="ap-model" class="input-field font-mono" placeholder="e.g. WH-1000XM5">
+          </div>
+          <div><label class="block text-[11px] text-gray-600 font-medium mb-1">Warranty Period</label>
+            <select id="ap-warranty" class="input-field">
+              <option>No Warranty</option>
+              <option>6 Months</option>
+              <option>1 Year</option>
+              <option>2 Years</option>
+              <option>3 Years</option>
+            </select>
+          </div>
+          <div class="col-span-2"><label class="block text-[11px] text-gray-600 font-medium mb-1">Key Specifications</label>
+            <textarea id="ap-specs" class="input-field" rows="2" placeholder="Battery life, connectivity, dimensions..."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- MARKETPLACE VISIBILITY -->
+      <div class="flex items-center justify-between p-4 bg-gray-50 border border-gray-200 rounded-xl">
+        <div>
+          <p class="text-[12px] font-semibold text-navy-dark">List on Marketplace App</p>
+          <p class="text-[10px] text-gray-500">Visible to customers browsing online</p>
+        </div>
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input type="checkbox" id="ap-marketplace" checked class="w-4 h-4 rounded border-gray-300 text-navy">
+          <span class="text-[11px] font-medium text-gray-600">Listed</span>
+        </label>
+      </div>
+
+      <!-- ACTIONS -->
+      <div class="flex items-center justify-between pt-3 border-t border-gray-100">
+        <button type="button" class="btn-secondary" onclick="resetAddForm()"><ion-icon name="refresh-outline"></ion-icon>Reset Form</button>
+        <button type="submit" class="btn-primary"><ion-icon name="checkmark-circle-outline"></ion-icon>Add Product</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ━━━━ BULK UPLOAD ━━━━ -->
+<div id="sec-bulk-upload" class="page-section p-6">
+  <div class="bg-white rounded-xl border border-border p-6 max-w-3xl">
+    <h2 class="text-[16px] font-bold text-navy-dark mb-2">Bulk Upload Products</h2>
+    <p class="text-[12px] text-gray-500 mb-5">Upload a CSV file to add multiple products at once.</p>
+    <div class="bg-gray-50 rounded-xl border border-gray-200 p-4 mb-5 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-lg bg-brand-green/10 flex items-center justify-center"><ion-icon name="document-outline" class="text-brand-green text-lg"></ion-icon></div>
+        <div><p class="text-[12px] font-semibold text-navy-dark">Download CSV Template</p><p class="text-[10px] text-gray-400">Pre-formatted with required columns</p></div>
+      </div>
+      <button onclick="downloadTemplate()" class="btn-secondary"><ion-icon name="download-outline"></ion-icon>Download</button>
+    </div>
+    <div id="bulk-drop-zone" class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center cursor-pointer hover:border-navy/30 transition mb-5" onclick="document.getElementById('bulk-file-input').click()" ondrop="handleBulkDrop(event)" ondragover="event.preventDefault();this.classList.add('border-navy','bg-navy/5')" ondragleave="this.classList.remove('border-navy','bg-navy/5')">
+      <ion-icon name="cloud-upload-outline" class="text-gray-300 text-4xl mb-2"></ion-icon>
+      <p class="text-[13px] font-medium text-gray-600">Drop your CSV file here or click to browse</p>
+      <p class="text-[10px] text-gray-400 mt-1">Supports .csv files up to 5MB</p>
+      <input type="file" id="bulk-file-input" accept=".csv" class="hidden" onchange="handleBulkFile(this.files[0])">
+    </div>
+    <div id="bulk-status" class="hidden">
+      <div class="bg-brand-blue/5 border border-brand-blue/20 rounded-xl p-4 mb-4 flex items-center justify-between">
+        <div class="flex items-center gap-3"><ion-icon name="document-text-outline" class="text-brand-blue text-lg"></ion-icon>
+          <div><p id="bulk-filename" class="text-[12px] font-semibold text-navy-dark">file.csv</p><p id="bulk-filesize" class="text-[10px] text-gray-400">0 KB</p></div>
+        </div>
+        <button onclick="clearBulkUpload()" class="text-[10px] text-brand-red font-medium">Remove</button>
+      </div>
+      <div id="bulk-preview" class="bg-white rounded-xl border border-border overflow-x-auto mb-4 max-h-[300px] overflow-y-auto"></div>
+      <div class="flex items-center gap-4 mb-4">
+        <span class="badge badge-green"><ion-icon name="checkmark-circle" class="text-xs"></ion-icon><span id="bulk-valid-count">0</span> valid</span>
+        <span class="badge badge-red"><ion-icon name="alert-circle" class="text-xs"></ion-icon><span id="bulk-error-count">0</span> errors</span>
+      </div>
+      <button onclick="processBulkUpload()" class="btn-primary"><ion-icon name="cloud-upload-outline"></ion-icon>Import Products</button>
+    </div>
+  </div>
+</div>
+
+<!-- ━━━━ PRINT BARCODES ━━━━ -->
+<div id="sec-print-barcodes" class="page-section p-6">
+  <div class="flex items-center justify-between mb-5 sm-stack gap-3">
+    <div class="flex items-center gap-3">
+      <div class="relative">
+        <ion-icon name="search-outline" class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></ion-icon>
+        <input type="text" placeholder="Search by name, SKU, or barcode..." class="input-field pl-9 w-[260px]">
+      </div>
+      <p class="text-[11px] text-gray-400">2 selected · 30 labels</p>
+    </div>
+  </div>
+  <div class="grid grid-cols-3 sm-full gap-5">
+    <!-- LEFT: Product Selection -->
+    <div class="col-span-2">
+      <div class="bg-white rounded-xl border border-border overflow-hidden">
+        <div class="grid grid-cols-12 gap-4 px-5 py-3 bg-gray-50 border-b border-border text-[11px] uppercase tracking-wider text-gray-500 font-semibold">
+          <div class="col-span-1"><input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-navy"></div>
+          <div class="col-span-4">Product</div>
+          <div class="col-span-3">Barcode</div>
+          <div class="col-span-1">Price</div>
+          <div class="col-span-3">Labels</div>
+        </div>
+        <div class="divide-y divide-gray-100 max-h-[420px] overflow-y-auto">
+          <div class="grid grid-cols-12 gap-4 px-5 py-3 items-center bg-navy/5">
+            <div class="col-span-1"><input type="checkbox" checked class="w-4 h-4 rounded border-gray-300 text-navy"></div>
+            <div class="col-span-4"><p class="text-[12px] font-medium text-black">Nestle Water 1.5L</p><p class="text-[10px] text-gray-400">NW-001</p></div>
+            <div class="col-span-3"><p class="text-[10px] font-mono text-gray-500">8964000100011</p></div>
+            <div class="col-span-1"><p class="text-[11px] text-black">Rs.40</p></div>
+            <div class="col-span-3"><div class="flex items-center gap-1"><button class="w-6 h-6 rounded bg-gray-100 text-gray-500 flex items-center justify-center text-xs">−</button><input type="number" value="20" class="w-12 bg-gray-50 border border-gray-200 rounded px-1 h-6 text-[11px] text-center"><button class="w-6 h-6 rounded bg-gray-100 text-gray-500 flex items-center justify-center text-xs">+</button></div></div>
+          </div>
+          <div class="grid grid-cols-12 gap-4 px-5 py-3 items-center bg-navy/5">
+            <div class="col-span-1"><input type="checkbox" checked class="w-4 h-4 rounded border-gray-300 text-navy"></div>
+            <div class="col-span-4"><p class="text-[12px] font-medium text-black">Olper's Milk 1L</p><p class="text-[10px] text-gray-400">OM-002</p></div>
+            <div class="col-span-3"><p class="text-[10px] font-mono text-gray-500">8964000100028</p></div>
+            <div class="col-span-1"><p class="text-[11px] text-black">Rs.180</p></div>
+            <div class="col-span-3"><div class="flex items-center gap-1"><button class="w-6 h-6 rounded bg-gray-100 text-gray-500 flex items-center justify-center text-xs">−</button><input type="number" value="10" class="w-12 bg-gray-50 border border-gray-200 rounded px-1 h-6 text-[11px] text-center"><button class="w-6 h-6 rounded bg-gray-100 text-gray-500 flex items-center justify-center text-xs">+</button></div></div>
+          </div>
+          <div class="grid grid-cols-12 gap-4 px-5 py-3 items-center">
+            <div class="col-span-1"><input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-navy"></div>
+            <div class="col-span-4"><p class="text-[12px] font-medium text-black">Tapal Tea 500g</p><p class="text-[10px] text-gray-400">TT-003</p></div>
+            <div class="col-span-3"><p class="text-[10px] font-mono text-gray-500">8964000100080</p></div>
+            <div class="col-span-1"><p class="text-[11px] text-black">Rs.480</p></div>
+            <div class="col-span-3"><p class="text-[10px] text-gray-400">—</p></div>
+          </div>
+          <div class="grid grid-cols-12 gap-4 px-5 py-3 items-center">
+            <div class="col-span-1"><input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-navy"></div>
+            <div class="col-span-4"><p class="text-[12px] font-medium text-black">Pepsi 500ml</p><p class="text-[10px] text-gray-400">PS-004</p></div>
+            <div class="col-span-3"><p class="text-[10px] font-mono text-gray-500">8964000100035</p></div>
+            <div class="col-span-1"><p class="text-[11px] text-black">Rs.80</p></div>
+            <div class="col-span-3"><p class="text-[10px] text-gray-400">—</p></div>
+          </div>
+          <div class="grid grid-cols-12 gap-4 px-5 py-3 items-center">
+            <div class="col-span-1"><input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-navy"></div>
+            <div class="col-span-4"><p class="text-[12px] font-medium text-black">Dairy Milk</p><p class="text-[10px] text-gray-400">DM-005</p></div>
+            <div class="col-span-3"><p class="text-[10px] font-mono text-gray-500">8964000100066</p></div>
+            <div class="col-span-1"><p class="text-[11px] text-black">Rs.100</p></div>
+            <div class="col-span-3"><p class="text-[10px] text-gray-400">—</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- RIGHT: Preview & Settings -->
+    <div class="space-y-5">
+      <div class="bg-white rounded-xl border border-border p-5">
+        <p class="text-[14px] font-semibold text-navy-dark mb-4">Label Preview</p>
+        <div class="bg-white border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+          <p class="text-[10px] text-gray-700 font-medium mb-1">Nestle Water 1.5L</p>
+          <svg viewBox="0 0 200 50" class="w-full h-10 mb-1">
+            <rect x="15" y="0" width="2" height="40" fill="#000"/><rect x="19" y="0" width="1" height="40" fill="#000"/><rect x="22" y="0" width="3" height="40" fill="#000"/><rect x="27" y="0" width="1" height="40" fill="#000"/><rect x="30" y="0" width="2" height="40" fill="#000"/><rect x="34" y="0" width="1" height="40" fill="#000"/><rect x="37" y="0" width="3" height="40" fill="#000"/><rect x="42" y="0" width="2" height="40" fill="#000"/><rect x="46" y="0" width="1" height="40" fill="#000"/><rect x="49" y="0" width="2" height="40" fill="#000"/><rect x="53" y="0" width="3" height="40" fill="#000"/><rect x="58" y="0" width="1" height="40" fill="#000"/><rect x="61" y="0" width="2" height="40" fill="#000"/><rect x="65" y="0" width="1" height="40" fill="#000"/><rect x="68" y="0" width="3" height="40" fill="#000"/><rect x="73" y="0" width="2" height="40" fill="#000"/><rect x="77" y="0" width="1" height="40" fill="#000"/><rect x="80" y="0" width="2" height="40" fill="#000"/><rect x="84" y="0" width="3" height="40" fill="#000"/><rect x="89" y="0" width="1" height="40" fill="#000"/><rect x="92" y="0" width="2" height="40" fill="#000"/><rect x="96" y="0" width="1" height="40" fill="#000"/><rect x="99" y="0" width="3" height="40" fill="#000"/><rect x="104" y="0" width="2" height="40" fill="#000"/><rect x="108" y="0" width="1" height="40" fill="#000"/><rect x="111" y="0" width="2" height="40" fill="#000"/><rect x="115" y="0" width="3" height="40" fill="#000"/><rect x="120" y="0" width="1" height="40" fill="#000"/><rect x="123" y="0" width="2" height="40" fill="#000"/><rect x="127" y="0" width="1" height="40" fill="#000"/><rect x="130" y="0" width="3" height="40" fill="#000"/><rect x="135" y="0" width="2" height="40" fill="#000"/><rect x="139" y="0" width="1" height="40" fill="#000"/><rect x="142" y="0" width="2" height="40" fill="#000"/><rect x="146" y="0" width="3" height="40" fill="#000"/><rect x="151" y="0" width="1" height="40" fill="#000"/><rect x="154" y="0" width="2" height="40" fill="#000"/><rect x="158" y="0" width="1" height="40" fill="#000"/><rect x="161" y="0" width="3" height="40" fill="#000"/><rect x="166" y="0" width="2" height="40" fill="#000"/><rect x="170" y="0" width="1" height="40" fill="#000"/><rect x="173" y="0" width="2" height="40" fill="#000"/><rect x="177" y="0" width="3" height="40" fill="#000"/><rect x="182" y="0" width="1" height="40" fill="#000"/><rect x="185" y="0" width="2" height="40" fill="#000"/>
+            <text x="100" y="48" text-anchor="middle" font-size="7" font-family="monospace">8964000100011</text>
+          </svg>
+          <p class="text-[10px] text-gray-700 font-medium">Rs.40</p>
+        </div>
+        <p class="text-[10px] text-gray-400 mt-2 text-center">38mm × 25mm · Actual size preview</p>
+      </div>
+      <div class="bg-white rounded-xl border border-border p-5">
+        <p class="text-[14px] font-semibold text-navy-dark mb-4">Settings</p>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-[12px] text-gray-500 font-medium mb-1.5">Label Size</label>
+            <select class="input-field">
+              <option>38mm × 25mm (Standard)</option>
+              <option>50mm × 30mm (Large)</option>
+              <option>25mm × 15mm (Small)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[12px] text-gray-500 font-medium mb-2">Include on label</label>
+            <div class="space-y-2">
+              <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked class="w-4 h-4 rounded border-gray-300 text-navy"><span class="text-[12px] text-gray-600">Product name</span></label>
+              <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked class="w-4 h-4 rounded border-gray-300 text-navy"><span class="text-[12px] text-gray-600">Price</span></label>
+              <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked class="w-4 h-4 rounded border-gray-300 text-navy"><span class="text-[12px] text-gray-600">Barcode number</span></label>
+              <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-navy"><span class="text-[12px] text-gray-600">SKU</span></label>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button class="w-full h-[48px] btn-primary text-[13px] rounded-xl flex items-center justify-center gap-2">
+        <ion-icon name="download-outline" style="font-size:18px;"></ion-icon>
+        Download PDF (30 labels)
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ━━━━ ONLINE ORDERS ━━━━ -->
+<div id="sec-online-orders" class="page-section p-6">
+  <div class="flex items-center justify-between mb-5">
+    <div class="flex bg-white border border-border rounded-lg overflow-hidden" id="order-tabs">
+      <button onclick="setOrderTab('all')" class="px-3.5 py-2 text-[11px] font-semibold bg-navy text-white">All</button>
+      <button onclick="setOrderTab('pending')" class="px-3.5 py-2 text-[11px] font-medium text-gray-500 hover:bg-gray-50">Pending</button>
+      <button onclick="setOrderTab('picking')" class="px-3.5 py-2 text-[11px] font-medium text-gray-500 hover:bg-gray-50">Picking</button>
+      <button onclick="setOrderTab('packed')" class="px-3.5 py-2 text-[11px] font-medium text-gray-500 hover:bg-gray-50">Packed</button>
+      <button onclick="setOrderTab('shipped')" class="px-3.5 py-2 text-[11px] font-medium text-gray-500 hover:bg-gray-50">Shipped</button>
+      <button onclick="setOrderTab('delivered')" class="px-3.5 py-2 text-[11px] font-medium text-gray-500 hover:bg-gray-50">Delivered</button>
+    </div>
+  </div>
+  <div id="orders-list" class="space-y-3"></div>
+</div>
+
+<!-- ━━━━ STORE REQUESTS ━━━━ -->
+<div id="sec-store-requests" class="page-section p-6">
+  <div class="space-y-4" id="store-requests-list"></div>
+</div>
+
+<!-- ━━━━ TRANSFERS ━━━━ -->
+<div id="sec-transfers" class="page-section p-6">
+  <div class="flex items-center justify-between mb-5">
+    <p class="text-[14px] font-semibold text-navy-dark">Transfer History</p>
+    <button onclick="openCreateTransfer()" class="btn-primary"><ion-icon name="add-outline"></ion-icon>New Transfer</button>
+  </div>
+  <div id="transfers-list" class="space-y-3"></div>
+</div>
+
+<!-- ━━━━ PURCHASE ORDERS ━━━━ -->
+<div id="sec-purchase-orders" class="page-section p-6">
+  <div class="flex items-center justify-between mb-5">
+    <p class="text-[14px] font-semibold text-navy-dark">Purchase Orders (Suppliers)</p>
+    <button onclick="createPO()" class="btn-primary"><ion-icon name="add-outline"></ion-icon>New PO</button>
+  </div>
+  <div id="po-list" class="space-y-3"></div>
+</div>
+
+</main>
+</div>
+
+<!-- Mobile Nav -->
+<nav class="mobile-nav">
+  <button class="active" onclick="navTo('dashboard')"><ion-icon name="grid-outline"></ion-icon><span>Home</span></button>
+  <button onclick="navTo('products')"><ion-icon name="cube-outline"></ion-icon><span>Products</span></button>
+  <button onclick="navTo('online-orders')"><ion-icon name="bag-handle-outline"></ion-icon><span>Orders</span></button>
+  <button onclick="navTo('store-requests')"><ion-icon name="paper-plane-outline"></ion-icon><span>Requests</span></button>
+</nav>
+
+<!-- Toast -->
+<div id="app-toast" class="toast"><ion-icon id="toast-icon" name="checkmark-circle" class="text-brand-green text-lg"></ion-icon><span id="toast-msg"></span></div>
+
+<script>
+// ━━━━ DATA ━━━━
+let products = [
+  {id:1,name:'Nestle Water 1.5L',sku:'NW-001',barcode:'8964000100011',brand:'Nestle',category:'Grocery',subcategory:'Beverages',price:40,cost:28,stock:2400,minStock:500,marketplace:true},
+  {id:2,name:"Olper's Milk 1L",sku:'OM-002',barcode:'8964000100028',brand:"Olper's",category:'Grocery',subcategory:'Dairy',price:180,cost:145,stock:800,minStock:300,marketplace:true},
+  {id:3,name:'Tapal Tea 500g',sku:'TT-003',barcode:'8964000100080',brand:'Tapal',category:'Grocery',subcategory:'Beverages',price:480,cost:380,stock:600,minStock:200,marketplace:true},
+  {id:4,name:'Pepsi 500ml',sku:'PS-004',barcode:'8964000100035',brand:'PepsiCo',category:'Grocery',subcategory:'Beverages',price:80,cost:55,stock:1500,minStock:500,marketplace:true},
+  {id:5,name:'Dairy Milk',sku:'DM-005',barcode:'8964000100066',brand:'Cadbury',category:'Grocery',subcategory:'Snacks',price:100,cost:72,stock:180,minStock:200,marketplace:true},
+  {id:6,name:'Sooper Biscuits',sku:'SB-006',barcode:'8964000100042',brand:'Peek Freans',category:'Grocery',subcategory:'Snacks',price:30,cost:20,stock:120,minStock:300,marketplace:true},
+  {id:7,name:"Men's Slim Fit Kurta",sku:'CL-101',barcode:'8964000200015',brand:'Alkaram Studio',category:'Clothing',subcategory:'Men',price:2450,cost:1600,stock:150,minStock:30,marketplace:true},
+  {id:8,name:'Samsung 55" Crystal TV',sku:'EL-201',barcode:'8964000300012',brand:'Samsung',category:'Electronics',subcategory:'Home Appliances',price:142000,cost:115000,stock:12,minStock:5,marketplace:true},
+  {id:9,name:'Samsung Refrigerator 350L',sku:'EL-202',barcode:'8964000300029',brand:'Samsung',category:'Electronics',subcategory:'Home Appliances',price:185000,cost:152000,stock:8,minStock:5,marketplace:true},
+  {id:10,name:'Lawn Printed Dupatta',sku:'CL-102',barcode:'8964000200022',brand:'Gul Ahmed',category:'Clothing',subcategory:'Women',price:890,cost:550,stock:200,minStock:50,marketplace:true}
+];
+
+let onlineOrders = [
+  {id:'OD-1045',customer:'Ahmed Hassan',phone:'+92 321 456 7890',items:[{name:'Nestle Water 1.5L',qty:3,price:40},{name:'Tapal Tea 500g',qty:1,price:480}],total:600,address:'House 12, Block 5, Clifton',status:'pending',time:Date.now()-10*60000},
+  {id:'OD-1044',customer:'Sara Khan',phone:'+92 300 123 4567',items:[{name:'Dairy Milk',qty:5,price:100},{name:'Pepsi 500ml',qty:3,price:80}],total:740,address:'Flat 2B, Gulshan',status:'pending',time:Date.now()-25*60000},
+  {id:'OD-1043',customer:'Bilal Ahmed',phone:'+92 333 987 6543',items:[{name:"Olper's Milk 1L",qty:4,price:180}],total:720,address:'Flat 3A, Block 8, Gulshan',status:'pending',time:Date.now()-40*60000},
+  {id:'OD-1042',customer:'Usman Ali',phone:'+92 312 876 5432',items:[{name:'Tapal Tea 500g',qty:2,price:480}],total:960,address:'Flat 4B, Clifton',status:'picking',time:Date.now()-2*3600000},
+  {id:'OD-1041',customer:'Fatima Zahra',phone:'+92 345 111 2233',items:[{name:'Sooper Biscuits',qty:10,price:30}],total:300,address:'House 22, DHA Phase 6',status:'packed',time:Date.now()-4*3600000},
+  {id:'OD-1040',customer:'Hassan Raza',phone:'+92 311 222 3344',items:[{name:'Nestle Water 1.5L',qty:5,price:40}],total:200,address:'House 7, DHA Phase 5',status:'shipped',time:Date.now()-8*3600000},
+  {id:'OD-1039',customer:'Ayesha Malik',phone:'+92 322 444 5566',items:[{name:'Pepsi 500ml',qty:6,price:80}],total:480,address:'Block 14, North Nazimabad',status:'delivered',time:Date.now()-24*3600000}
+];
+
+let storeRequests = [
+  {id:'REQ-503',store:'Clifton Branch',items:[{name:'Dairy Milk',sku:'DM-005',qty:50},{name:'Sooper Biscuits',sku:'SB-006',qty:100}],status:'pending',date:'2026-07-06',notes:'Running low before weekend'},
+  {id:'REQ-502',store:'Gulshan Branch',items:[{name:"Olper's Milk 1L",sku:'OM-002',qty:80},{name:'Pepsi 500ml',sku:'PS-004',qty:120}],status:'pending',date:'2026-07-05',notes:''},
+  {id:'REQ-501',store:'Clifton Branch',items:[{name:'Nestle Water 1.5L',sku:'NW-001',qty:200}],status:'approved',date:'2026-07-04',notes:''},
+  {id:'REQ-500',store:'DHA Branch',items:[{name:'Samsung Refrigerator 350L',sku:'EL-202',qty:3}],status:'fulfilled',date:'2026-07-02',notes:''}
+];
+
+let transfers = [
+  {id:'TRF-2043',to:'Clifton Branch',items:[{name:'Nestle Water 1.5L',qty:100},{name:"Olper's Milk 1L",qty:50},{name:'Dairy Milk',qty:30}],status:'in_transit',date:'2026-07-05'},
+  {id:'TRF-2042',to:'Clifton Branch',items:[{name:'Samsung Refrigerator 350L',qty:3},{name:'Samsung 55" Crystal TV',qty:2}],status:'in_transit',date:'2026-07-04'},
+  {id:'TRF-2041',to:'Gulshan Branch',items:[{name:'Pepsi 500ml',qty:200},{name:'Tapal Tea 500g',qty:50}],status:'delivered',date:'2026-07-02'},
+  {id:'TRF-2040',to:'DHA Branch',items:[{name:"Men's Slim Fit Kurta",qty:20}],status:'delivered',date:'2026-07-01'}
+];
+
+let purchaseOrders = [
+  {id:'PO-321',supplier:'Nestle Pakistan',items:[{name:'Nestle Water 1.5L',qty:5000,unitCost:28}],total:140000,status:'ordered',date:'2026-07-05',expected:'2026-07-10'},
+  {id:'PO-320',supplier:'PepsiCo Distributors',items:[{name:'Pepsi 500ml',qty:3000,unitCost:55}],total:165000,status:'received',date:'2026-07-01',expected:'2026-07-05'},
+  {id:'PO-319',supplier:'Samsung Electronics',items:[{name:'Samsung 55" Crystal TV',qty:10,unitCost:115000},{name:'Samsung Refrigerator 350L',qty:5,unitCost:152000}],total:1910000,status:'ordered',date:'2026-06-28',expected:'2026-07-12'}
+];
+
+let nextId = 11;
+let currentOrderTab = 'all';
+let bulkData = [];
+
+// ━━━━ NAV ━━━━
+function navTo(page) {
+  document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+  document.querySelectorAll('.mobile-nav button').forEach(b => b.classList.remove('active'));
+
+  const secMap = {dashboard:'sec-dashboard',products:'sec-products','add-product':'sec-add-product','bulk-upload':'sec-bulk-upload','print-barcodes':'sec-print-barcodes','online-orders':'sec-online-orders','store-requests':'sec-store-requests',transfers:'sec-transfers','purchase-orders':'sec-purchase-orders'};
+  const titleMap = {dashboard:['Dashboard','Warehouse overview & operations'],products:['Products','Master product catalog'],'add-product':['Add Product','Add to master catalog'],'bulk-upload':['Bulk Upload','Import products via CSV'],'print-barcodes':['Print Barcodes','Generate barcode labels for products'],'online-orders':['Online Orders','Pick, pack & ship customer orders'],'store-requests':['Store Requests','Fulfill branch stock requests'],transfers:['Transfers','Track dispatches to branches'],'purchase-orders':['Purchase Orders','Manage supplier orders']};
+  const sidebarIdx = {dashboard:0,products:1,'add-product':2,'bulk-upload':3,'print-barcodes':4,'online-orders':5,'store-requests':6,transfers:7,'purchase-orders':8};
+  const mobileIdx = {dashboard:0,products:1,'online-orders':2,'store-requests':3};
+
+  document.getElementById(secMap[page]).classList.add('active');
+  const links = document.querySelectorAll('.sidebar-link');
+  if (sidebarIdx[page] !== undefined && links[sidebarIdx[page]]) links[sidebarIdx[page]].classList.add('active');
+  const mBtns = document.querySelectorAll('.mobile-nav button');
+  if (mobileIdx[page] !== undefined && mBtns[mobileIdx[page]]) mBtns[mobileIdx[page]].classList.add('active');
+
+  const t = titleMap[page] || ['',''];
+  document.getElementById('page-title').textContent = t[0];
+  document.getElementById('page-subtitle').textContent = t[1];
+
+  if (page === 'dashboard') renderDashboard();
+  if (page === 'products') renderProducts();
+  if (page === 'online-orders') renderOrders();
+  if (page === 'store-requests') renderStoreRequests();
+  if (page === 'transfers') renderTransfers();
+  if (page === 'purchase-orders') renderPOs();
+  window.scrollTo(0,0);
+}
+
+// ━━━━ DASHBOARD ━━━━
+function renderDashboard() {
+  const low = products.filter(p => p.stock > 0 && p.stock <= p.minStock);
+  const pendingOrders = onlineOrders.filter(o => o.status === 'pending').length;
+  const pendingReqs = storeRequests.filter(r => r.status === 'pending').length;
+
+  document.getElementById('dash-total').textContent = products.length;
+  document.getElementById('dash-low').textContent = low.length;
+  document.getElementById('dash-orders').textContent = pendingOrders;
+  document.getElementById('dash-requests').textContent = pendingReqs;
+
+  document.getElementById('order-badge').textContent = pendingOrders;
+  document.getElementById('order-badge').style.display = pendingOrders > 0 ? 'flex' : 'none';
+  document.getElementById('store-req-badge').textContent = pendingReqs;
+  document.getElementById('store-req-badge').style.display = pendingReqs > 0 ? 'flex' : 'none';
+
+  document.getElementById('dash-low-stock').innerHTML = low.length === 0
+    ? '<p class="text-[12px] text-gray-400 py-4 text-center">All warehouse stock healthy 👍</p>'
+    : low.map(p => `<div class="flex items-center justify-between py-2 px-3 bg-brand-orange/5 rounded-lg border border-brand-orange/10">
+        <div class="flex items-center gap-3"><div class="w-8 h-8 rounded-lg bg-brand-orange/10 flex items-center justify-center text-[9px] font-bold text-brand-orange">${p.stock}</div>
+        <div><p class="text-[12px] font-medium text-navy-dark">${p.name}</p><p class="text-[10px] text-gray-400">${p.sku} · Min: ${p.minStock}</p></div></div>
+        <button onclick="navTo('purchase-orders')" class="text-[10px] text-brand-blue font-semibold hover:underline">Create PO →</button>
+      </div>`).join('');
+}
+
+// ━━━━ PRODUCTS ━━━━
+function renderProducts() {
+  const search = (document.getElementById('prod-search')?.value || '').toLowerCase();
+  const catFilter = document.getElementById('prod-cat-filter')?.value || '';
+  const stockFilter = document.getElementById('prod-stock-filter')?.value || '';
+
+  let filtered = products.filter(p => {
+    if (search && !p.name.toLowerCase().includes(search) && !p.sku.toLowerCase().includes(search) && !p.barcode.includes(search)) return false;
+    if (catFilter && p.category !== catFilter) return false;
+    if (stockFilter === 'low' && !(p.stock > 0 && p.stock <= p.minStock)) return false;
+    if (stockFilter === 'out' && p.stock !== 0) return false;
+    if (stockFilter === 'in' && p.stock <= p.minStock) return false;
+    return true;
+  });
+
+  document.getElementById('prod-table-body').innerHTML = filtered.length === 0
+    ? '<tr><td colspan="8" class="px-4 py-12 text-center text-[12px] text-gray-400">No products found</td></tr>'
+    : filtered.map(p => {
+      const statusClass = p.stock === 0 ? 'badge-red' : p.stock <= p.minStock ? 'badge-orange' : 'badge-green';
+      const statusLabel = p.stock === 0 ? 'Out of Stock' : p.stock <= p.minStock ? 'Low Stock' : 'In Stock';
+      return `<tr class="hover:bg-gray-50/50 transition">
+        <td class="px-4 py-3"><p class="text-[12px] font-semibold text-navy-dark">${p.name}</p><p class="text-[10px] text-gray-400">${p.brand}</p></td>
+        <td class="px-4 py-3 sm-hide"><span class="text-[11px] font-mono text-gray-600">${p.sku}</span></td>
+        <td class="px-4 py-3 sm-hide"><span class="text-[11px] font-mono text-gray-600">${p.barcode}</span></td>
+        <td class="px-4 py-3 sm-hide"><span class="text-[10px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">${p.category}</span></td>
+        <td class="px-4 py-3"><span class="text-[12px] font-medium">Rs.${p.price.toLocaleString()}</span></td>
+        <td class="px-4 py-3"><span class="text-[13px] font-bold text-navy-dark">${p.stock.toLocaleString()}</span></td>
+        <td class="px-4 py-3"><span class="badge ${statusClass}">${statusLabel}</span></td>
+        <td class="px-4 py-3 text-right">
+          <button onclick="editProduct(${p.id})" class="text-[10px] text-navy font-medium bg-navy/5 px-2.5 py-1 rounded-lg mr-1 hover:bg-navy/10">Edit</button>
+          <button onclick="deleteProduct(${p.id})" class="text-[10px] text-brand-red font-medium bg-brand-red/5 px-2.5 py-1 rounded-lg hover:bg-brand-red/10">Delete</button>
+        </td>
+      </tr>`;
+    }).join('');
+}
+
+// ━━━━ ADD PRODUCT ━━━━
+const subcategories = {
+  Grocery: ['Beverages','Dairy','Snacks & Confectionery','Staples & Grains','Frozen Foods','Fresh Produce','Bakery','Condiments & Sauces','Canned Goods','Baby Food','Health & Supplements'],
+  Clothing: ['Men - Shalwar Kameez','Men - Western','Women - Unstitched','Women - Stitched','Women - Western','Kids - Boys','Kids - Girls','Accessories','Footwear','Innerwear'],
+  Electronics: ['Mobile Phones','Mobile Accessories','Audio & Headphones','Computing & Laptops','Home Appliances','Kitchen Appliances','Gaming','Cameras','Smart Home','Wearables']
+};
+
+let apVariantCount = 0;
+let editingProductId = null;
+
+function apCategoryChanged() {
+  const cat = document.getElementById('ap-category').value;
+  document.getElementById('ap-panel-grocery').classList.toggle('hidden', cat !== 'Grocery');
+  document.getElementById('ap-panel-clothing').classList.toggle('hidden', cat !== 'Clothing');
+  document.getElementById('ap-panel-electronics').classList.toggle('hidden', cat !== 'Electronics');
+  const subSel = document.getElementById('ap-subcategory');
+  subSel.innerHTML = '<option value="">Select</option>';
+  (subcategories[cat] || []).forEach(s => { const o = document.createElement('option'); o.value=s; o.textContent=s; subSel.appendChild(o); });
+}
+
+function calcMargin() { /* removed - not needed */ }
+
+function apAddVariant() {
+  apVariantCount++;
+  const id = 'ap-var-' + apVariantCount;
+  const wrap = document.createElement('div');
+  wrap.id = id;
+  wrap.className = 'grid grid-cols-12 gap-2 items-center bg-white border border-dashed border-gray-200 rounded-lg p-3';
+  wrap.innerHTML = `
+    <div class="col-span-3"><select class="input-field text-[11px] py-2"><option value="">Size</option><option>XS</option><option>S</option><option>M</option><option>L</option><option>XL</option><option>XXL</option><option>Free Size</option></select></div>
+    <div class="col-span-4"><input type="text" placeholder="Colour" class="input-field text-[11px] py-2"></div>
+    <div class="col-span-3"><input type="number" placeholder="Stock Qty" min="0" class="input-field text-[11px] py-2"></div>
+    <div class="col-span-2 text-right"><button type="button" onclick="document.getElementById('${id}').remove();apCheckVariants()" class="text-[10px] text-brand-red font-medium hover:underline">Remove</button></div>
+  `;
+  document.getElementById('ap-variant-list').appendChild(wrap);
+  document.getElementById('ap-variant-empty').classList.add('hidden');
+}
+
+function apCheckVariants() {
+  const hasVariants = document.getElementById('ap-variant-list').children.length > 0;
+  document.getElementById('ap-variant-empty').classList.toggle('hidden', hasVariants);
+}
+
+function resetAddForm() {
+  document.getElementById('add-product-form').reset();
+  document.getElementById('ap-variant-list').innerHTML = '';
+  editingProductId = null;
+  apCategoryChanged();
+}
+
+function addProduct(e) {
+  e.preventDefault();
+  const cat = document.getElementById('ap-category').value;
+  if (!cat) { toast('Please select a category','alert-circle-outline',true); return false; }
+
+  const sku = document.getElementById('ap-sku').value.trim().toUpperCase();
+  const existingSku = products.find(x => x.sku === sku);
+  if (existingSku && existingSku.id !== editingProductId) { toast('SKU already exists!','alert-circle-outline',true); return false; }
+
+  const p = {
+    id: editingProductId || nextId++,
+    name: document.getElementById('ap-name').value.trim(),
+    sku: sku,
+    barcode: sku,
+    brand: document.getElementById('ap-brand').value.trim(),
+    category: cat,
+    subcategory: document.getElementById('ap-subcategory').value,
+    price: parseInt(document.getElementById('ap-price').value),
+    cost: Math.round(parseInt(document.getElementById('ap-price').value) * 0.7),
+    stock: parseInt(document.getElementById('ap-stock').value),
+    minStock: 50,
+    marketplace: document.getElementById('ap-marketplace').checked,
+    desc: document.getElementById('ap-desc').value.trim()
+  };
+
+  // Category-specific data
+  if (cat === 'Grocery') {
+    p.unit = document.getElementById('ap-unit').value;
+    p.packSize = document.getElementById('ap-packsize').value;
+    p.expiry = document.getElementById('ap-expiry').value;
+    p.batch = document.getElementById('ap-batch').value;
+    p.storage = document.getElementById('ap-storage').value;
+    p.perishable = document.getElementById('ap-perishable').checked;
+  } else if (cat === 'Clothing') {
+    p.material = document.getElementById('ap-material').value;
+    p.fit = document.getElementById('ap-fit').value;
+    p.variants = [];
+    document.querySelectorAll('#ap-variant-list > div').forEach(row => {
+      const size = row.querySelector('select').value;
+      const colour = row.querySelectorAll('input')[0].value;
+      const stock = parseInt(row.querySelectorAll('input')[1].value) || 0;
+      if (size || colour) p.variants.push({size, colour, stock});
+    });
+  } else if (cat === 'Electronics') {
+    p.model = document.getElementById('ap-model').value;
+    p.warranty = document.getElementById('ap-warranty').value;
+    p.specs = document.getElementById('ap-specs').value;
+  }
+
+  if (editingProductId) products = products.filter(x => x.id !== editingProductId);
+
+  products.push(p);
+  const action = editingProductId ? 'updated' : 'added';
+  editingProductId = null;
+  resetAddForm();
+  toast(`Product "${p.name}" ${action} successfully!`);
+  navTo('products');
+  return false;
+}
+
+function editProduct(id) {
+  const p = products.find(x => x.id === id);
+  if (!p) return;
+  editingProductId = id;
+  navTo('add-product');
+
+  // Fill general fields
+  document.getElementById('ap-name').value = p.name;
+  document.getElementById('ap-sku').value = p.sku;
+  document.getElementById('ap-brand').value = p.brand;
+  document.getElementById('ap-category').value = p.category;
+  apCategoryChanged();
+  document.getElementById('ap-subcategory').value = p.subcategory || '';
+  document.getElementById('ap-price').value = p.price;
+  document.getElementById('ap-stock').value = p.stock;
+  document.getElementById('ap-marketplace').checked = p.marketplace !== false;
+  if (p.desc) document.getElementById('ap-desc').value = p.desc;
+
+  // Category-specific
+  if (p.category === 'Grocery') {
+    if (p.unit) document.getElementById('ap-unit').value = p.unit;
+    if (p.packSize) document.getElementById('ap-packsize').value = p.packSize;
+    if (p.expiry) document.getElementById('ap-expiry').value = p.expiry;
+    if (p.batch) document.getElementById('ap-batch').value = p.batch;
+    if (p.storage) document.getElementById('ap-storage').value = p.storage;
+    if (p.perishable) document.getElementById('ap-perishable').checked = p.perishable;
+  } else if (p.category === 'Clothing') {
+    if (p.material) document.getElementById('ap-material').value = p.material;
+    if (p.fit) document.getElementById('ap-fit').value = p.fit;
+    if (p.variants) p.variants.forEach(v => { apAddVariant(); const last = document.getElementById('ap-variant-list').lastChild; last.querySelector('select').value = v.size; last.querySelectorAll('input')[0].value = v.colour; last.querySelectorAll('input')[1].value = v.stock; });
+  } else if (p.category === 'Electronics') {
+    if (p.model) document.getElementById('ap-model').value = p.model;
+    if (p.warranty) document.getElementById('ap-warranty').value = p.warranty;
+    if (p.specs) document.getElementById('ap-specs').value = p.specs;
+  }
+
+  document.getElementById('ap-draft-badge').textContent = 'Editing: ' + p.name;
+  document.getElementById('ap-draft-badge').className = 'text-[10px] text-brand-blue bg-brand-blue/10 px-2 py-0.5 rounded-full font-medium';
+}
+
+function deleteProduct(id) {
+  const p = products.find(x => x.id === id);
+  if (!p) return;
+  if (!confirm(`Delete "${p.name}"?`)) return;
+  products = products.filter(x => x.id !== id);
+  toast('Product deleted');
+  renderProducts();
+}
+
+// ━━━━ BULK UPLOAD ━━━━
+function downloadTemplate() {
+  const csv = 'name,sku,barcode,brand,category,subcategory,price,cost,stock,minStock,marketplace\nExample,EX-001,8964000500010,Brand,Grocery,Beverages,100,70,500,100,true';
+  const blob = new Blob([csv], {type:'text/csv'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'warehouse_upload_template.csv'; a.click();
+  toast('Template downloaded');
+}
+
+function handleBulkDrop(e) { e.preventDefault(); e.currentTarget.classList.remove('border-navy','bg-navy/5'); if(e.dataTransfer.files[0]) handleBulkFile(e.dataTransfer.files[0]); }
+
+function handleBulkFile(file) {
+  if (!file || !file.name.endsWith('.csv')) { toast('Please upload a .csv file','alert-circle-outline',true); return; }
+  document.getElementById('bulk-filename').textContent = file.name;
+  document.getElementById('bulk-filesize').textContent = (file.size/1024).toFixed(1)+' KB';
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const lines = e.target.result.split('\n').filter(l => l.trim());
+    if (lines.length < 2) { toast('CSV empty','alert-circle-outline',true); return; }
+    const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+    bulkData = []; let errors = 0;
+    for (let i=1;i<lines.length;i++) {
+      const cols = lines[i].split(',').map(c => c.trim());
+      const row = {}; headers.forEach((h,idx) => row[h] = cols[idx] || '');
+      row._valid = !!(row.name && row.sku && row.price);
+      if (!row._valid) errors++;
+      bulkData.push(row);
+    }
+    document.getElementById('bulk-valid-count').textContent = bulkData.filter(r => r._valid).length;
+    document.getElementById('bulk-error-count').textContent = errors;
+    let html = '<table class="w-full text-[11px]"><thead><tr class="bg-gray-50 border-b border-border">';
+    headers.slice(0,6).forEach(h => html += `<th class="px-3 py-2 text-left text-gray-500 font-semibold uppercase">${h}</th>`);
+    html += '</tr></thead><tbody>';
+    bulkData.slice(0,10).forEach(row => { html += `<tr class="${row._valid?'':'bg-brand-red/5'}">`; headers.slice(0,6).forEach(h => html += `<td class="px-3 py-2 border-b border-gray-100">${row[h]||'<span class="text-brand-red">—</span>'}</td>`); html += '</tr>'; });
+    html += '</tbody></table>';
+    document.getElementById('bulk-preview').innerHTML = html;
+    document.getElementById('bulk-status').classList.remove('hidden');
+  };
+  reader.readAsText(file);
+}
+
+function clearBulkUpload() { bulkData=[]; document.getElementById('bulk-status').classList.add('hidden'); document.getElementById('bulk-file-input').value=''; }
+
+function processBulkUpload() {
+  const valid = bulkData.filter(r => r._valid);
+  if (!valid.length) { toast('No valid products','alert-circle-outline',true); return; }
+  valid.forEach(row => { products.push({id:nextId++,name:row.name,sku:row.sku,barcode:row.barcode||'',brand:row.brand||'',category:row.category||'Grocery',subcategory:row.subcategory||'',price:parseInt(row.price)||0,cost:parseInt(row.cost)||0,stock:parseInt(row.stock)||0,minStock:parseInt(row.minstock)||50,marketplace:row.marketplace!=='false'}); });
+  toast(`${valid.length} products imported`);
+  clearBulkUpload();
+  navTo('products');
+}
+
+// ━━━━ ONLINE ORDERS ━━━━
+function setOrderTab(tab) {
+  currentOrderTab = tab;
+  document.querySelectorAll('#order-tabs button').forEach(b => { b.classList.remove('bg-navy','text-white','font-semibold'); b.classList.add('text-gray-500','font-medium'); });
+  event.currentTarget.classList.remove('text-gray-500','font-medium');
+  event.currentTarget.classList.add('bg-navy','text-white','font-semibold');
+  renderOrders();
+}
+
+function renderOrders() {
+  let filtered = onlineOrders;
+  if (currentOrderTab !== 'all') filtered = filtered.filter(o => o.status === currentOrderTab);
+
+  if (!filtered.length) {
+    document.getElementById('orders-list').innerHTML = '<div class="text-center py-12"><ion-icon name="bag-handle-outline" class="text-gray-300 text-4xl mb-2"></ion-icon><p class="text-[13px] text-gray-400">No orders here</p></div>';
+    return;
+  }
+
+  document.getElementById('orders-list').innerHTML = filtered.map(o => {
+    const statusColors = {pending:'brand-orange',picking:'brand-blue',packed:'brand-purple',shipped:'navy',delivered:'brand-green'};
+    const statusLabels = {pending:'Pending',picking:'Picking',packed:'Packed',shipped:'Shipped',delivered:'Delivered'};
+    const sc = statusColors[o.status]; const sl = statusLabels[o.status];
+    const mins = Math.floor((Date.now()-o.time)/60000);
+    const timeLabel = mins < 60 ? mins+' min ago' : Math.floor(mins/60)+' hr ago';
+
+    let actions = '';
+    if (o.status === 'pending') actions = `<button onclick="advanceOrder('${o.id}','picking')" class="btn-primary text-[10px] py-1.5 px-3">Start Picking</button><button onclick="rejectOrder('${o.id}')" class="btn-danger text-[10px] py-1.5 px-3">Cancel</button>`;
+    else if (o.status === 'picking') actions = `<button onclick="advanceOrder('${o.id}','packed')" class="btn-primary text-[10px] py-1.5 px-3">Mark Packed</button>`;
+    else if (o.status === 'packed') actions = `<button onclick="advanceOrder('${o.id}','shipped')" class="btn-success text-[10px] py-1.5 px-3">Ship Order</button>`;
+    else if (o.status === 'shipped') actions = `<button onclick="advanceOrder('${o.id}','delivered')" class="btn-success text-[10px] py-1.5 px-3">Mark Delivered</button>`;
+
+    return `<div class="bg-white rounded-xl border border-border p-5">
+      <div class="flex items-start justify-between mb-3">
+        <div>
+          <div class="flex items-center gap-2 mb-1">
+            <p class="text-[14px] font-bold text-navy-dark font-mono">#${o.id}</p>
+            <span class="badge badge-${sc==='navy'?'blue':sc.replace('brand-','')}">${sl}</span>
+          </div>
+          <p class="text-[12px] text-gray-600">${o.customer} · ${o.phone}</p>
+          <p class="text-[10px] text-gray-400 mt-0.5">📍 ${o.address}</p>
+        </div>
+        <div class="text-right"><p class="text-[16px] font-bold text-navy-dark">Rs.${o.total.toLocaleString()}</p><p class="text-[10px] text-gray-400">${timeLabel}</p></div>
+      </div>
+      <div class="bg-gray-50 rounded-lg px-3 py-2 mb-3"><p class="text-[11px] text-gray-600">${o.items.map(i=>`${i.name} ×${i.qty}`).join(', ')}</p></div>
+      <div class="flex items-center gap-2">${actions}</div>
+    </div>`;
+  }).join('');
+}
+
+function advanceOrder(id, status) {
+  const o = onlineOrders.find(x => x.id === id); if (!o) return;
+  // Deduct stock when picking starts
+  if (status === 'picking') o.items.forEach(item => { const p = products.find(x => x.name === item.name); if (p) p.stock = Math.max(0, p.stock - item.qty); });
+  o.status = status;
+  toast(`Order #${id} → ${status}`);
+  renderOrders();
+}
+
+function rejectOrder(id) {
+  if (!confirm('Cancel this order?')) return;
+  onlineOrders = onlineOrders.filter(o => o.id !== id);
+  toast('Order cancelled','close-circle-outline',true);
+  renderOrders();
+}
+
+// ━━━━ STORE REQUESTS ━━━━
+function renderStoreRequests() {
+  const list = document.getElementById('store-requests-list');
+  if (!storeRequests.length) { list.innerHTML = '<div class="text-center py-12"><p class="text-[13px] text-gray-400">No store requests</p></div>'; return; }
+
+  list.innerHTML = storeRequests.map(r => {
+    const statusClass = r.status === 'pending' ? 'badge-orange' : r.status === 'approved' ? 'badge-blue' : 'badge-green';
+    const statusLabel = r.status === 'pending' ? 'Pending' : r.status === 'approved' ? 'Approved' : 'Fulfilled';
+    let actions = '';
+    if (r.status === 'pending') actions = `<button onclick="approveRequest('${r.id}')" class="btn-success text-[10px] py-1.5 px-3"><ion-icon name="checkmark-outline"></ion-icon>Approve & Create Transfer</button><button onclick="rejectRequest('${r.id}')" class="btn-danger text-[10px] py-1.5 px-3">Reject</button>`;
+
+    return `<div class="bg-white rounded-xl border border-border p-5">
+      <div class="flex items-start justify-between mb-3">
+        <div>
+          <div class="flex items-center gap-2 mb-1">
+            <p class="text-[14px] font-bold text-navy-dark font-mono">${r.id}</p>
+            <span class="badge ${statusClass}">${statusLabel}</span>
+          </div>
+          <p class="text-[12px] text-gray-600">From: <strong>${r.store}</strong></p>
+          <p class="text-[10px] text-gray-400">${r.date}${r.notes ? ' · '+r.notes : ''}</p>
+        </div>
+      </div>
+      <div class="bg-gray-50 rounded-lg px-3 py-2 mb-3"><p class="text-[11px] text-gray-600">${r.items.map(i=>`${i.name} ×${i.qty}`).join(', ')}</p></div>
+      <div class="flex items-center gap-2">${actions}</div>
+    </div>`;
+  }).join('');
+}
+
+function approveRequest(id) {
+  const r = storeRequests.find(x => x.id === id); if (!r) return;
+  r.status = 'approved';
+  // Create transfer & deduct warehouse stock
+  const trfId = 'TRF-' + (2044 + transfers.length);
+  transfers.unshift({id:trfId, to:r.store, items:r.items.map(i=>({name:i.name,qty:i.qty})), status:'in_transit', date:'2026-07-06'});
+  r.items.forEach(item => { const p = products.find(x => x.sku === item.sku || x.name === item.name); if(p) p.stock = Math.max(0, p.stock - item.qty); });
+  toast(`Request approved — Transfer #${trfId} created`);
+  renderStoreRequests();
+}
+
+function rejectRequest(id) {
+  if (!confirm('Reject this store request?')) return;
+  const r = storeRequests.find(x => x.id === id); if (!r) return;
+  r.status = 'rejected';
+  toast('Request rejected','close-circle-outline',true);
+  renderStoreRequests();
+}
+
+// ━━━━ TRANSFERS ━━━━
+function renderTransfers() {
+  const list = document.getElementById('transfers-list');
+  if (!transfers.length) { list.innerHTML = '<div class="text-center py-12"><p class="text-[13px] text-gray-400">No transfers yet</p></div>'; return; }
+  list.innerHTML = transfers.map(t => {
+    const isTransit = t.status === 'in_transit';
+    return `<div class="bg-white rounded-xl border border-border p-5">
+      <div class="flex items-start justify-between">
+        <div>
+          <div class="flex items-center gap-2 mb-1">
+            <p class="text-[14px] font-bold text-navy-dark font-mono">${t.id}</p>
+            <span class="badge ${isTransit ? 'badge-blue' : 'badge-green'}">${isTransit ? 'In Transit' : 'Delivered'}</span>
+          </div>
+          <p class="text-[12px] text-gray-600">To: <strong>${t.to}</strong></p>
+          <p class="text-[10px] text-gray-400">Dispatched: ${t.date}</p>
+        </div>
+        <div class="text-right"><p class="text-[11px] text-gray-500">${t.items.length} items</p><p class="text-[10px] text-gray-400">${t.items.reduce((s,i)=>s+i.qty,0)} units</p></div>
+      </div>
+      <div class="bg-gray-50 rounded-lg px-3 py-2 mt-3"><p class="text-[11px] text-gray-600">${t.items.map(i=>`${i.name} ×${i.qty}`).join(', ')}</p></div>
+    </div>`;
+  }).join('');
+}
+
+function openCreateTransfer() { toast('Use Store Requests → Approve to auto-create transfers'); }
+
+// ━━━━ PURCHASE ORDERS ━━━━
+function renderPOs() {
+  const list = document.getElementById('po-list');
+  if (!purchaseOrders.length) { list.innerHTML = '<div class="text-center py-12"><p class="text-[13px] text-gray-400">No purchase orders</p></div>'; return; }
+  list.innerHTML = purchaseOrders.map(po => {
+    const statusClass = po.status === 'ordered' ? 'badge-blue' : po.status === 'received' ? 'badge-green' : 'badge-orange';
+    const statusLabel = po.status === 'ordered' ? 'Ordered' : po.status === 'received' ? 'Received' : 'Draft';
+    let actions = '';
+    if (po.status === 'ordered') actions = `<button onclick="receivePO('${po.id}')" class="btn-success text-[10px] py-1.5 px-3"><ion-icon name="checkmark-circle-outline"></ion-icon>Mark Received</button>`;
+
+    return `<div class="bg-white rounded-xl border border-border p-5">
+      <div class="flex items-start justify-between mb-3">
+        <div>
+          <div class="flex items-center gap-2 mb-1">
+            <p class="text-[14px] font-bold text-navy-dark font-mono">${po.id}</p>
+            <span class="badge ${statusClass}">${statusLabel}</span>
+          </div>
+          <p class="text-[12px] text-gray-600">Supplier: <strong>${po.supplier}</strong></p>
+          <p class="text-[10px] text-gray-400">Ordered: ${po.date} · Expected: ${po.expected}</p>
+        </div>
+        <div class="text-right"><p class="text-[16px] font-bold text-navy-dark">Rs.${po.total.toLocaleString()}</p></div>
+      </div>
+      <div class="bg-gray-50 rounded-lg px-3 py-2 mb-3"><p class="text-[11px] text-gray-600">${po.items.map(i=>`${i.name} ×${i.qty} @Rs.${i.unitCost.toLocaleString()}`).join(', ')}</p></div>
+      <div class="flex items-center gap-2">${actions}</div>
+    </div>`;
+  }).join('');
+}
+
+function receivePO(id) {
+  const po = purchaseOrders.find(x => x.id === id); if (!po) return;
+  po.status = 'received';
+  po.items.forEach(item => { const p = products.find(x => x.name === item.name); if(p) p.stock += item.qty; });
+  toast(`PO ${id} received — stock updated`);
+  renderPOs();
+}
+
+function createPO() { toast('PO creation form coming soon — use supplier portal for now'); }
+
+// ━━━━ TOAST ━━━━
+let toastTimer;
+function toast(msg, icon, isError) {
+  clearTimeout(toastTimer);
+  const el = document.getElementById('app-toast');
+  document.getElementById('toast-msg').textContent = msg;
+  const iconEl = document.getElementById('toast-icon');
+  iconEl.name = icon || 'checkmark-circle';
+  iconEl.className = isError ? 'text-brand-red text-lg' : 'text-brand-green text-lg';
+  el.classList.add('show');
+  toastTimer = setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+// ━━━━ INIT ━━━━
+document.addEventListener('DOMContentLoaded', () => {
+  renderDashboard();
+  renderProducts();
+  renderOrders();
+  renderStoreRequests();
+  renderTransfers();
+  renderPOs();
+});
+</script>
+</body>
+</html>
