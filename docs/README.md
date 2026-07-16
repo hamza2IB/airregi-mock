@@ -23,6 +23,15 @@ All businesses onboarded onto RetailOS are automatically exposed on a shared eco
 | 10 | [Product Module Spec](./10-product-module-spec.md) | Full product creation wizard, all industry types |
 | 11 | [Notifications & Alerts](./11-notifications-and-alerts.md) | All notification events by role + UI patterns |
 | 12 | [Permissions Matrix](./12-permissions-matrix.md) | What each role can and cannot do |
+| 13 | [Admin Dashboard Spec](./13-admin-dashboard-spec.md) | `demo/admin.html` dashboard screen specification |
+| 14 | [Admin All Businesses Spec](./14-admin-all-businesses-spec.md) | All Businesses screen specification |
+| 15 | [Admin Payment Verification Spec](./15-admin-payment-verification-spec.md) | Payment Verification screen specification |
+| 16 | [Admin Subscription Packages Spec](./16-admin-subscription-packages-spec.md) | Packages screen specification |
+| 17 | [Admin Categories/Industries Spec](./17-admin-categories-industries-spec.md) | Industries screen specification |
+| 18 | [Admin Platform Users Spec](./18-admin-platform-users-spec.md) | Platform Users screen specification |
+| 19 | [Admin Revenue Spec](./19-admin-revenue-spec.md) | Revenue report screen specification |
+| 20 | [Admin Platform Settings Spec](./20-admin-platform-settings-spec.md) | Platform Settings screen specification |
+| 21 | [Owner Portal Spec](./21-owner-portal-spec.md) | Full specification of `demo/owner.html` — all pages, panels, flows, data models, business rules |
 
 ---
 
