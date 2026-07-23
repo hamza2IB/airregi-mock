@@ -53,11 +53,14 @@
 
 | Module | Admin | Biz Owner | WH Manager | WH Staff | Store Mgr | Store Staff | Cashier | Customer |
 |---|---|---|---|---|---|---|---|---|
-| Create products | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| Edit products | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| Manage variants | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| Manage barcodes | ❌ | ✅ | ⚙️ assign | ❌ | ❌ | ❌ | ❌ | ❌ |
-| Print barcodes | ❌ | ✅ | ⚙️ | ⚙️ assist | ❌ | ❌ | ❌ | ❌ |
+| Create products | ❌ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Edit products | ❌ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Manage variants | ❌ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Manage attributes/attribute sets | ❌ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Manage units of measure | ❌ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Manage barcodes | ❌ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Print barcodes | ❌ | ✅ | ✅ | ⚙️ assist | ❌ | ❌ | ❌ | ❌ |
+| Assign product to category | ❌ | ✅ | ✅ (owner-defined tree only) | ❌ | ❌ | ❌ | ❌ | ❌ |
 | Manage categories (business) | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
 | Manage brands | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
 | Manage attributes/sets | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |

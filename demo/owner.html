@@ -28,62 +28,621 @@ tailwind.config = {
 </script>
 <script src="https://unpkg.com/ionicons@7.1.0/dist/ionicons.js"></script>
 <style>
-  /* ═══ RESPONSIVE APP SHELL ═══
-     Mobile-first: identical to the reference mobile app up to 640px.
-     Tablet/Desktop: the app frame widens and floats as a centered
-     "device" card so nothing breaks or stretches awkwardly on
-     larger screens, while the UI/UX stays a mobile-style app. */
-  :root { --app-max: 430px; }
-  @media (min-width: 640px)  { :root { --app-max: 480px; } }
-  @media (min-width: 1024px) { :root { --app-max: 560px; } }
+  /* ═══════════════════════════════════════════════════════════
+     RESPONSIVE APP SHELL
+     Mobile  (< 1024px): phone/tablet app — bottom nav,
+       body capped at --app-max, dark hero headers.
+     Desktop (≥ 1024px): full admin dashboard matching
+       dummy/admin.html — 260px dark sidebar, white sticky
+       topbar, p-8 content area, no dark hero headers.
+     ═══════════════════════════════════════════════════════════ */
 
-html, body { margin:0; padding:0; background:#f4f6f9; color:#111; }
-/* Note: Tailwind's CDN preflight also sets `body{margin:0}` and is injected
-   after this stylesheet, so centering must win via higher specificity. */
-html body { min-height:100vh; min-height:100dvh; font-family:'Plus Jakarta Sans',sans-serif; max-width:var(--app-max); margin:0 auto; position:relative; overflow-x:hidden; transition:max-width 0.2s; }
-.page { display:none; padding-bottom:90px; }
-.page.active { display:block; }
-.bottom-nav { position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:var(--app-max); background:#fff; border-top:1px solid #e8ecf1; z-index:100; padding:6px 0 env(safe-area-inset-bottom, 6px); display:flex; }
-.bottom-nav button { flex:1; display:flex; flex-direction:column; align-items:center; gap:2px; padding:6px 0; background:none; border:none; cursor:pointer; color:#94a3b8; font-size:10px; font-family:inherit; font-weight:500; transition:color 0.15s; }
-.bottom-nav button.active { color:#1a2d6b; font-weight:700; }
-.bottom-nav button ion-icon { font-size:22px; }
-.filter-pill { padding:6px 14px; border-radius:20px; font-size:11px; font-weight:600; border:1.5px solid #e8ecf1; background:#fff; color:#64748b; cursor:pointer; white-space:nowrap; transition:all 0.15s; }
-.filter-pill.active { background:#1a2d6b; color:#fff; border-color:#1a2d6b; }
-.animate-num { transition: opacity 0.15s; }
-.app-frame { max-width:var(--app-max); margin:0 auto; }
-.sd-tab-btn { transition:color 0.15s, border-color 0.15s; white-space:nowrap; }
-.sd-tab-content { /* shown/hidden via JS */ }
+  :root { --app-max: 430px; --sidebar-w: 260px; --topbar-h: 65px; }
+  @media (min-width: 640px) { :root { --app-max: 480px; } }
 
-/* Tablet+ : give the mobile UI a touch more breathing room in card grids */
-@media (min-width: 640px) {
-  #channel-cards { grid-template-columns: repeat(2, 1fr); }
-  .adm-kpi-grid, .grid-cols-3 { gap: 14px; }
-}
+  /* ── Base ── */
+  html, body { margin:0; padding:0; background:#f4f6f9; color:#111; }
 
-/* Desktop : float the mobile app as a centered "device" card on top of
-   a branded backdrop, so it reads as an intentional responsive layout
-   rather than a stretched phone screen. */
-@media (min-width: 1024px) {
-  html, body.frame-desktop {
-    background: radial-gradient(circle at 50% 0%, #1a2d6b 0%, #0a1535 55%, #060d24 100%);
+  /* ══════════════════════════════
+     MOBILE  (< 1024px)
+     ══════════════════════════════ */
+  html body {
+    min-height:100vh; min-height:100dvh;
+    font-family:'Plus Jakarta Sans',sans-serif;
+    max-width:var(--app-max);
+    margin:0 auto;
+    position:relative;
+    overflow-x:hidden;
   }
-  body {
-    margin-top: 32px;
-    margin-bottom: 32px;
-    min-height: calc(100dvh - 64px);
-    border-radius: 32px;
-    overflow: hidden;
-    box-shadow: 0 30px 80px rgba(6, 13, 36, 0.45), 0 0 0 1px rgba(255,255,255,0.06);
+  .page { display:none; padding-bottom:90px; }
+  .page.active { display:block; }
+
+  /* Mobile bottom nav */
+  .bottom-nav {
+    position:fixed; bottom:0; left:50%; transform:translateX(-50%);
+    width:100%; max-width:var(--app-max);
+    background:#fff; border-top:1px solid #e8ecf1;
+    z-index:100; padding:6px 0 env(safe-area-inset-bottom,6px);
+    display:flex;
   }
-  .bottom-nav { border-radius: 0 0 32px 32px; }
-}
+  .bottom-nav button {
+    flex:1; display:flex; flex-direction:column; align-items:center;
+    gap:2px; padding:6px 0; background:none; border:none; cursor:pointer;
+    color:#94a3b8; font-size:10px; font-family:inherit; font-weight:500;
+    transition:color 0.15s;
+  }
+  .bottom-nav button.active { color:#1a2d6b; font-weight:700; }
+  .bottom-nav button ion-icon { font-size:22px; }
+
+  /* Shared components */
+  .filter-pill {
+    padding:6px 14px; border-radius:20px; font-size:11px; font-weight:600;
+    border:1.5px solid #e8ecf1; background:#fff; color:#64748b;
+    cursor:pointer; white-space:nowrap; transition:all 0.15s;
+  }
+  .filter-pill.active { background:#1a2d6b; color:#fff; border-color:#1a2d6b; }
+  .animate-num { transition:opacity 0.15s; }
+  .sd-tab-btn { transition:color 0.15s, border-color 0.15s; white-space:nowrap; }
+
+  /* Tablet */
+  @media (min-width:640px) {
+    #channel-cards { grid-template-columns:repeat(2,1fr); }
+  }
+
+  /* ══════════════════════════════════════════════════
+     DESKTOP  (≥ 1024px)  — mirrors dummy/admin.html
+     ══════════════════════════════════════════════════ */
+  @media (min-width:1024px) {
+
+    /* Reset mobile shell */
+    html, body { background:#f4f6f9; }
+    html body {
+      max-width:100%; margin:0;
+      display:block; /* body is NOT the flex row — #desktop-shell is */
+      min-height:100vh; overflow-x:hidden;
+    }
+
+    /* Hide mobile chrome */
+    .bottom-nav { display:none !important; }
+
+    /* ── Outer flex shell (sidebar + main) ── */
+    #desktop-shell {
+      display:flex;
+      min-height:100vh;
+    }
+
+    /* ── Sidebar — exact admin.html style ── */
+    #desktop-sidebar {
+      width: var(--sidebar-w);
+      min-width: var(--sidebar-w);
+      background: #0a1535;
+      display: flex !important;
+      flex-direction: column;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      flex-shrink: 0;
+      z-index: 50;
+    }
+
+    /* ── Main column ── */
+    #desktop-main {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── White sticky topbar — exact admin.html header ── */
+    #desktop-topbar {
+      display: flex !important;
+      background: #fff;
+      border-bottom: 1px solid #e8ecf1;
+      padding: 16px 32px;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      height: var(--topbar-h);
+      box-sizing: border-box;
+    }
+
+    /* ── Scrollable content area ── */
+    #desktop-content {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      background: #f4f6f9;
+    }
+
+    /* Pages: no bottom-nav padding, full p-8 layout */
+    .page { padding-bottom: 0; }
+
+    /* Hide the dark mobile hero headers on desktop */
+    .mobile-hero { display: none !important; }
+
+    /* ═══════════════════════════════════════════════════════════
+       DESKTOP PAGE LAYOUT
+       All pages get proper padding and max-width.
+       ═══════════════════════════════════════════════════════════ */
+
+    /* Desktop page body — consistent padding across all pages */
+    .desktop-page-body {
+      padding: 32px;
+    }
+
+    /* ── SALES PAGE ── */
+    #page-sales .desktop-page-body { max-width: 1280px; }
+
+    /* Sales KPI strip — 4 cards */
+    #sales-desktop-kpi {
+      display: grid !important;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    /* Channel split cards */
+    #channel-cards {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin-bottom: 0;
+    }
+
+    /* Sales two-col grid: store perf + payments side by side */
+    #sales-desktop-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    /* ── STORES PAGE ── */
+    #page-stores .desktop-page-body {
+      max-width: 1280px;
+    }
+
+    /* Search + filter bar */
+    #page-stores .px-4.pt-4.pb-2.space-y-2 {
+      padding: 24px 32px 12px;
+    }
+
+    /* Store cards: 3-col grid on desktop */
+    #page-stores #stores-list {
+      display: grid !important;
+      grid-template-columns: repeat(3, 1fr) !important;
+      gap: 20px !important;
+      padding: 0 32px 32px !important;
+      margin: 0 !important;
+      width: auto !important;
+    }
+
+    #page-stores #stores-map-wrap {
+      padding: 0 32px 32px;
+    }
+
+    /* ── PLAN PAGE ── */
+    #page-plan .desktop-page-body {
+      max-width: 1100px;
+    }
+    #page-plan #plan-content {
+      padding: 0;
+      max-width: none;
+    }
+    /* Plan page — two-column on desktop: usage + payments left, CTAs right */
+    .plan-desktop-grid {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 24px;
+      align-items: start;
+    }
+
+    /* ── SETTINGS PAGE ── */
+    #page-settings .desktop-page-body {
+      max-width: 1100px;
+    }
+    #page-settings #settings-content {
+      padding: 0;
+      max-width: none;
+    }
+    /* Settings — two-column layout */
+    .settings-desktop-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+
+    /* ── KPI STAT CARDS — admin style ── */
+    .desktop-kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+    .stat-card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 20px 24px;
+      border: 1px solid #e8ecf1;
+      transition: box-shadow 0.2s, transform 0.2s;
+    }
+    .stat-card:hover { box-shadow: 0 8px 24px rgba(26,45,107,0.08); transform: translateY(-2px); }
+
+    /* ── STORE DETAIL PAGE ── */
+    #page-store-detail {
+      display: flex;
+      flex-direction: column;
+      min-height: calc(100vh - var(--topbar-h));
+    }
+
+    /* Tab bar sticks below topbar on desktop */
+    #page-store-detail .sticky.top-0 { top: var(--topbar-h); }
+
+    /* Desktop store header — sits inside sticky bar */
+    #sd-desktop-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 32px 14px;
+      border-bottom: 1px solid #e8ecf1;
+      background: #fff;
+    }
+
+    /* Tab bar padding */
+    #page-store-detail .bg-white.border-b.border-border.sticky {
+      padding: 0;
+    }
+    #page-store-detail .sd-tab-btn {
+      flex: none !important;
+      padding: 14px 22px !important;
+      font-size: 13px !important;
+    }
+    /* Tab buttons row — left-pad to align with content */
+    #page-store-detail .bg-white.border-b.border-border.sticky .flex {
+      padding-left: 16px;
+    }
+
+    /* Tab content area */
+    #page-store-detail > div.px-4.pt-4 {
+      padding: 28px 32px 32px !important;
+      max-width: 1280px;
+      flex: 1;
+    }
+
+    /* KPI bar — 4 cards between header and tabs */
+    #sd-kpi-bar {
+      display: grid !important;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0;
+      background: #fff;
+      border-bottom: 1px solid #e8ecf1;
+    }
+    .sd-kpi-card {
+      padding: 20px 28px;
+      border-right: 1px solid #e8ecf1;
+      transition: background 0.15s;
+    }
+    .sd-kpi-card:last-child { border-right: none; }
+    .sd-kpi-card:hover { background: #f8f9fc; }
+    .sd-kpi-card .kpi-label {
+      font-size: 11px; color: #94a3b8; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.06em;
+    }
+    .sd-kpi-card .kpi-value {
+      font-size: 24px; font-weight: 800; color: #0a1535;
+      margin-top: 6px; line-height: 1;
+    }
+    .sd-kpi-card .kpi-sub { font-size: 11px; color: #94a3b8; margin-top: 5px; }
+
+    /* Overview tab — two-col grid */
+    #sd-overview-body {
+      display: block; /* container, children managed by .sd-overview-grid */
+    }
+    .sd-overview-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+    /* Hero card (today's revenue) spans full width */
+    .sd-overview-grid .sd-hero-card { grid-column: 1 / -1; }
+
+    /* Sales tab two-col */
+    #sd-sales-body .space-y-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+    #sd-sales-body .space-y-3 > div:first-child,
+    #sd-sales-body .space-y-3 > .bg-navy-dark { grid-column: 1 / -1; }
+
+    /* Staff tab: 2-col */
+    #sd-staff-list {
+      display: grid !important;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+
+    /* Override the mobile spacing classes on #stores-list */
+    #page-stores #stores-list.px-4,
+    #page-stores #stores-list {
+      display: grid !important;
+      grid-template-columns: repeat(3, 1fr) !important;
+      gap: 20px !important;
+      padding: 0 32px 32px !important;
+      margin: 0 !important;
+      width: auto !important;
+    }
+    /* For the space-y-3 class that mobile uses — disable on desktop */
+    #page-stores #stores-list.space-y-3 > * { margin-top: 0 !important; }
+
+    /* Plan/Settings: wrap content in desktop-page-body */
+    #page-plan .desktop-page-body,
+    #page-settings .desktop-page-body { max-width: 1200px; }
+
+    /* ── Plan page two-column grid ── */
+    .plan-desktop-grid {
+      display: grid;
+      grid-template-columns: 1fr 360px;
+      gap: 24px;
+      align-items: start;
+    }
+
+    /* ── Settings page two-column grid ── */
+    .settings-desktop-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+
+    /* ── Plan/Settings: strip mobile px-4 pt-4 from content containers ── */
+    #page-plan .px-4.pt-4,
+    #page-settings .px-4.pt-4 { padding: 0 !important; }
+
+    /* ═══════════════════════════════════════════════════════════
+       DESKTOP OVERLAYS
+       All panels/sheets/dialogs are redesigned for desktop UX:
+
+       A) MODALS (formerly bottom-sheets):
+          Small, centered dialog box — no "slide up", no drag handle,
+          no rounded-top, proper centered layout.
+          Targets: signout-dialog, confirm-dialog, renewal-success-dialog,
+          support-sheet, store-actions-sheet, staff-actions-sheet,
+          cat-actions-sheet, edit-profile-panel, change-password-panel,
+          change-email-panel, staff-form-panel, renewal-panel,
+          change-plan-panel, category-form-panel
+
+       B) SIDE DRAWERS (formerly full-screen slide-overs from right):
+          Fixed right-side panel at 480px — doesn't cover the sidebar,
+          proper backdrop only over the content area.
+          Targets: settings-panel, all-payments-panel, store-inventory-panel,
+          bizprofile-panel, categories-panel, store-form-panel
+
+       C) FULL SCREEN: signed-out-screen, suspended-screen (same as before,
+          just without the app-max cap).
+       ═══════════════════════════════════════════════════════════ */
+
+    /* Remove mobile max-width cap from ALL overlays */
+    #signed-out-screen, #suspended-screen,
+    #store-form-panel, #settings-panel, #all-payments-panel,
+    #store-inventory-panel, #bizprofile-panel, #categories-panel,
+    #support-sheet, #signout-dialog, #confirm-dialog,
+    #store-actions-sheet, #staff-actions-sheet, #staff-form-panel,
+    #edit-profile-panel, #change-password-panel, #change-email-panel,
+    #renewal-panel, #renewal-success-dialog, #change-plan-panel,
+    #category-form-panel, #cat-actions-sheet {
+      max-width: 100% !important;
+    }
+
+    /* ── A) MODAL DIALOGS ─────────────────────────────────────
+       Override the mobile "flex-col justify-end" positioning:
+       center horizontally + vertically instead. The inner content
+       boxes get a fixed max-width and lose their rounded-top style.
+       JS will add/remove .dt-modal-open on the outer wrapper and
+       .dt-modal on the inner box, which these rules target.
+    ── */
+    .dt-modal-wrap {
+      align-items: center !important;
+      justify-content: center !important;
+      padding: 24px !important;
+    }
+    .dt-modal-wrap > .absolute.inset-0 {
+      /* backdrop covers full viewport on desktop too */
+    }
+    .dt-modal {
+      width: 100% !important;
+      max-width: 520px !important;
+      border-radius: 16px !important;
+      max-height: 88vh !important;
+      transform: none !important;  /* kill translate-y-full */
+      position: relative !important;
+    }
+    /* Hide the mobile drag handle on desktop */
+    .dt-modal .dt-handle { display: none !important; }
+    /* Rounded-top class on inner sheet gets overridden */
+    .dt-modal.rounded-t-3xl { border-radius: 16px !important; }
+
+    /* ── B) SIDE DRAWER PANELS ────────────────────────────────
+       Right-side panels become a 480px fixed drawer instead of
+       full-screen slide-over. They anchor to the right edge of
+       the viewport, leaving the sidebar visible.
+    ── */
+    .dt-drawer-wrap {
+      left: var(--sidebar-w) !important;   /* don't cover sidebar */
+    }
+    .dt-drawer-wrap > .absolute.inset-0 {
+      left: 0;  /* backdrop covers content area */
+    }
+    .dt-drawer {
+      width: 480px !important;
+      min-width: 0 !important;
+      left: auto !important;
+      right: 0 !important;
+      top: 0 !important;
+      bottom: 0 !important;
+      border-radius: 0 !important;
+      border-left: 1px solid #e8ecf1 !important;
+      box-shadow: -8px 0 32px rgba(10,21,53,0.12) !important;
+    }
+    /* Store form inner — also a right-drawer on desktop */
+    #store-form-inner.dt-drawer {
+      position: absolute !important;
+      inset: 0 !important;
+      width: 480px !important;
+      left: auto !important;
+    }
+
+    /* Categories panel — slightly wider (has a tree) */
+    #categories-panel .dt-drawer {
+      width: 540px !important;
+    }
+
+    /* ── C) Full-screen overlays: anchor to sidebar edge ── */
+    #signed-out-screen,
+    #suspended-screen {
+      left: var(--sidebar-w) !important;
+    }
+
+/* ── Action sheet WRAP needs pointer-events on backdrop edges ── */
+    .dt-modal-wrap { pointer-events: auto; }
+
+    /* The backdrop inside a modal-wrap fills the whole wrap but sits
+       behind the inner box — clicking outside the box closes it.
+       This works because the inner .dt-modal has a fixed max-width and
+       is centered, leaving backdrop area on the sides clickable. */
+
+/* ── Action sheets on desktop: inner content box gets max-width ── */
+    #store-actions-sheet .relative.w-full.dt-modal,
+    #staff-actions-sheet .relative.w-full.dt-modal,
+    #cat-actions-sheet .relative.w-full.dt-modal,
+    #signout-dialog .relative.w-full.dt-modal,
+    #confirm-dialog .relative.w-full.dt-modal,
+    #renewal-success-dialog .relative.w-full.dt-modal {
+      width: 100% !important;
+      max-width: 480px !important;
+      border-radius: 16px !important;
+      position: relative !important;
+    }
+
+  } /* end desktop */
+
+  /* ── Mobile: hide desktop-only wrappers ── */
+  @media (max-width:1023px) {
+    #desktop-shell { display:contents; }
+    #desktop-sidebar { display:none !important; }
+    #desktop-main { display:contents; }
+    #desktop-topbar { display:none !important; }
+    #desktop-content { display:contents; }
+    #sales-desktop-grid { display:block; }
+    .desktop-kpi-grid { display:block; }
+  }
+
+  /* ── Admin-style sidebar link ── */
+  .sidebar-link {
+    display:flex; align-items:center; gap:12px;
+    padding:10px 16px; border-radius:8px;
+    font-size:13px; font-weight:500; color:rgba(255,255,255,0.65);
+    transition:all 0.15s; cursor:pointer; user-select:none;
+  }
+  .sidebar-link:hover { background:rgba(255,255,255,0.08); color:#fff; }
+  .sidebar-link.active { background:rgba(255,255,255,0.12); color:#fff; font-weight:600; }
+  .sidebar-link ion-icon { font-size:20px; flex-shrink:0; }
+
 </style>
 </head>
 <body>
 
+<!-- ════════════════════════════════════════════════════
+     DESKTOP SHELL — mirrors dummy/admin.html structure.
+     On mobile (< 1024px) display:contents collapses all
+     these wrappers so the mobile layout is unaffected.
+     ════════════════════════════════════════════════════ -->
+<div id="desktop-shell">
+
+<!-- ━━━━ SIDEBAR ━━━━ -->
+<aside id="desktop-sidebar" style="display:none;">
+
+  <!-- Logo — exact admin.html style -->
+  <div class="px-5 py-6 flex items-center gap-3 border-b border-white/10">
+    <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm">
+      <ion-icon name="storefront" class="text-navy" style="font-size:22px;"></ion-icon>
+    </div>
+    <div>
+      <p class="text-white font-bold text-[15px] leading-tight">RetailOS</p>
+      <p class="text-white/40 text-[11px] tracking-wider uppercase">Business Portal</p>
+    </div>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="flex-1 px-3 py-4 space-y-1">
+    <p class="text-[10px] text-white/30 uppercase tracking-[0.15em] font-semibold px-4 mb-2">Overview</p>
+    <div class="sidebar-link active" id="dsb-sales" onclick="navTo('sales')">
+      <ion-icon name="stats-chart-outline"></ion-icon>
+      <span>Sales</span>
+    </div>
+    <div class="sidebar-link" id="dsb-stores" onclick="navTo('stores')">
+      <ion-icon name="storefront-outline"></ion-icon>
+      <span>My Stores</span>
+    </div>
+
+    <p class="text-[10px] text-white/30 uppercase tracking-[0.15em] font-semibold px-4 mt-5 mb-2">Account</p>
+    <div class="sidebar-link" id="dsb-plan" onclick="navTo('plan')">
+      <ion-icon name="card-outline"></ion-icon>
+      <span>Subscription</span>
+    </div>
+    <div class="sidebar-link" id="dsb-settings" onclick="navTo('settings')">
+      <ion-icon name="settings-outline"></ion-icon>
+      <span>Settings</span>
+    </div>
+  </nav>
+
+  <!-- Bottom: owner info -->
+  <div class="px-4 py-4 border-t border-white/10">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-full bg-brand-green text-white flex items-center justify-center font-bold text-xs">BA</div>
+      <div class="flex-1 min-w-0">
+        <p class="text-white text-[12px] font-semibold truncate">Bilal Ahmed</p>
+        <p class="text-white/40 text-[11px] truncate">Clifton Mart · Pro</p>
+      </div>
+      <button onclick="confirmSignOut()" class="text-white/40 hover:text-white transition-colors">
+        <ion-icon name="log-out-outline" style="font-size:18px;"></ion-icon>
+      </button>
+    </div>
+  </div>
+</aside>
+
+<!-- ━━━━ MAIN COLUMN ━━━━ -->
+<div id="desktop-main">
+
+  <!-- White sticky topbar — exact admin.html header pattern -->
+  <header id="desktop-topbar" style="display:none;">
+    <div>
+      <h1 id="desktop-page-title" class="text-[20px] font-bold text-navy-dark">Sales</h1>
+      <p id="desktop-page-subtitle" class="text-[12px] text-gray-500 mt-0.5">Revenue overview · Clifton Mart</p>
+    </div>
+    <div class="flex items-center gap-3">
+      <button onclick="openRenewalPanel()" id="topbar-renew-btn" class="hidden items-center gap-1.5 text-[12px] font-semibold text-white bg-brand-orange px-3 py-1.5 rounded-lg">
+        <ion-icon name="warning" style="font-size:14px;"></ion-icon>Renew
+      </button>
+      <div class="w-px h-6 bg-gray-200"></div>
+      <button onclick="openStoreForm()" id="topbar-add-store-btn" class="hidden items-center gap-1.5 bg-navy text-white text-[12px] font-bold px-3 py-1.5 rounded-lg">
+        <ion-icon name="add" class="text-sm"></ion-icon>Add Store
+      </button>
+      <div class="w-9 h-9 rounded-full bg-brand-green text-white flex items-center justify-center font-bold text-[11px]">BA</div>
+    </div>
+  </header>
+
+  <!-- Scrollable content area -->
+  <div id="desktop-content">
+
 <!-- ════════ PAGE: SALES ════════ -->
 <div id="page-sales" class="page active">
-  <div class="bg-navy-dark px-5 pt-[env(safe-area-inset-top,12px)] pb-5 rounded-b-3xl">
+  <div class="bg-navy-dark px-5 pt-[env(safe-area-inset-top,12px)] pb-5 rounded-b-3xl mobile-hero">
     <div class="flex items-center justify-between pt-3 mb-4">
       <div>
         <p class="text-white/40 text-[10px] font-semibold uppercase tracking-[0.15em]">Brand Owner</p>
@@ -107,7 +666,7 @@ html body { min-height:100vh; min-height:100dvh; font-family:'Plus Jakarta Sans'
   <!-- ── Persistent subscription expiry banner — US-OWN-021 ──
        Shown when subscription is within the 7-day warning window.
        Links straight to the renewal payment form. -->
-  <div id="sub-expiry-banner" class="hidden px-4 pt-4">
+  <div id="sub-expiry-banner" class="hidden px-4 pt-4 mobile-hero">
     <div class="flex items-center gap-3 rounded-xl px-3.5 py-3 border" id="sub-expiry-banner-inner">
       <div id="sub-expiry-icon-wrap" class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0">
         <ion-icon name="warning" style="font-size:16px;"></ion-icon>
@@ -120,7 +679,33 @@ html body { min-height:100vh; min-height:100dvh; font-family:'Plus Jakarta Sans'
     </div>
   </div>
 
-  <div class="px-4 pt-5">
+  <!-- Desktop expiry banner — shown in topbar area only on desktop -->
+  <div id="sub-expiry-desktop" class="hidden"></div>
+
+  <div class="px-4 pt-5 desktop-page-body">
+    <!-- Desktop sales page sub-header -->
+    <div id="sales-desktop-kpi" class="desktop-kpi-grid hidden mb-6">
+      <div class="stat-card">
+        <p class="text-[11px] text-gray-400 font-semibold uppercase tracking-wider">Total Revenue</p>
+        <p id="dkpi-total" class="text-[26px] font-extrabold text-navy-dark mt-1 leading-none"></p>
+        <p id="dkpi-trend" class="text-[12px] text-brand-green font-semibold mt-2"></p>
+      </div>
+      <div class="stat-card">
+        <p class="text-[11px] text-gray-400 font-semibold uppercase tracking-wider">Orders</p>
+        <p id="dkpi-orders" class="text-[26px] font-extrabold text-navy-dark mt-1 leading-none"></p>
+        <p class="text-[12px] text-gray-400 mt-2">across all stores</p>
+      </div>
+      <div class="stat-card">
+        <p class="text-[11px] text-gray-400 font-semibold uppercase tracking-wider">In-Store (POS)</p>
+        <p id="dkpi-pos" class="text-[26px] font-extrabold text-navy-dark mt-1 leading-none"></p>
+        <p id="dkpi-pos-pct" class="text-[12px] text-brand-blue font-semibold mt-2"></p>
+      </div>
+      <div class="stat-card">
+        <p class="text-[11px] text-gray-400 font-semibold uppercase tracking-wider">Online (EC)</p>
+        <p id="dkpi-ec" class="text-[26px] font-extrabold text-navy-dark mt-1 leading-none"></p>
+        <p id="dkpi-ec-pct" class="text-[12px] text-brand-orange font-semibold mt-2"></p>
+      </div>
+    </div>
     <div class="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1" id="period-filters" style="scrollbar-width:none;">
       <button onclick="setPeriod('today')" class="filter-pill">Today</button>
       <button onclick="setPeriod('week')" class="filter-pill">This Week</button>
@@ -132,6 +717,9 @@ html body { min-height:100vh; min-height:100dvh; font-family:'Plus Jakarta Sans'
 
     <!-- Channel Split -->
     <div class="grid grid-cols-2 gap-3 mb-4" id="channel-cards"></div>
+
+    <!-- Desktop two-column grid: store perf left, payments right -->
+    <div id="sales-desktop-grid">
 
     <!-- Store Performance -->
     <div class="bg-white rounded-2xl border border-border p-4 mb-4">
@@ -150,12 +738,14 @@ html body { min-height:100vh; min-height:100dvh; font-family:'Plus Jakarta Sans'
       </div>
       <div id="payment-grid"></div>
     </div>
+
+    </div><!-- /#sales-desktop-grid -->
   </div>
 </div>
 
 <!-- ════════ PAGE: STORES ════════ -->
 <div id="page-stores" class="page">
-  <div class="bg-navy-dark px-5 pt-[env(safe-area-inset-top,12px)] pb-5 rounded-b-3xl">
+  <div class="bg-navy-dark px-5 pt-[env(safe-area-inset-top,12px)] pb-5 rounded-b-3xl mobile-hero">
     <div class="pt-3 mb-4 flex items-center justify-between">
       <div>
         <h1 class="text-white text-[20px] font-bold">My Stores</h1>
@@ -183,6 +773,29 @@ html body { min-height:100vh; min-height:100dvh; font-family:'Plus Jakarta Sans'
   </div>
   <!-- [FIX-3] Search + filter bar -->
   <div class="px-4 pt-4 pb-2 space-y-2">
+    <!-- Desktop stores KPI row -->
+    <div id="stores-desktop-kpi" class="desktop-kpi-grid hidden mb-2">
+      <div class="stat-card">
+        <p class="text-[11px] text-gray-400 font-semibold uppercase tracking-wider">Total Stores</p>
+        <p id="dsk-total" class="text-[28px] font-extrabold text-navy-dark mt-1 leading-none"></p>
+        <p class="text-[12px] text-gray-400 mt-2">registered locations</p>
+      </div>
+      <div class="stat-card">
+        <p class="text-[11px] text-gray-400 font-semibold uppercase tracking-wider">Active</p>
+        <p id="dsk-active" class="text-[28px] font-extrabold text-brand-green mt-1 leading-none"></p>
+        <p class="text-[12px] text-gray-400 mt-2">currently open</p>
+      </div>
+      <div class="stat-card">
+        <p class="text-[11px] text-gray-400 font-semibold uppercase tracking-wider">Today's Sales</p>
+        <p id="dsk-today" class="text-[28px] font-extrabold text-navy-dark mt-1 leading-none"></p>
+        <p class="text-[12px] text-gray-400 mt-2">all stores combined</p>
+      </div>
+      <div class="stat-card">
+        <p class="text-[11px] text-gray-400 font-semibold uppercase tracking-wider">Total Staff</p>
+        <p id="dsk-staff" class="text-[28px] font-extrabold text-navy-dark mt-1 leading-none"></p>
+        <p class="text-[12px] text-gray-400 mt-2">across all locations</p>
+      </div>
+    </div>
     <div class="relative">
       <ion-icon name="search-outline" class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-base pointer-events-none"></ion-icon>
       <input id="store-search" type="text" placeholder="Search stores…" oninput="filterStores()" class="w-full bg-white border border-border rounded-xl pl-9 pr-4 h-[42px] text-[13px] focus:outline-none focus:border-navy placeholder-gray-400">
@@ -220,8 +833,8 @@ html body { min-height:100vh; min-height:100dvh; font-family:'Plus Jakarta Sans'
      Entered from any store card; Back returns to the Stores list. -->
 <div id="page-store-detail" class="page" style="padding-bottom:90px;">
 
-  <!-- Navy header — store identity + key status badges -->
-  <div id="sd-header" class="bg-navy-dark px-5 pt-[env(safe-area-inset-top,12px)] pb-5 rounded-b-3xl">
+  <!-- Navy header — store identity + key status badges (mobile only) -->
+  <div id="sd-header" class="bg-navy-dark px-5 pt-[env(safe-area-inset-top,12px)] pb-5 rounded-b-3xl mobile-hero">
     <div class="flex items-center gap-3 pt-3 mb-4">
       <button onclick="closeStoreDetailPage()" class="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center shrink-0">
         <ion-icon name="arrow-back-outline" class="text-white text-lg"></ion-icon>
@@ -263,12 +876,62 @@ html body { min-height:100vh; min-height:100dvh; font-family:'Plus Jakarta Sans'
 
   <!-- Sticky tab bar — horizontally scrollable, same style as admin -->
   <div class="bg-white border-b border-border sticky top-0 z-10">
+    <!-- Desktop store header — shown above tab bar on desktop, replaces mobile hero -->
+    <div id="sd-desktop-header" class="hidden">
+      <div class="flex items-center gap-3">
+        <button onclick="closeStoreDetailPage()" class="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center shrink-0 hover:bg-gray-200 transition">
+          <ion-icon name="arrow-back-outline" class="text-navy text-lg"></ion-icon>
+        </button>
+        <div id="sd-desktop-icon-wrap" class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0">
+          <ion-icon id="sd-desktop-type-icon" name="storefront-outline" class="text-xl"></ion-icon>
+        </div>
+        <div class="min-w-0">
+          <div class="flex items-center gap-2">
+            <h2 id="sd-desktop-name" class="text-[18px] font-bold text-navy-dark truncate"></h2>
+            <span id="sd-desktop-status" class="inline-flex items-center gap-1 text-[9px] font-semibold px-2 py-1 rounded-full shrink-0"></span>
+          </div>
+          <p id="sd-desktop-meta" class="text-[12px] text-gray-500 mt-0.5 truncate"></p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="openStoreForm(window._sdCurrentId)" class="flex items-center gap-1.5 text-[12px] font-semibold text-navy bg-navy/5 px-3 py-2 rounded-lg hover:bg-navy/10 transition">
+          <ion-icon name="create-outline" class="text-sm"></ion-icon>Edit Store
+        </button>
+        <button id="sd-desktop-actions-btn" onclick="" class="flex items-center gap-1.5 text-[12px] font-semibold text-white bg-navy px-3 py-2 rounded-lg hover:bg-navy-light transition">
+          <ion-icon name="ellipsis-horizontal" class="text-sm"></ion-icon>Actions
+        </button>
+      </div>
+    </div>
     <div class="flex">
       <button onclick="sdTab('overview')"    id="sd-tab-overview"    class="sd-tab-btn flex-1 py-3 text-[12px] font-semibold border-b-2 border-navy text-navy">Overview</button>
       <button onclick="sdTab('staff')"       id="sd-tab-staff"       class="sd-tab-btn flex-1 py-3 text-[12px] font-semibold border-b-2 border-transparent text-gray-500">Staff</button>
       <button onclick="sdTab('sales')"       id="sd-tab-sales"       class="sd-tab-btn flex-1 py-3 text-[12px] font-semibold border-b-2 border-transparent text-gray-500">Sales</button>
       <button onclick="sdTab('inventory')"   id="sd-tab-inventory"   class="sd-tab-btn flex-1 py-3 text-[12px] font-semibold border-b-2 border-transparent text-gray-500">Inventory</button>
       <button onclick="sdTab('location')"    id="sd-tab-location"    class="sd-tab-btn flex-1 py-3 text-[12px] font-semibold border-b-2 border-transparent text-gray-500">Location</button>
+    </div>
+  </div>
+
+  <!-- Desktop KPI bar — replaces the hidden mobile hero stats -->
+  <div id="sd-kpi-bar" class="hidden">
+    <div class="sd-kpi-card">
+      <p class="kpi-label">Today</p>
+      <p id="sdk-today" class="kpi-value"></p>
+      <p id="sdk-today-orders" class="kpi-sub"></p>
+    </div>
+    <div class="sd-kpi-card">
+      <p class="kpi-label">This Month</p>
+      <p id="sdk-month" class="kpi-value"></p>
+      <p id="sdk-month-orders" class="kpi-sub"></p>
+    </div>
+    <div class="sd-kpi-card">
+      <p class="kpi-label">Staff</p>
+      <p id="sdk-staff" class="kpi-value"></p>
+      <p class="kpi-sub">assigned</p>
+    </div>
+    <div class="sd-kpi-card">
+      <p class="kpi-label">Stock Alerts</p>
+      <p id="sdk-alerts" class="kpi-value"></p>
+      <p id="sdk-alerts-sub" class="kpi-sub"></p>
     </div>
   </div>
 
@@ -312,7 +975,7 @@ html body { min-height:100vh; min-height:100dvh; font-family:'Plus Jakarta Sans'
 
 <!-- ════════ PAGE: PLAN ════════ -->
 <div id="page-plan" class="page">
-  <div class="bg-navy-dark px-5 pt-[env(safe-area-inset-top,12px)] pb-5 rounded-b-3xl">
+  <div class="bg-navy-dark px-5 pt-[env(safe-area-inset-top,12px)] pb-5 rounded-b-3xl mobile-hero">
     <div class="pt-3 mb-4">
       <h1 class="text-white text-[20px] font-bold">Subscription</h1>
       <p class="text-white/40 text-[11px] mt-0.5">Plan & billing</p>
@@ -344,12 +1007,12 @@ html body { min-height:100vh; min-height:100dvh; font-family:'Plus Jakarta Sans'
       </div>
     </div>
   </div>
-  <div class="px-4 pt-4" id="plan-content"></div>
+  <div class="desktop-page-body" id="plan-content-wrap">
+    <div class="px-4 pt-4" id="plan-content"></div>
+  </div>
 </div>
-
-<!-- ════════ PAGE: SETTINGS ════════ -->
 <div id="page-settings" class="page">
-  <div class="bg-navy-dark px-5 pt-[env(safe-area-inset-top,12px)] pb-5 rounded-b-3xl">
+  <div class="bg-navy-dark px-5 pt-[env(safe-area-inset-top,12px)] pb-5 rounded-b-3xl mobile-hero">
     <div class="pt-3">
       <h1 class="text-white text-[20px] font-bold">Settings</h1>
       <p class="text-white/40 text-[11px] mt-0.5">Account & preferences</p>
@@ -366,10 +1029,10 @@ html body { min-height:100vh; min-height:100dvh; font-family:'Plus Jakarta Sans'
       </div>
     </div>
   </div>
-  <div class="px-4 pt-4" id="settings-content"></div>
+  <div class="desktop-page-body">
+    <div class="px-4 pt-4" id="settings-content"></div>
+  </div>
 </div>
-
-<!-- ════════ TOAST NOTIFICATION ════════ -->
 <div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 z-[400] hidden transition-all duration-300 opacity-0" style="max-width:380px;width:90%;">
   <div id="toast-inner" class="flex items-center gap-3 px-4 py-3 rounded-2xl shadow-lg">
     <ion-icon id="toast-icon" class="text-xl shrink-0"></ion-icon>
@@ -378,7 +1041,7 @@ html body { min-height:100vh; min-height:100dvh; font-family:'Plus Jakarta Sans'
 </div>
 
 <!-- ════════ SIGNED OUT SCREEN ════════ -->
-<div id="signed-out-screen" class="fixed inset-0 z-[500] hidden flex-col items-center justify-center bg-navy-dark" style="max-width:var(--app-max);margin:0 auto;">
+<div id="signed-out-screen" class="fixed inset-0 z-[500] hidden flex-col items-center justify-center bg-navy-dark">
   <div class="w-16 h-16 rounded-2xl bg-white/10 flex items-center justify-center mb-6">
     <ion-icon name="storefront" class="text-white text-3xl"></ion-icon>
   </div>
@@ -394,7 +1057,7 @@ html body { min-height:100vh; min-height:100dvh; font-family:'Plus Jakarta Sans'
      Scenario 6c). Renewal submission and support stay reachable from here,
      matching "Payment submission still accessible from the suspension
      screen" in the acceptance criteria. -->
-<div id="suspended-screen" class="fixed inset-0 z-[150] hidden flex-col bg-page" style="max-width:var(--app-max);margin:0 auto;">
+<div id="suspended-screen" class="fixed inset-0 z-[150] hidden flex-col bg-page">
   <div class="bg-navy-dark px-5 pt-[env(safe-area-inset-top,32px)] pb-8 rounded-b-3xl text-center">
     <div class="w-16 h-16 rounded-2xl bg-brand-red/20 flex items-center justify-center mx-auto mb-4">
       <ion-icon name="lock-closed" class="text-brand-red text-3xl"></ion-icon>
@@ -431,7 +1094,7 @@ html body { min-height:100vh; min-height:100dvh; font-family:'Plus Jakarta Sans'
 </div>
 
 <!-- ════════ CONTACT SUPPORT SHEET ════════ -->
-<div id="support-sheet" class="fixed inset-0 z-[350] hidden items-end justify-center" style="max-width:var(--app-max);margin:0 auto;">
+<div id="support-sheet" class="fixed inset-0 z-[350] hidden items-end justify-center">
   <div class="absolute inset-0 bg-black/50" onclick="closeSupportSheet()"></div>
   <div id="support-inner" class="relative w-full bg-white rounded-t-3xl transform transition-transform duration-300 translate-y-full p-6 pb-10">
     <div class="flex justify-center mb-4"><div class="w-10 h-1 bg-gray-300 rounded-full"></div></div>
@@ -442,8 +1105,8 @@ html body { min-height:100vh; min-height:100dvh; font-family:'Plus Jakarta Sans'
 </div>
 
 <!-- ════════ SIGN OUT CONFIRM DIALOG ════════ -->
-<div id="signout-dialog" class="fixed inset-0 z-[300] hidden items-end justify-center" style="max-width:var(--app-max);margin:0 auto;">
-  <div class="absolute inset-0 bg-black/50" onclick="document.getElementById('signout-dialog').classList.add('hidden')"></div>
+<div id="signout-dialog" class="fixed inset-0 z-[300] hidden items-end justify-center">
+  <div class="absolute inset-0 bg-black/50" onclick="closeActionSheet('signout-dialog')"></div>
   <div class="relative w-full bg-white rounded-t-3xl p-6 pb-8">
     <div class="w-12 h-12 rounded-full bg-brand-red/10 flex items-center justify-center mx-auto mb-4">
       <ion-icon name="log-out-outline" class="text-brand-red text-2xl"></ion-icon>
@@ -451,14 +1114,14 @@ html body { min-height:100vh; min-height:100dvh; font-family:'Plus Jakarta Sans'
     <p class="text-[17px] font-bold text-navy-dark text-center mb-1">Sign Out?</p>
     <p class="text-[13px] text-gray-400 text-center mb-6">Are you sure you want to sign out?</p>
     <div class="flex gap-3">
-      <button onclick="document.getElementById('signout-dialog').classList.add('hidden')" class="flex-1 h-[46px] bg-gray-100 text-navy-dark text-[13px] font-semibold rounded-xl">Cancel</button>
+      <button onclick="closeActionSheet('signout-dialog')" class="flex-1 h-[46px] bg-gray-100 text-navy-dark text-[13px] font-semibold rounded-xl">Cancel</button>
       <button onclick="doSignOut()" class="flex-1 h-[46px] bg-brand-red text-white text-[13px] font-semibold rounded-xl">Sign Out</button>
     </div>
   </div>
 </div>
 
 <!-- ════════ GENERIC CONFIRM DIALOG — reused for deactivate/reactivate/delete store ════════ -->
-<div id="confirm-dialog" class="fixed inset-0 z-[320] hidden items-end justify-center" style="max-width:var(--app-max);margin:0 auto;">
+<div id="confirm-dialog" class="fixed inset-0 z-[320] hidden items-end justify-center">
   <div class="absolute inset-0 bg-black/50" onclick="closeConfirmDialog()"></div>
   <div class="relative w-full bg-white rounded-t-3xl p-6 pb-8">
     <div id="confirm-dialog-icon-wrap" class="w-12 h-12 rounded-full bg-navy/10 flex items-center justify-center mx-auto mb-4">
@@ -474,7 +1137,7 @@ html body { min-height:100vh; min-height:100dvh; font-family:'Plus Jakarta Sans'
 </div>
 
 <!-- ════════ STORE ACTIONS SHEET (quick actions per store card) ════════ -->
-<div id="store-actions-sheet" class="fixed inset-0 z-[300] hidden items-end justify-center" style="max-width:var(--app-max);margin:0 auto;">
+<div id="store-actions-sheet" class="fixed inset-0 z-[300] hidden items-end justify-center">
   <div class="absolute inset-0 bg-black/50" onclick="closeStoreActions()"></div>
   <div class="relative w-full bg-white rounded-t-3xl p-5 pb-8">
     <div class="flex justify-center mb-3"><div class="w-10 h-1 bg-gray-300 rounded-full"></div></div>
@@ -492,7 +1155,7 @@ html body { min-height:100vh; min-height:100dvh; font-family:'Plus Jakarta Sans'
 </div>
 
 <!-- ════════ STORE FORM PANEL — Add/Edit Store (US-OWN-030 / US-OWN-032) ════════ -->
-<div id="store-form-panel" class="fixed inset-0 z-[260] hidden" style="max-width:var(--app-max);margin:0 auto;">
+<div id="store-form-panel" class="fixed inset-0 z-[260] hidden">
   <div class="absolute inset-0 bg-black/40" onclick="closeStoreForm()"></div>
   <div class="absolute inset-0 bg-page transform transition-transform duration-300 translate-x-full flex flex-col" id="store-form-inner">
 
@@ -520,7 +1183,7 @@ html body { min-height:100vh; min-height:100dvh; font-family:'Plus Jakarta Sans'
 </div>
 
 <!-- ════════ STAFF ACTIONS SHEET (per staff member, from store detail) ════════ -->
-<div id="staff-actions-sheet" class="fixed inset-0 z-[300] hidden items-end justify-center" style="max-width:var(--app-max);margin:0 auto;">
+<div id="staff-actions-sheet" class="fixed inset-0 z-[300] hidden items-end justify-center">
   <div class="absolute inset-0 bg-black/50" onclick="closeStaffActions()"></div>
   <div class="relative w-full bg-white rounded-t-3xl p-5 pb-8">
     <div class="flex justify-center mb-3"><div class="w-10 h-1 bg-gray-300 rounded-full"></div></div>
@@ -544,7 +1207,7 @@ html body { min-height:100vh; min-height:100dvh; font-family:'Plus Jakarta Sans'
 </div>
 
 <!-- ════════ STAFF FORM PANEL — Invite/Edit staff for a location (US-OWN-050/052) ════════ -->
-<div id="staff-form-panel" class="fixed inset-0 z-[260] hidden items-end justify-center" style="max-width:var(--app-max);margin:0 auto;">
+<div id="staff-form-panel" class="fixed inset-0 z-[260] hidden items-end justify-center">
   <div class="absolute inset-0 bg-black/50" onclick="closeStaffForm()"></div>
   <div id="staff-form-inner" class="relative w-full bg-white rounded-t-3xl transform transition-transform duration-300 translate-y-full" style="max-height:92dvh;overflow-y:auto;">
 
@@ -570,7 +1233,7 @@ html body { min-height:100vh; min-height:100dvh; font-family:'Plus Jakarta Sans'
 </div>
 
 <!-- ════════ SETTINGS DETAIL PANEL (overlay) ════════ -->
-<div id="settings-panel" class="fixed inset-0 z-[200] hidden" style="max-width:var(--app-max);margin:0 auto;">
+<div id="settings-panel" class="fixed inset-0 z-[200] hidden">
   <div class="absolute inset-0 bg-black/40" onclick="closeSettingsPanel()"></div>
   <div class="absolute inset-0 bg-page transform transition-transform duration-300 translate-x-full" id="settings-panel-inner">
     <div class="bg-white border-b border-border px-4 py-3 flex items-center gap-3 sticky top-0 z-10">
@@ -582,7 +1245,7 @@ html body { min-height:100vh; min-height:100dvh; font-family:'Plus Jakarta Sans'
 </div>
 
 <!-- ════════ EDIT PROFILE PANEL ════════ -->
-<div id="edit-profile-panel" class="fixed inset-0 z-[260] hidden items-end justify-center" style="max-width:var(--app-max);margin:0 auto;">
+<div id="edit-profile-panel" class="fixed inset-0 z-[260] hidden items-end justify-center">
   <div class="absolute inset-0 bg-black/50" onclick="closeEditProfile()"></div>
   <div id="edit-profile-inner" class="relative w-full bg-white rounded-t-3xl transform transition-transform duration-300 translate-y-full" style="max-height:92dvh;overflow-y:auto;">
 
@@ -619,7 +1282,7 @@ html body { min-height:100vh; min-height:100dvh; font-family:'Plus Jakarta Sans'
 </div>
 
 <!-- ════════ CHANGE PASSWORD PANEL ════════ -->
-<div id="change-password-panel" class="fixed inset-0 z-[260] hidden items-end justify-center" style="max-width:var(--app-max);margin:0 auto;">
+<div id="change-password-panel" class="fixed inset-0 z-[260] hidden items-end justify-center">
   <div class="absolute inset-0 bg-black/50" onclick="closeChangePassword()"></div>
   <div id="change-password-inner" class="relative w-full bg-white rounded-t-3xl transform transition-transform duration-300 translate-y-full" style="max-height:92dvh;overflow-y:auto;">
 
@@ -662,7 +1325,7 @@ html body { min-height:100vh; min-height:100dvh; font-family:'Plus Jakarta Sans'
 </div>
 
 <!-- ════════ CHANGE EMAIL PANEL ════════ -->
-<div id="change-email-panel" class="fixed inset-0 z-[260] hidden items-end justify-center" style="max-width:var(--app-max);margin:0 auto;">
+<div id="change-email-panel" class="fixed inset-0 z-[260] hidden items-end justify-center">
   <div class="absolute inset-0 bg-black/50" onclick="closeChangeEmail()"></div>
   <div id="change-email-inner" class="relative w-full bg-white rounded-t-3xl transform transition-transform duration-300 translate-y-full" style="max-height:92dvh;overflow-y:auto;">
 
@@ -698,7 +1361,7 @@ html body { min-height:100vh; min-height:100dvh; font-family:'Plus Jakarta Sans'
 </div>
 
 <!-- ════════ ALL PAYMENTS PANEL ════════ -->
-<div id="all-payments-panel" class="fixed inset-0 z-[200] hidden" style="max-width:var(--app-max);margin:0 auto;">
+<div id="all-payments-panel" class="fixed inset-0 z-[200] hidden">
   <div class="absolute inset-0 bg-black/40" onclick="closeAllPayments()"></div>
   <div class="absolute inset-0 bg-page transform transition-transform duration-300 translate-x-full flex flex-col" id="all-payments-inner">
 
@@ -753,7 +1416,7 @@ html body { min-height:100vh; min-height:100dvh; font-family:'Plus Jakarta Sans'
 </div>
 
 <!-- ════════ STORE INVENTORY PANEL ════════ -->
-<div id="store-inventory-panel" class="fixed inset-0 z-[210] hidden" style="max-width:var(--app-max);margin:0 auto;">
+<div id="store-inventory-panel" class="fixed inset-0 z-[210] hidden">
   <div class="absolute inset-0 bg-black/40" onclick="closeStoreInventory()"></div>
   <div class="absolute inset-0 bg-page transform transition-transform duration-300 translate-x-full flex flex-col" id="store-inventory-inner">
 
@@ -793,7 +1456,7 @@ html body { min-height:100vh; min-height:100dvh; font-family:'Plus Jakarta Sans'
 </div>
 
 <!-- ════════ BUSINESS PROFILE PANEL ════════ -->
-<div id="bizprofile-panel" class="fixed inset-0 z-[200] hidden" style="max-width:var(--app-max);margin:0 auto;">
+<div id="bizprofile-panel" class="fixed inset-0 z-[200] hidden">
   <div class="absolute inset-0 bg-black/40" onclick="closeBusinessProfile()"></div>
   <div class="absolute inset-0 bg-page transform transition-transform duration-300 translate-x-full flex flex-col" id="bizprofile-inner">
 
@@ -832,7 +1495,7 @@ html body { min-height:100vh; min-height:100dvh; font-family:'Plus Jakarta Sans'
 </div>
 
 <!-- ════════ RENEWAL PANEL ════════ -->
-<div id="renewal-panel" class="fixed inset-0 z-[260] hidden items-end justify-center" style="max-width:var(--app-max);margin:0 auto;">
+<div id="renewal-panel" class="fixed inset-0 z-[260] hidden items-end justify-center">
   <div class="absolute inset-0 bg-black/50" onclick="closeRenewalPanel()"></div>
   <div id="renewal-inner" class="relative w-full bg-white rounded-t-3xl transform transition-transform duration-300 translate-y-full" style="max-height:92dvh;overflow-y:auto;">
 
@@ -873,7 +1536,7 @@ html body { min-height:100vh; min-height:100dvh; font-family:'Plus Jakarta Sans'
 </div>
 
 <!-- ════════ RENEWAL SUCCESS DIALOG ════════ -->
-<div id="renewal-success-dialog" class="fixed inset-0 z-[300] hidden items-end justify-center" style="max-width:var(--app-max);margin:0 auto;">
+<div id="renewal-success-dialog" class="fixed inset-0 z-[300] hidden items-end justify-center">
   <div class="absolute inset-0 bg-black/50" onclick="closeRenewalSuccess()"></div>
   <div class="relative w-full bg-white rounded-t-3xl p-6 pb-8">
     <div class="w-14 h-14 rounded-full bg-brand-green/10 flex items-center justify-center mx-auto mb-4">
@@ -891,7 +1554,7 @@ html body { min-height:100vh; min-height:100dvh; font-family:'Plus Jakarta Sans'
 </div>
 
 <!-- ════════ CHANGE PLAN PANEL ════════ -->
-<div id="change-plan-panel" class="fixed inset-0 z-[250] hidden" style="max-width:var(--app-max);margin:0 auto;">
+<div id="change-plan-panel" class="fixed inset-0 z-[250] hidden">
   <div class="absolute inset-0 bg-black/50" onclick="closeChangePlan()"></div>
   <div id="change-plan-inner" class="absolute bottom-0 left-0 right-0 bg-page rounded-t-3xl transform transition-transform duration-300 translate-y-full" style="max-height:92dvh;overflow-y:auto;">
 
@@ -951,7 +1614,7 @@ html body { min-height:100vh; min-height:100dvh; font-family:'Plus Jakarta Sans'
      categories view (docs/17-admin-categories-industries-spec.md) but
      scoped to this business's own category assignments + custom sub-cats
      they can create under their assigned root categories. -->
-<div id="categories-panel" class="fixed inset-0 z-[200] hidden" style="max-width:var(--app-max);margin:0 auto;">
+<div id="categories-panel" class="fixed inset-0 z-[200] hidden">
   <div class="absolute inset-0 bg-black/40" onclick="closeCategoriesPanel()"></div>
   <div class="absolute inset-0 bg-page transform transition-transform duration-300 translate-x-full flex flex-col" id="categories-panel-inner">
 
@@ -1015,7 +1678,7 @@ html body { min-height:100vh; min-height:100dvh; font-family:'Plus Jakarta Sans'
 </div>
 
 <!-- ════════ CATEGORY FORM PANEL ════════ -->
-<div id="category-form-panel" class="fixed inset-0 z-[260] hidden items-end justify-center" style="max-width:var(--app-max);margin:0 auto;">
+<div id="category-form-panel" class="fixed inset-0 z-[260] hidden items-end justify-center">
   <div class="absolute inset-0 bg-black/50" onclick="closeCategoryForm()"></div>
   <div id="category-form-inner" class="relative w-full bg-white rounded-t-3xl transform transition-transform duration-300 translate-y-full" style="max-height:88dvh;overflow-y:auto;">
 
@@ -1043,7 +1706,7 @@ html body { min-height:100vh; min-height:100dvh; font-family:'Plus Jakarta Sans'
 </div>
 
 <!-- ════════ CATEGORY ACTIONS SHEET ════════ -->
-<div id="cat-actions-sheet" class="fixed inset-0 z-[300] hidden items-end justify-center" style="max-width:var(--app-max);margin:0 auto;">
+<div id="cat-actions-sheet" class="fixed inset-0 z-[300] hidden items-end justify-center">
   <div class="absolute inset-0 bg-black/50" onclick="closeCatActions()"></div>
   <div class="relative w-full bg-white rounded-t-3xl p-5 pb-8">
     <div class="flex justify-center mb-3"><div class="w-10 h-1 bg-gray-300 rounded-full"></div></div>
@@ -1071,6 +1734,10 @@ html body { min-height:100vh; min-height:100dvh; font-family:'Plus Jakarta Sans'
   <button onclick="navTo('plan')"><ion-icon name="card-outline"></ion-icon><span>Plan</span></button>
   <button onclick="navTo('settings')"><ion-icon name="settings-outline"></ion-icon><span>Settings</span></button>
 </nav>
+
+  </div><!-- /#desktop-content -->
+</div><!-- /#desktop-main -->
+</div><!-- /#desktop-shell -->
 
 <script>
 // ═══════════════════════════════════════════
@@ -1549,6 +2216,26 @@ function renderSales() {
   // [FIX-1] Show the actual date range under the period filter
   document.getElementById('period-date-range').textContent = getDateRangeLabel(currentPeriod);
 
+  // ── Desktop KPI cards ──
+  const kpiGrid = document.getElementById('sales-desktop-kpi');
+  if (kpiGrid) {
+    if (isDesktop()) {
+      kpiGrid.classList.remove('hidden');
+      kpiGrid.style.display = 'grid';
+    } else {
+      kpiGrid.classList.add('hidden');
+      kpiGrid.style.display = '';
+    }
+    const el = (id) => document.getElementById(id);
+    if (el('dkpi-total')) el('dkpi-total').textContent = fmtRs(d.totalSales);
+    if (el('dkpi-trend')) el('dkpi-trend').textContent = '↑ ' + d.growth + '% ' + d.growthLabel;
+    if (el('dkpi-orders')) el('dkpi-orders').textContent = fmtNum(d.totalOrders);
+    if (el('dkpi-pos')) el('dkpi-pos').textContent = fmtRs(d.pos.amount);
+    if (el('dkpi-pos-pct')) el('dkpi-pos-pct').textContent = d.pos.pct + '% of revenue';
+    if (el('dkpi-ec')) el('dkpi-ec').textContent = fmtRs(d.ec.amount);
+    if (el('dkpi-ec-pct')) el('dkpi-ec-pct').textContent = d.ec.pct + '% of revenue';
+  }
+
   // Channel cards
   document.getElementById('channel-cards').innerHTML = `
     <div class="bg-white rounded-2xl border border-border overflow-hidden">
@@ -1643,12 +2330,30 @@ function renderStores() {
   const todayTotal = STORES.reduce((sum, s) => sum + s.sales.today, 0);
   const monthTotal = STORES.reduce((sum, s) => sum + s.sales.month, 0);
   const todayOrders = STORES.reduce((sum, s) => sum + s.orders.today, 0);
+  const totalStaff = STORES.reduce((sum, s) => sum + locationStaffCount(s.id), 0);
 
   document.getElementById('stores-subtitle').textContent = `${activeCount} active · ${STORES.length - activeCount} inactive`;
   document.getElementById('stores-total-count').textContent = STORES.length;
   document.getElementById('stores-active-count').textContent = activeCount;
   document.getElementById('stores-today-total').textContent = fmtRs(todayTotal);
   document.getElementById('hd-stores').textContent = STORES.length;
+
+  // ── Desktop KPI cards ──
+  const dskGrid = document.getElementById('stores-desktop-kpi');
+  if (dskGrid) {
+    if (isDesktop()) {
+      dskGrid.classList.remove('hidden');
+      dskGrid.style.display = 'grid';
+    } else {
+      dskGrid.classList.add('hidden');
+      dskGrid.style.display = '';
+    }
+    const el = (id) => document.getElementById(id);
+    if (el('dsk-total')) el('dsk-total').textContent = STORES.length;
+    if (el('dsk-active')) el('dsk-active').textContent = activeCount;
+    if (el('dsk-today')) el('dsk-today').textContent = fmtRs(todayTotal);
+    if (el('dsk-staff')) el('dsk-staff').textContent = totalStaff;
+  }
 
   currentStoreFilter = 'all';
   document.querySelectorAll('[id^="sf-"]').forEach(b => b.classList.remove('active'));
@@ -1811,8 +2516,9 @@ function renderStoreDetailPage() {
   const typeInfo = storeTypeInfo(s.type);
   const roster = staffForLocation(s.id);
   const manager = locationManager(s.id);
+  window._sdCurrentId = s.id;
 
-  // ── Header ──
+  // ── Mobile Header ──
   const iconWrap = document.getElementById('sd-icon-wrap');
   iconWrap.className = `w-10 h-10 rounded-xl bg-${cc}/20 flex items-center justify-center shrink-0`;
   const typeIcon = document.getElementById('sd-type-icon');
@@ -1823,10 +2529,9 @@ function renderStoreDetailPage() {
   const badge = document.getElementById('sd-status-badge');
   badge.className = `inline-flex items-center gap-1 text-[9px] font-semibold px-2 py-1 rounded-full shrink-0 ${inactive ? 'text-gray-400 bg-white/10' : 'text-brand-green bg-brand-green/20'}`;
   badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full ${inactive ? 'bg-gray-400' : 'bg-brand-green'}"></span>${inactive ? 'Closed' : 'Open'}`;
-  // Wire the header Actions button once here so it's always up-to-date
   document.getElementById('sd-actions-btn').setAttribute('onclick', `openStoreActions(${s.id})`);
 
-  // ── KPI row ──
+  // ── Mobile KPI row ──
   document.getElementById('sd-stat-today').textContent = fmtRs(s.sales.today);
   document.getElementById('sd-stat-month').textContent = fmtRs(s.sales.month);
   document.getElementById('sd-stat-staff').textContent = roster.length;
@@ -1834,6 +2539,54 @@ function renderStoreDetailPage() {
   const stockEl = document.getElementById('sd-stat-stock');
   stockEl.textContent = stockAlerts;
   stockEl.className = `text-[14px] font-bold leading-tight ${stockAlerts > 0 ? 'text-brand-orange' : 'text-white'}`;
+
+  // ── Desktop Header + KPI bar ──
+  const desktopHeader = document.getElementById('sd-desktop-header');
+  const kpiBar = document.getElementById('sd-kpi-bar');
+  if (isDesktop()) {
+    if (desktopHeader) {
+      desktopHeader.classList.remove('hidden');
+      // Populate desktop header
+      const dhIconWrap = document.getElementById('sd-desktop-icon-wrap');
+      if (dhIconWrap) dhIconWrap.className = `w-10 h-10 rounded-xl bg-${cc}/15 flex items-center justify-center shrink-0`;
+      const dhIcon = document.getElementById('sd-desktop-type-icon');
+      if (dhIcon) { dhIcon.name = typeInfo.icon; dhIcon.className = `text-${cc} text-xl`; }
+      const dhName = document.getElementById('sd-desktop-name');
+      if (dhName) dhName.textContent = s.name;
+      const dhMeta = document.getElementById('sd-desktop-meta');
+      if (dhMeta) dhMeta.textContent = `${typeInfo.label} · ${s.code || ''} · ${storeFullAddress(s)}`;
+      const dhStatus = document.getElementById('sd-desktop-status');
+      if (dhStatus) {
+        dhStatus.className = `inline-flex items-center gap-1 text-[10px] font-semibold px-2.5 py-1 rounded-full shrink-0 ${inactive ? 'text-gray-500 bg-gray-100' : 'text-brand-green bg-brand-green/10'}`;
+        dhStatus.innerHTML = `<span class="w-1.5 h-1.5 rounded-full ${inactive ? 'bg-gray-400' : 'bg-brand-green'}"></span>${inactive ? 'Closed' : 'Open'}`;
+      }
+      const dhActionsBtn = document.getElementById('sd-desktop-actions-btn');
+      if (dhActionsBtn) dhActionsBtn.setAttribute('onclick', `openStoreActions(${s.id})`);
+    }
+    if (kpiBar) {
+      kpiBar.classList.remove('hidden');
+      kpiBar.style.display = 'grid';
+      const el = (id) => document.getElementById(id);
+      if (el('sdk-today')) el('sdk-today').textContent = fmtRs(s.sales.today);
+      if (el('sdk-today-orders')) el('sdk-today-orders').textContent = fmtNum(s.orders.today) + ' orders';
+      if (el('sdk-month')) el('sdk-month').textContent = fmtRs(s.sales.month);
+      if (el('sdk-month-orders')) el('sdk-month-orders').textContent = fmtNum(s.orders.month) + ' orders';
+      if (el('sdk-staff')) el('sdk-staff').textContent = roster.length;
+      if (el('sdk-alerts')) {
+        el('sdk-alerts').textContent = stockAlerts;
+        el('sdk-alerts').style.color = stockAlerts > 0 ? '#ff9800' : '#0a1535';
+      }
+      if (el('sdk-alerts-sub')) el('sdk-alerts-sub').textContent = stockAlerts > 0 ? 'low/out of stock' : 'all stocked';
+      // Also update topbar title/subtitle for this store
+      const titleEl = document.getElementById('desktop-page-title');
+      const subEl = document.getElementById('desktop-page-subtitle');
+      if (titleEl) titleEl.textContent = s.name;
+      if (subEl) subEl.textContent = `${typeInfo.label} · ${storeShortLocation(s)}`;
+    }
+  } else {
+    if (desktopHeader) desktopHeader.classList.add('hidden');
+    if (kpiBar) { kpiBar.classList.add('hidden'); kpiBar.style.display = ''; }
+  }
 
   // ── Re-render current tab ──
   sdTab(sdCurrentTab, false);
@@ -2095,10 +2848,10 @@ function renderSdOverview(s) {
   }
 
   document.getElementById('sd-overview-body').innerHTML = `
-    <div class="space-y-3">
+    <div class="sd-overview-grid">
 
-      <!-- ① Today's Revenue — hero card -->
-      <div class="bg-white rounded-2xl border border-border overflow-hidden">
+      <!-- ① Today's Revenue hero card — spans full width on desktop -->
+      <div class="sd-hero-card bg-white rounded-2xl border border-border overflow-hidden">
         <div class="bg-navy-dark px-4 pt-4 pb-3 rounded-t-2xl">
           <p class="text-white/50 text-[10px] uppercase tracking-wider font-semibold mb-1">Today's Revenue</p>
           <div class="flex items-end justify-between">
@@ -2109,7 +2862,6 @@ function renderSdOverview(s) {
           </div>
           <p class="text-white/40 text-[11px] mt-1">${fmtNum(s.orders.today)} orders today</p>
         </div>
-        <!-- Channel split bar -->
         <div class="px-4 py-3">
           <div class="flex items-center justify-between mb-1.5 text-[10px] text-gray-500">
             <span>POS (In-Store)</span><span>Online (COD)</span>
@@ -2795,10 +3547,12 @@ function renderPlan() {
   else if (days <= 30) bar.className = 'h-full bg-brand-orange rounded-full transition-all duration-500';
   else bar.className = 'h-full bg-brand-green rounded-full transition-all duration-500';
 
-  // Body content
-  document.getElementById('plan-content').innerHTML = `
+  // Body content — two-column on desktop
+  const planBody = `
+    <!-- LEFT COLUMN: Usage + Payment History -->
+    <div class="plan-left space-y-4">
     <!-- Plan Usage -->
-    <div class="bg-white rounded-2xl border border-border overflow-hidden mb-3">
+    <div class="bg-white rounded-2xl border border-border overflow-hidden">
       <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
         <p class="text-[13px] font-semibold text-navy-dark">Usage</p>
         <span class="text-[9px] text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full font-medium">${PLAN.name} limits</span>
@@ -2811,7 +3565,7 @@ function renderPlan() {
     </div>
 
     <!-- Payment History -->
-    <div class="bg-white rounded-2xl border border-border overflow-hidden mb-4">
+    <div class="bg-white rounded-2xl border border-border overflow-hidden">
       <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
         <p class="text-[13px] font-semibold text-navy-dark">Payment History</p>
         <div class="text-right">
@@ -2822,7 +3576,6 @@ function renderPlan() {
       ${PLAN.payments.slice(0, 5).map((p, i) => {
         const date = new Date(p.date).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
         const isLast = i === Math.min(PLAN.payments.length, 5) - 1;
-        // [FIX-9] Full status styles: verified=green, pending=orange, rejected=red
         const S = {
           verified: { icon:'checkmark-circle', ic:'text-brand-green', bg:'bg-brand-green/10', badge:'text-brand-green bg-brand-green/10' },
           pending:  { icon:'time-outline',      ic:'text-brand-orange', bg:'bg-brand-orange/10', badge:'text-brand-orange bg-brand-orange/10' },
@@ -2848,24 +3601,142 @@ function renderPlan() {
           </div>
         </div>`;
       }).join('')}
-      <!-- View All Payments -->
       <button onclick="openAllPayments()" class="w-full flex items-center justify-center gap-1.5 py-3 border-t border-gray-100 text-[12px] font-semibold text-navy active:bg-gray-50">
         <ion-icon name="list-outline" class="text-base"></ion-icon>
         View All Payments
       </button>
     </div>
+    </div><!-- end plan-left -->
 
-    <!-- Upgrade / Change Plan — prominent CTA -->
+    <!-- RIGHT COLUMN: Plan card + CTAs -->
+    <div class="plan-right space-y-4">
+      <!-- Current plan summary card -->
+      <div class="bg-navy-dark rounded-2xl p-5 text-white">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-12 h-12 rounded-xl bg-brand-purple/20 flex items-center justify-center">
+            <ion-icon name="rocket" class="text-brand-purple text-2xl"></ion-icon>
+          </div>
+          <div>
+            <p class="text-[18px] font-bold">${PLAN.name} Plan</p>
+            <p class="text-white/50 text-[12px]">Rs.${fmtNum(PLAN.price)}/month</p>
+          </div>
+          <span id="plan-status-badge-2" class="ml-auto text-[9px] font-bold px-2.5 py-1 rounded-full ${days > 30 ? 'text-brand-green bg-brand-green/20' : days > 7 ? 'text-brand-orange bg-brand-orange/20' : 'text-brand-red bg-brand-red/20'}">${days > 30 ? 'Active' : days > 7 ? 'Expiring Soon' : days > 0 ? days + ' days left' : 'Expired'}</span>
+        </div>
+        <div class="mb-3">
+          <div class="flex items-center justify-between mb-1.5 text-[10px]">
+            <span class="text-white/40">Subscription period</span>
+            <span class="text-white font-semibold">${days} days remaining</span>
+          </div>
+          <div class="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+            <div class="h-full rounded-full transition-all duration-500 ${days <= 7 ? 'bg-brand-red' : days <= 30 ? 'bg-brand-orange' : 'bg-brand-green'}" style="width:${progressPct}%"></div>
+          </div>
+          <div class="flex items-center justify-between mt-1.5 text-[9px] text-white/30">
+            <span>${startDate}</span><span>${expiryDate}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Renewal CTA -->
+      <button onclick="openRenewalPanel()" class="w-full bg-navy border border-navy/20 text-white rounded-2xl p-4 flex items-center justify-center gap-2 text-[13px] font-semibold hover:bg-navy-light transition">
+        <ion-icon name="card-outline" class="text-lg"></ion-icon>
+        Submit Payment for Renewal
+      </button>
+
+      <!-- Change Plan CTA -->
+      <button onclick="openChangePlan()" class="w-full bg-brand-purple text-white rounded-2xl p-4 flex items-center justify-center gap-2 text-[13px] font-semibold hover:opacity-90 transition">
+        <ion-icon name="rocket-outline" class="text-lg"></ion-icon>
+        Upgrade / Change Plan
+      </button>
+
+      <!-- Quick stats -->
+      <div class="bg-white rounded-2xl border border-border overflow-hidden">
+        <div class="px-4 py-3 border-b border-gray-100">
+          <p class="text-[13px] font-semibold text-navy-dark">Plan Summary</p>
+        </div>
+        <div class="divide-y divide-gray-50">
+          ${[
+            { icon:'storefront-outline', color:'brand-blue', label:'Stores', val:`${PLAN.stores.used} / ${PLAN.stores.limit}` },
+            { icon:'cube-outline', color:'brand-purple', label:'Products', val:`${PLAN.products.used} / ${PLAN.products.limit}` },
+            { icon:'desktop-outline', color:'brand-orange', label:'Registers / store', val:`${PLAN.registers.used} / ${PLAN.registers.limit}` },
+            { icon:'calendar-outline', color:'brand-green', label:'Renews', val:expiryDate }
+          ].map(r => `
+          <div class="flex items-center gap-3 px-4 py-3">
+            <div class="w-8 h-8 rounded-lg bg-${r.color}/10 flex items-center justify-center shrink-0">
+              <ion-icon name="${r.icon}" class="text-${r.color} text-sm"></ion-icon>
+            </div>
+            <p class="text-[12px] text-gray-600 flex-1">${r.label}</p>
+            <p class="text-[12px] font-bold text-navy-dark">${r.val}</p>
+          </div>`).join('')}
+        </div>
+      </div>
+    </div><!-- end plan-right -->
+  `;
+
+  if (isDesktop()) {
+    document.getElementById('plan-content').innerHTML = `<div class="plan-desktop-grid">${planBody}</div>`;
+  } else {
+    // Mobile: single column — usage, payments, then CTAs
+    document.getElementById('plan-content').innerHTML = `
+    <!-- Plan Usage -->
+    <div class="bg-white rounded-2xl border border-border overflow-hidden mb-3">
+      <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+        <p class="text-[13px] font-semibold text-navy-dark">Usage</p>
+        <span class="text-[9px] text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full font-medium">${PLAN.name} limits</span>
+      </div>
+      <div class="p-4 space-y-4">
+        ${renderUsageItem('storefront', 'brand-blue', 'Stores', PLAN.stores.used, PLAN.stores.limit)}
+        ${renderUsageItem('cube', 'brand-purple', 'Products', PLAN.products.used, PLAN.products.limit)}
+        ${renderUsageItem('desktop', 'brand-orange', 'Registers / store', PLAN.registers.used, PLAN.registers.limit)}
+      </div>
+    </div>
+    <!-- Payment History -->
+    <div class="bg-white rounded-2xl border border-border overflow-hidden mb-4">
+      <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+        <p class="text-[13px] font-semibold text-navy-dark">Payment History</p>
+        <div class="text-right">
+          <p class="text-[9px] text-gray-400 font-medium">Recent 5 of ${PLAN.payments.length}</p>
+          <p class="text-[10px] font-bold text-navy-dark">Rs.${fmtNum(PLAN.payments.slice(0,5).reduce((s,p)=>s+p.amount,0))} total</p>
+        </div>
+      </div>
+      ${PLAN.payments.slice(0, 5).map((p, i) => {
+        const date = new Date(p.date).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+        const isLast = i === Math.min(PLAN.payments.length, 5) - 1;
+        const S = {
+          verified: { icon:'checkmark-circle', ic:'text-brand-green', bg:'bg-brand-green/10', badge:'text-brand-green bg-brand-green/10' },
+          pending:  { icon:'time-outline',      ic:'text-brand-orange', bg:'bg-brand-orange/10', badge:'text-brand-orange bg-brand-orange/10' },
+          rejected: { icon:'close-circle',      ic:'text-brand-red',    bg:'bg-brand-red/10',    badge:'text-brand-red bg-brand-red/10' }
+        };
+        const cfg = S[p.status] || S.pending;
+        return `<div class="flex items-center gap-3 px-4 py-3.5 ${isLast ? '' : 'border-b border-gray-50'}">
+          <div class="w-10 h-10 rounded-xl ${cfg.bg} flex items-center justify-center shrink-0">
+            <ion-icon name="${cfg.icon}" class="${cfg.ic} text-xl"></ion-icon>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center justify-between">
+              <p class="text-[13px] font-bold text-navy-dark">Rs.${fmtNum(p.amount)}</p>
+              <span class="text-[9px] ${cfg.badge} px-2 py-0.5 rounded-full font-semibold capitalize">${p.status}</span>
+            </div>
+            <div class="flex items-center gap-2 mt-1">
+              <span class="text-[10px] text-gray-500">${p.planSwitchTo ? 'Switch to ' + p.planSwitchTo : p.months + ' months'}</span>
+              <span class="text-[10px] text-gray-300">·</span>
+              <span class="text-[10px] text-gray-500">${date}</span>
+              <span class="text-[10px] text-gray-300">·</span>
+              <span class="text-[10px] text-gray-400 font-mono">${p.ref}</span>
+            </div>
+          </div>
+        </div>`;
+      }).join('')}
+      <button onclick="openAllPayments()" class="w-full flex items-center justify-center gap-1.5 py-3 border-t border-gray-100 text-[12px] font-semibold text-navy active:bg-gray-50">
+        <ion-icon name="list-outline" class="text-base"></ion-icon>View All Payments
+      </button>
+    </div>
     <button onclick="openChangePlan()" class="w-full bg-brand-purple text-white rounded-2xl p-4 flex items-center justify-center gap-2 text-[13px] font-semibold mb-3 active:opacity-90">
-      <ion-icon name="rocket-outline" class="text-lg"></ion-icon>
-      Upgrade / Change Plan
+      <ion-icon name="rocket-outline" class="text-lg"></ion-icon>Upgrade / Change Plan
     </button>
-
-    <!-- Renew CTA -->
     <button onclick="openRenewalPanel()" class="w-full bg-navy text-white rounded-2xl p-4 flex items-center justify-center gap-2 text-[13px] font-semibold mb-4 active:bg-navy-light">
-      <ion-icon name="card-outline" class="text-lg"></ion-icon>
-      Submit Payment for Renewal
+      <ion-icon name="card-outline" class="text-lg"></ion-icon>Submit Payment for Renewal
     </button>`;
+  }
 }
 
 function renderUsageItem(icon, color, label, used, limit) {
@@ -2901,24 +3772,66 @@ function renderSettings() {
     { icon:'grid-outline', color:'brand-green', title:'Categories', desc:'Manage marketplace product categories', action:'openCategoriesPanel()' }
   ];
 
-  document.getElementById('settings-content').innerHTML = `
-    <div class="mb-4">
-      <p class="text-[10px] text-gray-400 uppercase tracking-[0.15em] font-semibold px-1 mb-2">Business</p>
+  const businessSection = `
+    <div>
+      <p class="text-[11px] text-gray-400 uppercase tracking-[0.12em] font-semibold mb-2">Business</p>
       <div class="bg-white rounded-2xl border border-border overflow-hidden">
         ${businessItems.map((item, i) => renderSettingsRow(item, i < businessItems.length - 1)).join('')}
       </div>
-    </div>
-    <div class="mb-4">
-      <p class="text-[10px] text-gray-400 uppercase tracking-[0.15em] font-semibold px-1 mb-2">Account</p>
+    </div>`;
+
+  const accountSection = `
+    <div>
+      <p class="text-[11px] text-gray-400 uppercase tracking-[0.12em] font-semibold mb-2">Account</p>
       <div class="bg-white rounded-2xl border border-border overflow-hidden">
         ${accountItems.map((item, i) => renderSettingsRow(item, i < accountItems.length - 1)).join('')}
       </div>
-    </div>
-    <button onclick="confirmSignOut()" class="w-full bg-white rounded-2xl border border-red-100 p-4 flex items-center justify-center gap-2.5 text-brand-red font-semibold text-[13px] mb-3 active:bg-red-50 transition">
-      <ion-icon name="log-out-outline" class="text-lg"></ion-icon>
-      Sign Out
-    </button>
-    <p class="text-center text-[10px] text-gray-300 pb-4">RetailOS v3.0 · IDENBRID · Clifton Mart</p>`;
+    </div>`;
+
+  const signOutSection = `
+    <div>
+      <button onclick="confirmSignOut()" class="w-full bg-white rounded-2xl border border-red-100 p-4 flex items-center justify-center gap-2.5 text-brand-red font-semibold text-[13px] hover:bg-red-50 transition">
+        <ion-icon name="log-out-outline" class="text-lg"></ion-icon>Sign Out
+      </button>
+      <p class="text-center text-[10px] text-gray-300 pt-3">RetailOS v3.0 · IDENBRID · Clifton Mart</p>
+    </div>`;
+
+  if (isDesktop()) {
+    document.getElementById('settings-content').innerHTML = `
+      <div class="settings-desktop-grid">
+        <div class="space-y-4">
+          ${businessSection}
+          ${accountSection}
+        </div>
+        <div class="space-y-4">
+          <!-- Profile card -->
+          <div class="bg-white rounded-2xl border border-border p-5">
+            <div class="flex items-center gap-4 mb-4">
+              <div class="w-16 h-16 rounded-full bg-brand-green text-white flex items-center justify-center font-bold text-[18px]">${OWNER.name.split(' ').map(w=>w[0]).join('')}</div>
+              <div class="flex-1 min-w-0">
+                <p class="text-[17px] font-bold text-navy-dark truncate">${OWNER.name}</p>
+                <p class="text-[12px] text-gray-400 mt-0.5 truncate">${OWNER.email}</p>
+                <span class="inline-block mt-1.5 text-[10px] font-bold bg-brand-purple/10 text-brand-purple px-2 py-0.5 rounded-full">${OWNER.plan} Plan</span>
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <button onclick="openEditProfile()" class="flex items-center justify-center gap-1.5 h-[38px] bg-navy/5 hover:bg-navy/10 rounded-xl text-[12px] font-semibold text-navy-dark transition">
+                <ion-icon name="create-outline" class="text-sm"></ion-icon>Edit Profile
+              </button>
+              <button onclick="openChangePassword()" class="flex items-center justify-center gap-1.5 h-[38px] bg-gray-100 hover:bg-gray-200 rounded-xl text-[12px] font-semibold text-gray-600 transition">
+                <ion-icon name="lock-closed-outline" class="text-sm"></ion-icon>Password
+              </button>
+            </div>
+          </div>
+          ${signOutSection}
+        </div>
+      </div>`;
+  } else {
+    document.getElementById('settings-content').innerHTML = `
+      <div class="mb-4">${businessSection}</div>
+      <div class="mb-4">${accountSection}</div>
+      ${signOutSection}`;
+  }
 }
 
 function renderSettingsRow(item, showBorder) {
@@ -2996,20 +3909,18 @@ const SETTINGS_PANELS = {
 
 function openSettingsPanel(panel, title) {
   currentDetailStoreId = null; // this shared panel is showing a non-store settings page now
-  const container = document.getElementById('settings-panel');
-  const inner = document.getElementById('settings-panel-inner');
   document.getElementById('settings-panel-title').textContent = title;
   document.getElementById('settings-panel-body').innerHTML = SETTINGS_PANELS[panel]();
-  container.classList.remove('hidden');
-  requestAnimationFrame(() => { inner.classList.remove('translate-x-full'); inner.classList.add('translate-x-0'); });
-  document.body.style.overflow = 'hidden';
+  openDrawer('settings-panel', 'settings-panel-inner');
+}
+
+function closeSettingsPanel() {
+  closeDrawer('settings-panel', 'settings-panel-inner');
 }
 
 // [FIX-8] Sign-out confirmation
 function confirmSignOut() {
-  const dlg = document.getElementById('signout-dialog');
-  dlg.classList.remove('hidden');
-  dlg.classList.add('flex');
+  openActionSheet('signout-dialog');
 }
 
 // [FIX-6] Language selector
@@ -3061,14 +3972,10 @@ function openStoreActions(storeId) {
   } else {
     toggleBtn.innerHTML = `<ion-icon name="play-circle-outline" class="text-brand-green text-lg"></ion-icon><span class="text-[13px] font-medium text-brand-green">Reactivate Store</span>`;
   }
-  const sheet = document.getElementById('store-actions-sheet');
-  sheet.classList.remove('hidden');
-  sheet.classList.add('flex');
+  openActionSheet('store-actions-sheet');
 }
 function closeStoreActions() {
-  const sheet = document.getElementById('store-actions-sheet');
-  sheet.classList.add('hidden');
-  sheet.classList.remove('flex');
+  closeActionSheet('store-actions-sheet');
 }
 function storeActionViewDetail() {
   const id = storeActionsStoreId;
@@ -3138,14 +4045,10 @@ function openConfirmDialog({ title, message, icon = 'help-circle-outline', iconC
   btn.textContent = confirmLabel;
   btn.className = `flex-1 h-[46px] ${confirmClass} text-white text-[13px] font-semibold rounded-xl`;
   confirmDialogAction = action;
-  const dlg = document.getElementById('confirm-dialog');
-  dlg.classList.remove('hidden');
-  dlg.classList.add('flex');
+  openActionSheet('confirm-dialog');
 }
 function closeConfirmDialog() {
-  const dlg = document.getElementById('confirm-dialog');
-  dlg.classList.add('hidden');
-  dlg.classList.remove('flex');
+  closeActionSheet('confirm-dialog');
   confirmDialogAction = null;
 }
 function runConfirmDialogAction() {
@@ -3181,22 +4084,14 @@ function openStoreForm(storeId = null) {
   document.getElementById('store-form-title').textContent = isEdit ? 'Edit Store' : 'Add Store';
   document.getElementById('store-form-save-label').textContent = isEdit ? 'Save Changes' : 'Create Store';
   renderStoreForm(isEdit ? STORES.find(x => x.id === storeId) : null);
-
-  const panel = document.getElementById('store-form-panel');
-  const inner = document.getElementById('store-form-inner');
-  panel.classList.remove('hidden');
-  requestAnimationFrame(() => { inner.classList.remove('translate-x-full'); inner.classList.add('translate-x-0'); });
-  document.body.style.overflow = 'hidden';
+  openDrawer('store-form-panel', 'store-form-inner');
 }
 
 function closeStoreForm() {
-  const panel = document.getElementById('store-form-panel');
-  const inner = document.getElementById('store-form-inner');
-  inner.classList.remove('translate-x-0');
-  inner.classList.add('translate-x-full');
-  setTimeout(() => { panel.classList.add('hidden'); document.body.style.overflow = ''; }, 300);
-  storeFormEditId = null;
-  storeFormHours = null;
+  closeDrawer('store-form-panel', 'store-form-inner', () => {
+    storeFormEditId = null;
+    storeFormHours = null;
+  });
 }
 
 function sfField(label, id, value, opts = {}) {
@@ -3414,14 +4309,10 @@ function openStaffActions(userId) {
   staffActionsUserId = userId;
   document.getElementById('staff-actions-title').textContent = u.name;
   document.getElementById('staff-actions-subtitle').textContent = staffRoleLabel(u.role) + ' · ' + u.email;
-  const sheet = document.getElementById('staff-actions-sheet');
-  sheet.classList.remove('hidden');
-  sheet.classList.add('flex');
+  openActionSheet('staff-actions-sheet');
 }
 function closeStaffActions() {
-  const sheet = document.getElementById('staff-actions-sheet');
-  sheet.classList.add('hidden');
-  sheet.classList.remove('flex');
+  closeActionSheet('staff-actions-sheet');
 }
 function staffActionEdit() {
   const id = staffActionsUserId;
@@ -3488,18 +4379,13 @@ function openStaffForm(locationId, userId = null) {
 
   const panel = document.getElementById('staff-form-panel');
   const inner = document.getElementById('staff-form-inner');
-  panel.classList.remove('hidden');
-  panel.classList.add('flex');
-  requestAnimationFrame(() => { inner.classList.remove('translate-y-full'); inner.classList.add('translate-y-0'); });
+  openModal('staff-form-panel', 'staff-form-inner');
 }
 function closeStaffForm() {
-  const panel = document.getElementById('staff-form-panel');
-  const inner = document.getElementById('staff-form-inner');
-  inner.classList.remove('translate-y-0');
-  inner.classList.add('translate-y-full');
-  setTimeout(() => { panel.classList.add('hidden'); panel.classList.remove('flex'); }, 300);
-  staffFormEditId = null;
-  staffFormLocationId = null;
+  closeModal('staff-form-panel', 'staff-form-inner', () => {
+    staffFormEditId = null;
+    staffFormLocationId = null;
+  });
 }
 
 function renderStaffForm(u, allowedRoles) {
@@ -3563,23 +4449,11 @@ function saveStaffForm() {
   }
 }
 
-function closeSettingsPanel() {
-  const container = document.getElementById('settings-panel');
-  const inner = document.getElementById('settings-panel-inner');
-  inner.classList.remove('translate-x-0');
-  inner.classList.add('translate-x-full');
-  setTimeout(() => { container.classList.add('hidden'); document.body.style.overflow = ''; }, 300);
-}
-
 // ═══ ALL PAYMENTS PANEL ═══
 let currentPayFilter = 'all';
 
 function openAllPayments() {
   currentPayFilter = 'all';
-  const panel = document.getElementById('all-payments-panel');
-  const inner = document.getElementById('all-payments-inner');
-  panel.classList.remove('hidden');
-  requestAnimationFrame(() => { inner.classList.remove('translate-x-full'); inner.classList.add('translate-x-0'); });
   // reset UI state
   document.querySelectorAll('[id^="pf-"]').forEach(b => b.classList.remove('active'));
   const pfAll = document.getElementById('pf-all');
@@ -3587,6 +4461,7 @@ function openAllPayments() {
   populateApYearFilter();
   updatePaymentSummary();
   renderAllPaymentsList();
+  openDrawer('all-payments-panel', 'all-payments-inner');
 }
 
 // Year select is populated from the distinct years present in the
@@ -3623,11 +4498,7 @@ function onApYearChange() {
 }
 
 function closeAllPayments() {
-  const panel = document.getElementById('all-payments-panel');
-  const inner = document.getElementById('all-payments-inner');
-  inner.classList.remove('translate-x-0');
-  inner.classList.add('translate-x-full');
-  setTimeout(() => { panel.classList.add('hidden'); }, 300);
+  closeDrawer('all-payments-panel', 'all-payments-inner');
 }
 
 // ═══════════════════════════════════════════
@@ -3653,19 +4524,11 @@ function openStoreInventory(storeId) {
   document.getElementById('invf-all').classList.add('active');
 
   renderInventoryList();
-
-  const panel = document.getElementById('store-inventory-panel');
-  const inner = document.getElementById('store-inventory-inner');
-  panel.classList.remove('hidden');
-  requestAnimationFrame(() => { inner.classList.remove('translate-x-full'); inner.classList.add('translate-x-0'); });
+  openDrawer('store-inventory-panel', 'store-inventory-inner');
 }
 
 function closeStoreInventory() {
-  const panel = document.getElementById('store-inventory-panel');
-  const inner = document.getElementById('store-inventory-inner');
-  inner.classList.remove('translate-x-0');
-  inner.classList.add('translate-x-full');
-  setTimeout(() => { panel.classList.add('hidden'); }, 300);
+  closeDrawer('store-inventory-panel', 'store-inventory-inner');
 }
 
 function setInvFilter(filter) {
@@ -3891,20 +4754,12 @@ const COMPANY_SIZE_OPTIONS = ['1–10 employees', '11–100 employees', '101–5
 
 function openBusinessProfile() {
   bpMode = 'edit';
-  const panel = document.getElementById('bizprofile-panel');
-  const inner = document.getElementById('bizprofile-inner');
-  panel.classList.remove('hidden');
-  requestAnimationFrame(() => { inner.classList.remove('translate-x-full'); inner.classList.add('translate-x-0'); });
-  document.body.style.overflow = 'hidden';
+  openDrawer('bizprofile-panel', 'bizprofile-inner');
   renderBusinessProfile();
 }
 
 function closeBusinessProfile() {
-  const panel = document.getElementById('bizprofile-panel');
-  const inner = document.getElementById('bizprofile-inner');
-  inner.classList.remove('translate-x-0');
-  inner.classList.add('translate-x-full');
-  setTimeout(() => { panel.classList.add('hidden'); document.body.style.overflow = ''; }, 300);
+  closeDrawer('bizprofile-panel', 'bizprofile-inner');
 }
 
 function setBpMode(mode) {
@@ -4169,35 +5024,22 @@ function openRenewalPanel(fromPlanSwitch) {
   renewalRef = '';
   renewalReceiptName = '';
   if (!fromPlanSwitch) pendingPlanSwitch = null;
-  const panel = document.getElementById('renewal-panel');
-  const inner = document.getElementById('renewal-inner');
-  panel.classList.remove('hidden');
-  panel.classList.add('flex', 'flex-col', 'justify-end');
-  requestAnimationFrame(() => { inner.classList.remove('translate-y-full'); inner.classList.add('translate-y-0'); });
   if (pendingPlanSwitch) {
     document.getElementById('renewal-title').textContent = 'Confirm Plan Change';
     renewalStep = 2; // skip duration picker — nothing to choose for a plan swap
   } else {
     document.getElementById('renewal-title').textContent = 'Submit Payment';
   }
+  openModal('renewal-panel', 'renewal-inner');
   renderRenewalStep();
 }
 
 function closeRenewalPanel() {
-  const panel = document.getElementById('renewal-panel');
-  const inner = document.getElementById('renewal-inner');
-  inner.classList.remove('translate-y-0');
-  inner.classList.add('translate-y-full');
-  setTimeout(() => {
-    panel.classList.add('hidden');
-    panel.classList.remove('flex','flex-col','justify-end');
-    pendingPlanSwitch = null;
-  }, 300);
+  closeModal('renewal-panel', 'renewal-inner', () => { pendingPlanSwitch = null; });
 }
 
-function closeRenewalSuccess() {
-  document.getElementById('renewal-success-dialog').classList.add('hidden');
-  renderPlan(); // refresh plan page to show new pending payment
+function closeRenewalSuccess_old_removed() {
+  // replaced by closeActionSheet above
 }
 
 function renewalPrice(months) {
@@ -4474,16 +5316,19 @@ function submitRenewal() {
 
   closeRenewalPanel();
   setTimeout(() => {
-    const dlg = document.getElementById('renewal-success-dialog');
     document.getElementById('renewal-success-msg').textContent = isPlanSwitch
       ? `Rs.${fmtNum(price)} has been submitted to switch to the ${switchedPlan.name} plan. Your plan will update once verified.`
       : wasBanned
       ? `Rs.${fmtNum(price)} for ${dur.label} has been submitted. Once verified, your business and all staff logins will be restored automatically.`
       : `Rs.${fmtNum(price)} for ${dur.label} has been submitted for the ${PLAN.name} Plan.`;
     document.getElementById('renewal-success-ref-val').textContent = renewalRef;
-    dlg.classList.remove('hidden');
-    dlg.classList.add('flex');
+    openActionSheet('renewal-success-dialog');
   }, 350);
+}
+
+function closeRenewalSuccess() {
+  closeActionSheet('renewal-success-dialog');
+  renderPlan(); // refresh plan page to show new pending payment
 }
 
 function showCopied(btn) {
@@ -4559,29 +5404,16 @@ function planDowngradeBlockers(plan) {
 function openChangePlan() {
   selectedBilling = 'monthly';
   selectedPlanId = currentPlanEntry().id;
-  const panel = document.getElementById('change-plan-panel');
-  const inner = document.getElementById('change-plan-inner');
-  panel.classList.remove('hidden');
-  panel.classList.add('flex','flex-col','justify-end');
-  requestAnimationFrame(() => { inner.classList.remove('translate-y-full'); inner.classList.add('translate-y-0'); });
-  document.body.style.overflow = 'hidden';
   document.getElementById('change-plan-subtitle').innerHTML =
     `Currently on <strong class="text-navy-dark">${PLAN.name} Plan</strong> · Rs.${fmtNum(PLAN.price)}/mo`;
+  openModal('change-plan-panel', 'change-plan-inner');
   renderPlanCards();
   updateBillingToggle();
   updateConfirmBar();
 }
 
 function closeChangePlan() {
-  const panel = document.getElementById('change-plan-panel');
-  const inner = document.getElementById('change-plan-inner');
-  inner.classList.remove('translate-y-0');
-  inner.classList.add('translate-y-full');
-  setTimeout(() => {
-    panel.classList.add('hidden');
-    panel.classList.remove('flex','flex-col','justify-end');
-    document.body.style.overflow = '';
-  }, 300);
+  closeModal('change-plan-panel', 'change-plan-inner');
 }
 
 function setBilling(cycle) {
@@ -4720,6 +5552,139 @@ function confirmPlanChange() {
   setTimeout(() => openRenewalPanel(true), 350);
 }
 
+// ═══════════════════════════════════════════
+// DESKTOP OVERLAY HELPERS
+// isDesktop() → true when viewport ≥ 1024px
+//
+// openModal(wrapperId, innerId)  — positions the overlay as a
+//   centered modal on desktop, or a bottom-sheet on mobile.
+// closeModal(wrapperId, innerId) — reverses the animation.
+//
+// openDrawer(wrapperId, innerId) — positions the overlay as a
+//   right-side drawer on desktop (480px), or a full slide-over
+//   on mobile.
+// closeDrawer(wrapperId, innerId) — reverses the animation.
+//
+// All existing open* / close* functions call these helpers so
+// the desktop/mobile split is handled in a single place.
+// ═══════════════════════════════════════════
+
+function isDesktop() { return window.innerWidth >= 1024; }
+
+/* ── MODAL (bottom-sheet on mobile, centered dialog on desktop) ── */
+function openModal(wrapperId, innerId) {
+  const wrap = document.getElementById(wrapperId);
+  const inner = document.getElementById(innerId);
+  if (!wrap || !inner) return;
+  if (isDesktop()) {
+    // Center it
+    wrap.classList.remove('items-end', 'justify-center');
+    wrap.classList.add('dt-modal-wrap');
+    inner.classList.remove('rounded-t-3xl');
+    inner.classList.add('dt-modal');
+    inner.style.transform = '';        // kill any lingering translate
+    inner.style.maxHeight = '';
+    wrap.classList.remove('hidden');
+    wrap.style.display = 'flex';
+    requestAnimationFrame(() => {
+      inner.classList.remove('translate-y-full');
+      inner.classList.add('translate-y-0');
+      inner.style.opacity = '1';
+    });
+  } else {
+    wrap.classList.remove('dt-modal-wrap');
+    inner.classList.remove('dt-modal');
+    wrap.classList.remove('hidden');
+    wrap.classList.add('flex', 'flex-col', 'justify-end');
+    requestAnimationFrame(() => {
+      inner.classList.remove('translate-y-full');
+      inner.classList.add('translate-y-0');
+    });
+  }
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal(wrapperId, innerId, extra) {
+  const wrap  = document.getElementById(wrapperId);
+  const inner = document.getElementById(innerId);
+  if (!wrap || !inner) return;
+  inner.classList.remove('translate-y-0');
+  inner.classList.add('translate-y-full');
+  setTimeout(() => {
+    wrap.classList.add('hidden');
+    wrap.style.display = '';
+    wrap.classList.remove('flex', 'flex-col', 'justify-end', 'dt-modal-wrap');
+    inner.classList.remove('dt-modal');
+    document.body.style.overflow = '';
+    if (extra) extra();
+  }, 250);
+}
+
+/* ── DRAWER (full slide-over on mobile, fixed right panel on desktop) ── */
+function openDrawer(wrapperId, innerId) {
+  const wrap  = document.getElementById(wrapperId);
+  const inner = document.getElementById(innerId);
+  if (!wrap || !inner) return;
+  if (isDesktop()) {
+    wrap.classList.add('dt-drawer-wrap');
+    inner.classList.add('dt-drawer');
+  } else {
+    wrap.classList.remove('dt-drawer-wrap');
+    inner.classList.remove('dt-drawer');
+  }
+  wrap.classList.remove('hidden');
+  requestAnimationFrame(() => {
+    inner.classList.remove('translate-x-full');
+    inner.classList.add('translate-x-0');
+  });
+  document.body.style.overflow = 'hidden';
+}
+
+function closeDrawer(wrapperId, innerId, extra) {
+  const wrap  = document.getElementById(wrapperId);
+  const inner = document.getElementById(innerId);
+  if (!wrap || !inner) return;
+  inner.classList.remove('translate-x-0');
+  inner.classList.add('translate-x-full');
+  setTimeout(() => {
+    wrap.classList.add('hidden');
+    wrap.classList.remove('dt-drawer-wrap');
+    inner.classList.remove('dt-drawer');
+    document.body.style.overflow = '';
+    if (extra) extra();
+  }, 300);
+}
+
+/* ── ACTION SHEET (bottom-sheet on mobile, small centered modal on desktop) ── */
+function openActionSheet(sheetId) {
+  const sheet = document.getElementById(sheetId);
+  if (!sheet) return;
+  sheet.classList.remove('hidden');
+  sheet.classList.add('flex');
+  if (isDesktop()) {
+    sheet.classList.remove('items-end');
+    sheet.classList.add('items-center', 'justify-center', 'dt-modal-wrap');
+    const inner = sheet.querySelector('.relative.w-full');
+    if (inner) {
+      inner.classList.remove('rounded-t-3xl');
+      inner.classList.add('rounded-2xl', 'dt-modal');
+      inner.style.transform = '';
+    }
+  }
+}
+
+function closeActionSheet(sheetId) {
+  const sheet = document.getElementById(sheetId);
+  if (!sheet) return;
+  sheet.classList.add('hidden');
+  sheet.classList.remove('flex', 'items-center', 'justify-center', 'dt-modal-wrap');
+  const inner = sheet.querySelector('.relative.w-full');
+  if (inner) {
+    inner.classList.remove('dt-modal');
+    inner.style.transform = '';
+  }
+}
+
 // ═══ TOAST ═══
 function showToast(msg, type = 'success') {
   const toast = document.getElementById('toast');
@@ -4807,29 +5772,17 @@ function savePassword() {
 
 // ═══ EDIT PROFILE / CHANGE PASSWORD — same bottom-sheet modal pattern as Change Email ═══
 function openEditProfile() {
-  const panel = document.getElementById('edit-profile-panel');
-  const inner = document.getElementById('edit-profile-inner');
-  panel.classList.remove('hidden');
-  panel.classList.add('flex', 'flex-col', 'justify-end');
-  requestAnimationFrame(() => { inner.classList.remove('translate-y-full'); inner.classList.add('translate-y-0'); });
+  openModal('edit-profile-panel', 'edit-profile-inner');
   // reflect latest OWNER.name in case it changed since page load
   const nameInput = document.getElementById('pf-name');
   if (nameInput) nameInput.value = OWNER.name;
 }
 function closeEditProfile() {
-  const panel = document.getElementById('edit-profile-panel');
-  const inner = document.getElementById('edit-profile-inner');
-  inner.classList.remove('translate-y-0');
-  inner.classList.add('translate-y-full');
-  setTimeout(() => { panel.classList.add('hidden'); panel.classList.remove('flex','flex-col','justify-end'); }, 300);
+  closeModal('edit-profile-panel', 'edit-profile-inner');
 }
 
 function openChangePassword() {
-  const panel = document.getElementById('change-password-panel');
-  const inner = document.getElementById('change-password-inner');
-  panel.classList.remove('hidden');
-  panel.classList.add('flex', 'flex-col', 'justify-end');
-  requestAnimationFrame(() => { inner.classList.remove('translate-y-full'); inner.classList.add('translate-y-0'); });
+  openModal('change-password-panel', 'change-password-inner');
   // reset fields each time it opens
   ['pw-current','pw-new','pw-confirm'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
   const bar = document.getElementById('pw-strength-fill');
@@ -4838,11 +5791,7 @@ function openChangePassword() {
   if (lbl) lbl.textContent = '';
 }
 function closeChangePassword() {
-  const panel = document.getElementById('change-password-panel');
-  const inner = document.getElementById('change-password-inner');
-  inner.classList.remove('translate-y-0');
-  inner.classList.add('translate-y-full');
-  setTimeout(() => { panel.classList.add('hidden'); panel.classList.remove('flex','flex-col','justify-end'); }, 300);
+  closeModal('change-password-panel', 'change-password-inner');
 }
 
 // ═══ CHANGE EMAIL FLOW ═══
@@ -4857,20 +5806,12 @@ function openChangeEmail() {
   ceStep = 1;
   ceNewEmail = '';
   ceCode = '';
-  const panel = document.getElementById('change-email-panel');
-  const inner = document.getElementById('change-email-inner');
-  panel.classList.remove('hidden');
-  panel.classList.add('flex', 'flex-col', 'justify-end');
-  requestAnimationFrame(() => { inner.classList.remove('translate-y-full'); inner.classList.add('translate-y-0'); });
+  openModal('change-email-panel', 'change-email-inner');
   renderChangeEmailStep();
 }
 
 function closeChangeEmail() {
-  const panel = document.getElementById('change-email-panel');
-  const inner = document.getElementById('change-email-inner');
-  inner.classList.remove('translate-y-0');
-  inner.classList.add('translate-y-full');
-  setTimeout(() => { panel.classList.add('hidden'); panel.classList.remove('flex','flex-col','justify-end'); }, 300);
+  closeModal('change-email-panel', 'change-email-inner');
 }
 
 function setCeStepIndicator(active) {
@@ -5097,19 +6038,11 @@ function openSupportSheet(type) {
   document.getElementById('support-title').textContent = cfg.title;
   document.getElementById('support-desc').textContent  = cfg.desc;
   document.getElementById('support-body').innerHTML    = cfg.body();
-  const sheet = document.getElementById('support-sheet');
-  const inner = document.getElementById('support-inner');
-  sheet.classList.remove('hidden');
-  sheet.classList.add('flex');
-  requestAnimationFrame(() => { inner.classList.remove('translate-y-full'); inner.classList.add('translate-y-0'); });
+  openModal('support-sheet', 'support-inner');
 }
 
 function closeSupportSheet() {
-  const sheet = document.getElementById('support-sheet');
-  const inner = document.getElementById('support-inner');
-  inner.classList.remove('translate-y-0');
-  inner.classList.add('translate-y-full');
-  setTimeout(() => { sheet.classList.add('hidden'); sheet.classList.remove('flex'); }, 300);
+  closeModal('support-sheet', 'support-inner');
 }
 
 function submitSupportMessage() {
@@ -5129,22 +6062,61 @@ function submitReport() {
 }
 
 // ═══ NAVIGATION ═══
+
+// Page metadata for the desktop topbar
+const PAGE_META = {
+  sales:        { title:'Sales',        subtitle:'Revenue overview · Clifton Mart' },
+  stores:       { title:'My Stores',    subtitle:'Manage your locations' },
+  'store-detail':{ title:'Store Detail', subtitle:'Location overview' },
+  plan:         { title:'Subscription', subtitle:'Plan & billing · Clifton Mart' },
+  settings:     { title:'Settings',     subtitle:'Account & preferences' }
+};
+
 function navTo(page) {
-  // Suspended businesses are locked out of the whole portal except the
-  // renewal payment flow and support — see checkBusinessSuspension().
   if (checkBusinessSuspension() && page !== 'plan') return;
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('page-' + page).classList.add('active');
-  // store-detail is a sub-page of stores — keep the Stores nav button highlighted
+
   const navPage = page === 'store-detail' ? 'stores' : page;
+
+  // ── Mobile bottom nav ──
   document.querySelectorAll('.bottom-nav button').forEach(b => b.classList.remove('active'));
   const idx = { sales:0, stores:1, plan:2, settings:3 }[navPage];
   if (idx !== undefined) document.querySelectorAll('.bottom-nav button')[idx].classList.add('active');
-  window.scrollTo(0, 0);
-  // Re-render on navigate to ensure fresh data
+
+  // ── Desktop sidebar ──
+  document.querySelectorAll('.sidebar-link[id^="dsb-"]').forEach(b => b.classList.remove('active'));
+  const dsbEl = document.getElementById('dsb-' + navPage);
+  if (dsbEl) dsbEl.classList.add('active');
+
+  // ── Desktop topbar title ──
+  const meta = PAGE_META[page] || PAGE_META[navPage] || { title:'', subtitle:'' };
+  const titleEl = document.getElementById('desktop-page-title');
+  const subEl   = document.getElementById('desktop-page-subtitle');
+  if (titleEl) titleEl.textContent = meta.title;
+  if (subEl)   subEl.textContent   = meta.subtitle;
+
+  // ── Desktop topbar contextual actions ──
+  const addStoreBtn = document.getElementById('topbar-add-store-btn');
+  if (addStoreBtn) {
+    if (navPage === 'stores' && window.innerWidth >= 1024) {
+      addStoreBtn.classList.remove('hidden');
+      addStoreBtn.style.display = 'flex';
+    } else {
+      addStoreBtn.classList.add('hidden');
+      addStoreBtn.style.display = '';
+    }
+  }
+
+  // Scroll to top
+  const contentEl = document.getElementById('desktop-content');
+  if (contentEl && window.innerWidth >= 1024) contentEl.scrollTo(0,0);
+  else window.scrollTo(0,0);
+
   if (page === 'stores') renderStores();
-  if (page === 'plan') renderPlan();
+  if (page === 'plan')   renderPlan();
   if (page === 'settings') renderSettings();
+  if (page === 'sales') renderSales();
 }
 
 function setPeriod(period) {
@@ -5219,19 +6191,11 @@ let catFormParentId = null;
 
 // ── open/close panel ──
 function openCategoriesPanel() {
-  const panel = document.getElementById('categories-panel');
-  const inner = document.getElementById('categories-panel-inner');
-  panel.classList.remove('hidden');
-  requestAnimationFrame(() => { inner.classList.remove('translate-x-full'); inner.classList.add('translate-x-0'); });
-  document.body.style.overflow = 'hidden';
+  openDrawer('categories-panel', 'categories-panel-inner');
   renderCategoryTree();
 }
 function closeCategoriesPanel() {
-  const panel = document.getElementById('categories-panel');
-  const inner = document.getElementById('categories-panel-inner');
-  inner.classList.remove('translate-x-0');
-  inner.classList.add('translate-x-full');
-  setTimeout(() => { panel.classList.add('hidden'); document.body.style.overflow = ''; }, 300);
+  closeDrawer('categories-panel', 'categories-panel-inner');
 }
 
 function setCatFilter(f) {
@@ -5391,15 +6355,10 @@ function openCatActions(id) {
   } else {
     toggleBtn.innerHTML = `<ion-icon name="eye-outline" class="text-brand-green text-lg"></ion-icon><span class="text-[13px] font-medium text-brand-green">Activate</span>`;
   }
-
-  const sheet = document.getElementById('cat-actions-sheet');
-  sheet.classList.remove('hidden');
-  sheet.classList.add('flex');
+  openActionSheet('cat-actions-sheet');
 }
 function closeCatActions() {
-  const sheet = document.getElementById('cat-actions-sheet');
-  sheet.classList.add('hidden');
-  sheet.classList.remove('flex');
+  closeActionSheet('cat-actions-sheet');
 }
 function catActionAddSub() {
   const parentId = catActionsId;
@@ -5471,21 +6430,13 @@ function openCategoryForm(editId = null, parentId = null) {
     : (isEdit && cat?.parentId ? `Under: ${catById(cat.parentId)?.name || ''}` : 'Top-level category');
 
   renderCategoryFormBody(cat, parent);
-
-  const panel = document.getElementById('category-form-panel');
-  const inner = document.getElementById('category-form-inner');
-  panel.classList.remove('hidden');
-  panel.classList.add('flex');
-  requestAnimationFrame(() => { inner.classList.remove('translate-y-full'); inner.classList.add('translate-y-0'); });
+  openModal('category-form-panel', 'category-form-inner');
 }
 function closeCategoryForm() {
-  const panel = document.getElementById('category-form-panel');
-  const inner = document.getElementById('category-form-inner');
-  inner.classList.remove('translate-y-0');
-  inner.classList.add('translate-y-full');
-  setTimeout(() => { panel.classList.add('hidden'); panel.classList.remove('flex'); }, 300);
-  catFormEditId = null;
-  catFormParentId = null;
+  closeModal('category-form-panel', 'category-form-inner', () => {
+    catFormEditId = null;
+    catFormParentId = null;
+  });
 }
 
 function renderCategoryFormBody(cat, parent) {
@@ -5613,7 +6564,39 @@ document.addEventListener('DOMContentLoaded', () => {
   renderPlan();
   renderSettings();
   checkBusinessSuspension();
+
+  // ── Desktop layout init ──
+  function applyDesktopLayout() {
+    const desktop = window.innerWidth >= 1024;
+    const sidebar = document.getElementById('desktop-sidebar');
+    if (sidebar) sidebar.style.display = desktop ? 'flex' : 'none';
+
+    // Overlay positioning on desktop is handled entirely by CSS
+    // (.dt-drawer-wrap, .dt-modal-wrap) applied at open time by the
+    // openModal / openDrawer / openActionSheet helpers.
+    // On mobile reset any leftover desktop overrides.
+    if (!desktop) {
+      const overlayIds = [
+        'signed-out-screen','suspended-screen',
+        'support-sheet','signout-dialog','confirm-dialog',
+        'store-actions-sheet','store-form-panel',
+        'staff-actions-sheet','staff-form-panel',
+        'settings-panel','edit-profile-panel',
+        'change-password-panel','change-email-panel',
+        'all-payments-panel','store-inventory-panel',
+        'bizprofile-panel','renewal-panel','renewal-success-dialog',
+        'change-plan-panel','categories-panel','category-form-panel','cat-actions-sheet'
+      ];
+      overlayIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) { el.style.maxWidth = ''; el.style.margin = ''; el.style.left = ''; }
+      });
+    }
+  }
+  applyDesktopLayout();
+  window.addEventListener('resize', applyDesktopLayout);
 });
 </script>
 </body>
 </html>
+
