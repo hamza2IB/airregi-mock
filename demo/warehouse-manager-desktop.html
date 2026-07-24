@@ -1143,7 +1143,7 @@
                 name="layers-outline" class="text-brand-blue" style="font-size:18px;"></ion-icon></div>
             <div>
               <p class="text-[22px] font-extrabold text-brand-blue leading-none" id="inv-kpi-units">0</p>
-              <p class="text-[10px] text-gray-400 font-medium mt-0.5">Total Units On Hand</p>
+              <p class="text-[10px] text-gray-400 font-medium mt-0.5">Total Physical Stock</p>
             </div>
           </div>
           <div class="bg-white rounded-xl border border-border px-4 py-3.5 flex items-center gap-3 cursor-pointer"
@@ -1203,11 +1203,11 @@
           </div>
           <div
             class="grid text-[10px] font-semibold text-gray-400 uppercase tracking-[0.08em] px-5 py-2.5 border-b border-border bg-gray-50/60"
-            style="grid-template-columns:2fr 1fr 1fr 0.7fr 0.7fr 0.7fr 0.9fr 1.1fr;">
+            style="grid-template-columns:1.8fr 0.9fr 0.9fr 1fr 0.75fr 0.8fr 0.9fr 1.1fr;">
             <div>Product</div>
             <div>SKU</div>
             <div>Category</div>
-            <div class="text-right">On Hand</div>
+            <div class="text-right whitespace-nowrap">Physical Stock</div>
             <div class="text-right">Reserved</div>
             <div class="text-right">Available</div>
             <div class="text-center">Status</div>
@@ -1235,36 +1235,54 @@
          PAGE: STOCK TRANSFERS
     ════════════════════════════════════ -->
       <div id="wm-transfers" class="wm-page p-8">
+        <!-- Purpose banner -->
+        <div class="flex items-start gap-2.5 bg-brand-blue/5 border border-brand-blue/15 rounded-xl px-4 py-3 mb-6">
+          <ion-icon name="information-circle-outline" style="font-size:15px;color:#3366cc;flex-shrink:0;margin-top:1px;"></ion-icon>
+          <p class="text-[11px] text-gray-600 leading-relaxed"><strong class="text-navy-dark">Replenishment transfers between the Central Warehouse and your stores.</strong> Review incoming store requests and approve &amp; dispatch (send what you can), or raise your own stock requests to pull stock in. Track each one from pending → in transit → received.</p>
+        </div>
+
+        <!-- Direction toggle: incoming (requests to fulfil) vs outgoing (my requests) -->
+        <div class="flex items-center gap-2 mb-5">
+          <button id="tr-dir-in" onclick="setTrDir('in')" class="tr-dir-btn flex items-center gap-2 px-4 py-2.5 rounded-xl text-[12.5px] font-semibold bg-navy text-white transition">
+            <ion-icon name="arrow-down-circle-outline" style="font-size:16px;"></ion-icon>Incoming · Requests to Fulfil
+            <span id="tr-dir-in-badge" class="hidden ml-0.5 text-[9px] font-bold bg-brand-purple text-white px-1.5 py-0.5 rounded-full">0</span>
+          </button>
+          <button id="tr-dir-out" onclick="setTrDir('out')" class="tr-dir-btn flex items-center gap-2 px-4 py-2.5 rounded-xl text-[12.5px] font-semibold bg-white border border-border text-gray-500 hover:text-navy hover:border-navy/30 transition">
+            <ion-icon name="arrow-up-circle-outline" style="font-size:16px;"></ion-icon>Outgoing · My Requests
+          </button>
+        </div>
+
+        <!-- KPI strip -->
         <div class="grid grid-cols-4 gap-3 mb-6">
-          <div class="bg-white rounded-xl border border-border px-4 py-3.5 flex items-center gap-3">
+          <div class="bg-white rounded-xl border border-border px-4 py-3.5 flex items-center gap-3 cursor-pointer" onclick="setTrFilter('pending',document.querySelector('#tr-type-tabs .tr-tab:nth-child(2)'))">
             <div class="w-9 h-9 rounded-lg bg-brand-purple/10 flex items-center justify-center shrink-0"><ion-icon
                 name="hourglass-outline" class="text-brand-purple" style="font-size:18px;"></ion-icon></div>
             <div>
-              <p class="text-[22px] font-extrabold text-brand-purple leading-none">5</p>
-              <p class="text-[10px] text-gray-400 font-medium mt-0.5">Pending Requests</p>
+              <p class="text-[22px] font-extrabold text-brand-purple leading-none" id="tr-kpi-pending">0</p>
+              <p class="text-[10px] text-gray-400 font-medium mt-0.5" id="tr-kpi-pending-lbl">To Approve</p>
             </div>
           </div>
-          <div class="bg-white rounded-xl border border-border px-4 py-3.5 flex items-center gap-3">
+          <div class="bg-white rounded-xl border border-border px-4 py-3.5 flex items-center gap-3 cursor-pointer" onclick="setTrFilter('dispatched',document.querySelector('#tr-type-tabs .tr-tab:nth-child(3)'))">
             <div class="w-9 h-9 rounded-lg bg-brand-orange/10 flex items-center justify-center shrink-0"><ion-icon
                 name="cube-outline" class="text-brand-orange" style="font-size:18px;"></ion-icon></div>
             <div>
-              <p class="text-[22px] font-extrabold text-brand-orange leading-none">3</p>
-              <p class="text-[10px] text-gray-400 font-medium mt-0.5">Dispatched</p>
+              <p class="text-[22px] font-extrabold text-brand-orange leading-none" id="tr-kpi-transit">0</p>
+              <p class="text-[10px] text-gray-400 font-medium mt-0.5" id="tr-kpi-transit-lbl">Dispatched</p>
             </div>
           </div>
           <div class="bg-white rounded-xl border border-border px-4 py-3.5 flex items-center gap-3">
             <div class="w-9 h-9 rounded-lg bg-brand-green/10 flex items-center justify-center shrink-0"><ion-icon
                 name="checkmark-circle-outline" class="text-brand-green" style="font-size:18px;"></ion-icon></div>
             <div>
-              <p class="text-[22px] font-extrabold text-brand-green leading-none">41</p>
-              <p class="text-[10px] text-gray-400 font-medium mt-0.5">Completed</p>
+              <p class="text-[22px] font-extrabold text-brand-green leading-none" id="tr-kpi-received">0</p>
+              <p class="text-[10px] text-gray-400 font-medium mt-0.5">Received</p>
             </div>
           </div>
           <div class="bg-white rounded-xl border border-border px-4 py-3.5 flex items-center gap-3">
             <div class="w-9 h-9 rounded-lg bg-brand-red/10 flex items-center justify-center shrink-0"><ion-icon
                 name="close-circle-outline" class="text-brand-red" style="font-size:18px;"></ion-icon></div>
             <div>
-              <p class="text-[22px] font-extrabold text-brand-red leading-none">4</p>
+              <p class="text-[22px] font-extrabold text-brand-red leading-none" id="tr-kpi-rejected">0</p>
               <p class="text-[10px] text-gray-400 font-medium mt-0.5">Rejected</p>
             </div>
           </div>
@@ -1282,32 +1300,30 @@
               <button onclick="setTrFilter('all',this)"
                 class="tr-tab px-3 py-1.5 text-[11px] font-semibold bg-navy text-white">All</button>
               <button onclick="setTrFilter('pending',this)"
-                class="tr-tab px-3 py-1.5 text-[11px] font-medium text-gray-500 hover:bg-white/60 transition">Pending
-                <span
-                  class="ml-1 text-[10px] font-bold bg-brand-purple text-white px-1.5 py-0.5 rounded-full">5</span></button>
+                class="tr-tab px-3 py-1.5 text-[11px] font-medium text-gray-500 hover:bg-white/60 transition" id="tr-tab-pending">To Approve</button>
               <button onclick="setTrFilter('dispatched',this)"
-                class="tr-tab px-3 py-1.5 text-[11px] font-medium text-gray-500 hover:bg-white/60 transition">Dispatched</button>
+                class="tr-tab px-3 py-1.5 text-[11px] font-medium text-gray-500 hover:bg-white/60 transition" id="tr-tab-transit">Dispatched</button>
               <button onclick="setTrFilter('received',this)"
                 class="tr-tab px-3 py-1.5 text-[11px] font-medium text-gray-500 hover:bg-white/60 transition">Received</button>
               <button onclick="setTrFilter('rejected',this)"
                 class="tr-tab px-3 py-1.5 text-[11px] font-medium text-gray-500 hover:bg-white/60 transition">Rejected</button>
             </div>
-            <div class="ml-auto shrink-0">
-              <button onclick="itOpen()"
+            <div class="ml-auto shrink-0" id="tr-new-wrap" style="display:none;">
+              <button onclick="wmReqOpen()"
                 class="flex items-center gap-1.5 text-[12px] font-semibold text-white bg-navy px-4 py-2.5 rounded-xl hover:bg-navy-light transition">
-                <ion-icon name="arrow-forward-circle-outline" style="font-size:16px;"></ion-icon> Initiate Transfer
+                <ion-icon name="paper-plane-outline" style="font-size:16px;"></ion-icon> New Stock Request
               </button>
             </div>
           </div>
           <div
             class="grid text-[10px] font-semibold text-gray-400 uppercase tracking-[0.08em] px-5 py-2.5 border-b border-border bg-gray-50/60"
-            style="grid-template-columns:0.9fr 2fr 0.9fr 1fr 0.5fr 0.5fr 0.85fr 1fr;">
+            style="grid-template-columns:1fr 1.4fr 0.85fr 0.5fr 0.5fr 0.7fr 0.85fr 1.35fr;">
             <div>Transfer #</div>
-            <div>Store</div>
+            <div id="tr-col2">From (Store)</div>
             <div>Requested</div>
-            <div>Requested By</div>
             <div class="text-right">Items</div>
             <div class="text-right">Units</div>
+            <div class="text-center">Priority</div>
             <div class="text-center">Status</div>
             <div class="text-right">Actions</div>
           </div>
@@ -1708,13 +1724,34 @@
       </div>
       <!-- Body -->
       <div class="px-6 py-5 space-y-4">
-        <!-- Destination + totals -->
+        <!-- Destination -->
         <div id="dispatch-modal-dest"
           class="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-xl border border-border"></div>
-        <!-- Line items -->
+        <!-- Line items (editable dispatch quantity per line) -->
         <div>
-          <p class="text-[11px] font-semibold text-gray-500 mb-2">Items to dispatch</p>
-          <div id="dispatch-modal-lines" class="space-y-1.5 max-h-48 overflow-y-auto thin-scroll"></div>
+          <div class="flex items-center justify-between mb-2">
+            <p class="text-[11px] font-semibold text-gray-500">Items to dispatch</p>
+            <p class="text-[10px] text-gray-400">Send what you can — adjust each quantity</p>
+          </div>
+          <div class="grid text-[9px] font-bold text-gray-400 uppercase tracking-[0.05em] px-3 pb-1" style="grid-template-columns:1.7fr 0.6fr 0.6fr 0.7fr;">
+            <div>Product</div><div class="text-right">Req.</div><div class="text-right">Avail.</div><div class="text-right">Send</div>
+          </div>
+          <div id="dispatch-modal-lines" class="space-y-1.5 max-h-52 overflow-y-auto thin-scroll"></div>
+        </div>
+        <!-- Total dispatching -->
+        <div class="flex items-center justify-between px-3 py-2.5 bg-gray-50 border border-border rounded-xl">
+          <span class="text-[11px] font-semibold text-gray-500">Total dispatching</span>
+          <span id="dispatch-modal-total" class="text-[14px] font-extrabold text-navy-dark">0 units</span>
+        </div>
+        <!-- Partial fulfilment note -->
+        <div id="dispatch-modal-partial" class="hidden items-start gap-2 px-3 py-2.5 bg-brand-orange/5 border border-brand-orange/20 rounded-xl">
+          <ion-icon name="git-branch-outline" style="font-size:14px;color:#ff9800;flex-shrink:0;margin-top:1px;"></ion-icon>
+          <p class="text-[11px] text-gray-600 leading-relaxed"><strong class="text-navy-dark">Partial fulfilment.</strong> You're sending fewer units than requested. The store will be notified of the shortfall so they can source the rest elsewhere.</p>
+        </div>
+        <!-- Nothing-to-send error -->
+        <div id="dispatch-modal-empty-err" class="hidden items-start gap-2 px-3 py-2.5 bg-brand-red/5 border border-brand-red/20 rounded-xl">
+          <ion-icon name="alert-circle-outline" style="font-size:14px;color:#eb445a;flex-shrink:0;margin-top:1px;"></ion-icon>
+          <p class="text-[11px] text-brand-red leading-relaxed">Enter at least 1 unit to dispatch, or reject the request instead.</p>
         </div>
         <!-- Note preview -->
         <div id="dispatch-modal-note-wrap" class="hidden">
@@ -1727,7 +1764,7 @@
           <ion-icon name="warning-outline"
             style="font-size:14px;color:#ff9800;flex-shrink:0;margin-top:1px;"></ion-icon>
           <p class="text-[11px] text-gray-600 leading-relaxed">Dispatching will <strong class="text-navy-dark">deduct
-              stock</strong> from the warehouse immediately. This action cannot be undone.</p>
+              stock</strong> from the warehouse immediately and mark the transfer in transit. This cannot be undone.</p>
         </div>
       </div>
       <!-- Footer -->
@@ -1738,6 +1775,126 @@
         <button onclick="confirmDispatch()"
           class="flex-1 py-2.5 bg-brand-green text-white rounded-xl text-[13px] font-semibold hover:bg-brand-green/85 transition flex items-center justify-center gap-1.5">
           <ion-icon name="checkmark-circle-outline" style="font-size:15px;"></ion-icon>Yes, Dispatch
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ━━━━ MODAL: NEW STOCK REQUEST (warehouse requests stock from a branch) ━━━━ -->
+  <div id="wm-req-modal" class="fixed inset-0 z-[500] hidden items-center justify-center p-4">
+    <div class="absolute inset-0 bg-navy-dark/50 backdrop-blur-sm" onclick="wmReqClose()"></div>
+    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg z-10"
+      style="box-shadow:0 24px 64px rgba(10,21,53,0.22);">
+      <div class="flex items-center justify-between px-6 py-5 border-b border-border">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-navy/10 flex items-center justify-center shrink-0">
+            <ion-icon name="paper-plane-outline" style="font-size:18px;color:#1a2d6b;"></ion-icon>
+          </div>
+          <div>
+            <h3 class="text-[15px] font-extrabold text-navy-dark">New Stock Request</h3>
+            <p class="text-[11px] text-gray-400 mt-0.5">Request a stock transfer into the Central Warehouse</p>
+          </div>
+        </div>
+        <button onclick="wmReqClose()"
+          class="w-8 h-8 rounded-lg border border-border flex items-center justify-center hover:bg-gray-50 transition">
+          <ion-icon name="close-outline" style="font-size:17px;color:#64748b;"></ion-icon>
+        </button>
+      </div>
+      <div class="px-6 py-5 space-y-4">
+        <!-- Routing info -->
+        <div class="grid grid-cols-2 gap-2.5">
+          <div class="flex items-center gap-2 px-3 py-2.5 bg-gray-50 border border-border rounded-xl">
+            <ion-icon name="business-outline" style="font-size:15px;color:#3366cc;flex-shrink:0;"></ion-icon>
+            <div class="min-w-0">
+              <p class="text-[9px] text-gray-400 uppercase tracking-[0.06em] font-bold">From (Warehouse)</p>
+              <p class="text-[11px] font-semibold text-navy-dark truncate">Central Warehouse</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 px-3 py-2 bg-gray-50 border border-border rounded-xl">
+            <ion-icon name="storefront-outline" style="font-size:15px;color:#7c4dff;flex-shrink:0;"></ion-icon>
+            <div class="min-w-0 flex-1">
+              <p class="text-[9px] text-gray-400 uppercase tracking-[0.06em] font-bold mb-0.5">To (Fulfils)</p>
+              <select id="wm-req-fulfiller" onchange="wmReqRenderSources()"
+                class="w-full bg-transparent text-[11px] font-semibold text-navy-dark border-none outline-none cursor-pointer appearance-none pr-4"
+                style="background-image:url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%236b7280'%3E%3Cpath fill-rule='evenodd' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z'/%3E%3C/svg%3E&quot;);background-repeat:no-repeat;background-position:right center;background-size:14px;"></select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Add line -->
+        <div>
+          <label class="block text-[12px] font-semibold text-gray-700 mb-1.5">Add items <span
+              class="text-brand-red">*</span></label>
+          <div class="flex items-end gap-2">
+            <div class="flex-1 min-w-0 relative">
+              <div class="flex items-center gap-2 bg-white border-[1.5px] border-border rounded-lg px-3 py-2.5">
+                <ion-icon name="search-outline" style="font-size:15px;color:#94a3b8;flex-shrink:0;"></ion-icon>
+                <input id="wm-req-search" type="text" placeholder="Search product or SKU…" autocomplete="off"
+                  oninput="wmReqSearch()" onfocus="wmReqSearch()" onblur="setTimeout(wmReqHideDropdown,150)"
+                  class="flex-1 min-w-0 text-[12px] text-navy-dark placeholder-gray-400 border-none outline-none bg-transparent">
+                <button id="wm-req-clear" onclick="wmReqClearPick()" type="button"
+                  class="hidden shrink-0 text-gray-300 hover:text-brand-red transition"><ion-icon name="close-circle" style="font-size:15px;"></ion-icon></button>
+              </div>
+              <input type="hidden" id="wm-req-product">
+              <div id="wm-req-dropdown"
+                class="hidden absolute left-0 right-0 top-full mt-1 bg-white border border-border rounded-xl shadow-lg z-50 overflow-y-auto thin-scroll"
+                style="max-height:240px;"></div>
+            </div>
+            <div class="w-24 shrink-0">
+              <input id="wm-req-qty" type="number" min="1" class="inp text-[12px]" placeholder="Qty"
+                onkeydown="if(event.key==='Enter'){event.preventDefault();wmReqAddLine();}">
+            </div>
+            <button onclick="wmReqAddLine()"
+              class="shrink-0 h-[38px] px-3 rounded-lg bg-navy text-white text-[12px] font-semibold hover:bg-navy-light transition flex items-center gap-1">
+              <ion-icon name="add-outline" style="font-size:16px;"></ion-icon>Add
+            </button>
+          </div>
+          <div id="wm-req-avail-hint" class="hidden mt-1.5 text-[10px] text-gray-400">Current available at warehouse: <span id="wm-req-avail" class="font-bold text-navy-dark">0</span></div>
+          <span id="wm-req-line-err" class="hidden text-[10px] text-brand-red mt-1 block">Choose a product and a quantity of 1 or more.</span>
+        </div>
+
+        <!-- Lines list -->
+        <div class="border border-border rounded-xl overflow-hidden">
+          <div class="grid text-[9px] font-bold text-gray-400 uppercase tracking-[0.06em] px-3 py-2 bg-gray-50/60 border-b border-border" style="grid-template-columns:2fr 0.6fr 0.4fr;">
+            <div>Product</div><div class="text-right">Qty</div><div></div>
+          </div>
+          <div id="wm-req-lines"></div>
+          <div id="wm-req-lines-empty" class="py-6 text-center">
+            <ion-icon name="cube-outline" style="font-size:22px;color:#cbd5e1;"></ion-icon>
+            <p class="text-[11px] text-gray-400 mt-1">No items added yet</p>
+          </div>
+        </div>
+
+        <!-- Source availability -->
+        <div id="wm-req-sources" class="hidden">
+          <div class="flex items-center gap-1.5 mb-2">
+            <ion-icon name="location-outline" style="font-size:13px;color:#94a3b8;"></ion-icon>
+            <p class="text-[11px] font-semibold text-gray-500">Who can fulfil this? <span class="font-normal text-gray-400">Pick the source with stock</span></p>
+          </div>
+          <div id="wm-req-sources-list" class="space-y-1.5"></div>
+        </div>
+
+        <!-- Summary + priority -->
+        <div class="flex items-center justify-between gap-3">
+          <div class="flex items-center gap-4">
+            <div><span class="text-[16px] font-extrabold text-navy-dark" id="wm-req-items">0</span> <span class="text-[10px] text-gray-400">items</span></div>
+            <div><span class="text-[16px] font-extrabold text-navy-dark" id="wm-req-units">0</span> <span class="text-[10px] text-gray-400">units</span></div>
+          </div>
+          <div class="flex items-center gap-2">
+            <label class="text-[11px] font-semibold text-gray-600">Priority</label>
+            <select id="wm-req-priority" class="inp text-[12px]" style="width:auto;padding-right:32px;">
+              <option>Normal</option>
+              <option>Urgent</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="flex items-center gap-3 px-6 py-4 border-t border-border bg-gray-50/60 rounded-b-2xl">
+        <button onclick="wmReqClose()"
+          class="flex-1 py-2.5 border border-border rounded-xl text-[13px] font-semibold text-gray-600 bg-white hover:bg-gray-50 transition">Cancel</button>
+        <button onclick="wmReqSubmit()"
+          class="flex-1 py-2.5 bg-navy text-white rounded-xl text-[13px] font-semibold hover:bg-navy-light transition flex items-center justify-center gap-1.5">
+          <ion-icon name="paper-plane-outline" style="font-size:15px;"></ion-icon>Send Request
         </button>
       </div>
     </div>
@@ -2616,19 +2773,28 @@
 
 
 
+    // Stock transfers. dir:'in'  = a store requested stock FROM the Central Warehouse (we fulfil).
+    //                  dir:'out' = the warehouse pushed stock TO a store (we initiated it).
+    // Records without explicit `lines` get deterministic line items synthesized from INV_DATA
+    // (see trLines) so the dispatch modal + requested-vs-sent detail work everywhere.
     const TRANSFER_DATA = [
-      { id: 'TR-2026-053', store: 'Al Fatah DHA Branch', date: 'Jul 20, 2026', items: 4, units: 88, status: 'pending', urgent: true, requestedBy: 'Sara Ahmed', approvedBy: null, rejectedBy: null, rejectReason: null },
-      { id: 'TR-2026-052', store: 'Al Fatah Johar Town', date: 'Jul 20, 2026', items: 2, units: 40, status: 'pending', urgent: false, requestedBy: 'Usman Ali', approvedBy: null, rejectedBy: null, rejectReason: null },
-      { id: 'TR-2026-051', store: 'Al Fatah Main Branch', date: 'Jul 19, 2026', items: 6, units: 144, status: 'pending', urgent: true, requestedBy: 'Nadia Hasan', approvedBy: null, rejectedBy: null, rejectReason: null },
-      { id: 'TR-2026-050', store: 'Al Fatah Model Town', date: 'Jul 18, 2026', items: 3, units: 60, status: 'pending', urgent: false, requestedBy: 'Bilal Siddiqui', approvedBy: null, rejectedBy: null, rejectReason: null },
-      { id: 'TR-2026-049', store: 'Al Fatah DHA Branch', date: 'Jul 17, 2026', items: 5, units: 100, status: 'pending', urgent: false, requestedBy: 'Sara Ahmed', approvedBy: null, rejectedBy: null, rejectReason: null },
-      { id: 'TR-2026-048', store: 'Al Fatah Main Branch', date: 'Jul 16, 2026', items: 8, units: 210, status: 'dispatched', urgent: false, requestedBy: 'Nadia Hasan', approvedBy: 'Zain Khan', rejectedBy: null, rejectReason: null },
-      { id: 'TR-2026-047', store: 'Al Fatah Johar Town', date: 'Jul 14, 2026', items: 3, units: 72, status: 'dispatched', urgent: false, requestedBy: 'Usman Ali', approvedBy: 'Zain Khan', rejectedBy: null, rejectReason: null },
-      { id: 'TR-2026-046', store: 'Al Fatah Model Town', date: 'Jul 12, 2026', items: 2, units: 44, status: 'dispatched', urgent: false, requestedBy: 'Bilal Siddiqui', approvedBy: 'Zain Khan', rejectedBy: null, rejectReason: null },
-      { id: 'TR-2026-045', store: 'Al Fatah DHA Branch', date: 'Jul 10, 2026', items: 7, units: 180, status: 'received', urgent: false, requestedBy: 'Sara Ahmed', approvedBy: 'Zain Khan', rejectedBy: null, rejectReason: null },
-      { id: 'TR-2026-044', store: 'Al Fatah Main Branch', date: 'Jul 8, 2026', items: 4, units: 96, status: 'received', urgent: false, requestedBy: 'Nadia Hasan', approvedBy: 'Zain Khan', rejectedBy: null, rejectReason: null },
-      { id: 'TR-2026-043', store: 'Al Fatah Johar Town', date: 'Jul 6, 2026', items: 9, units: 240, status: 'rejected', urgent: false, requestedBy: 'Usman Ali', approvedBy: null, rejectedBy: 'Zain Khan', rejectReason: 'Insufficient stock available' },
-      { id: 'TR-2026-042', store: 'Al Fatah DHA Branch', date: 'Jul 5, 2026', items: 3, units: 72, status: 'dispatched', urgent: false, requestedBy: 'Zain Khan', approvedBy: 'Zain Khan', rejectedBy: null, rejectReason: null },
+      { id: 'TR-2026-053', dir: 'in', store: 'Al Fatah DHA Branch', date: 'Jul 20, 2026', items: 4, units: 88, status: 'pending', urgent: true, requestedBy: 'Sara Ahmed', approvedBy: null, rejectedBy: null, rejectReason: null },
+      { id: 'TR-2026-052', dir: 'in', store: 'Al Fatah Johar Town', date: 'Jul 20, 2026', items: 2, units: 40, status: 'pending', urgent: false, requestedBy: 'Usman Ali', approvedBy: null, rejectedBy: null, rejectReason: null },
+      { id: 'TR-2026-051', dir: 'in', store: 'Al Fatah Main Branch', date: 'Jul 19, 2026', items: 6, units: 144, status: 'pending', urgent: true, requestedBy: 'Nadia Hasan', approvedBy: null, rejectedBy: null, rejectReason: null },
+      { id: 'TR-2026-050', dir: 'in', store: 'Al Fatah Model Town', date: 'Jul 18, 2026', items: 3, units: 60, status: 'pending', urgent: false, requestedBy: 'Bilal Siddiqui', approvedBy: null, rejectedBy: null, rejectReason: null },
+      { id: 'TR-2026-049', dir: 'in', store: 'Al Fatah DHA Branch', date: 'Jul 17, 2026', items: 5, units: 100, status: 'pending', urgent: false, requestedBy: 'Sara Ahmed', approvedBy: null, rejectedBy: null, rejectReason: null },
+      { id: 'TR-2026-048', dir: 'in', store: 'Al Fatah Main Branch', date: 'Jul 16, 2026', items: 8, units: 210, status: 'dispatched', urgent: false, requestedBy: 'Nadia Hasan', approvedBy: 'Zain Khan', rejectedBy: null, rejectReason: null },
+      { id: 'TR-2026-047', dir: 'in', store: 'Al Fatah Johar Town', date: 'Jul 14, 2026', items: 3, units: 72, status: 'dispatched', urgent: false, requestedBy: 'Usman Ali', approvedBy: 'Zain Khan', rejectedBy: null, rejectReason: null },
+      { id: 'TR-2026-046', dir: 'in', store: 'Al Fatah Model Town', date: 'Jul 12, 2026', items: 2, units: 44, status: 'dispatched', urgent: false, requestedBy: 'Bilal Siddiqui', approvedBy: 'Zain Khan', rejectedBy: null, rejectReason: null },
+      { id: 'TR-2026-045', dir: 'in', store: 'Al Fatah DHA Branch', date: 'Jul 10, 2026', items: 7, units: 180, status: 'received', urgent: false, requestedBy: 'Sara Ahmed', approvedBy: 'Zain Khan', rejectedBy: null, rejectReason: null },
+      { id: 'TR-2026-044', dir: 'in', store: 'Al Fatah Main Branch', date: 'Jul 8, 2026', items: 4, units: 96, status: 'received', urgent: false, requestedBy: 'Nadia Hasan', approvedBy: 'Zain Khan', rejectedBy: null, rejectReason: null },
+      { id: 'TR-2026-043', dir: 'in', store: 'Al Fatah Johar Town', date: 'Jul 6, 2026', items: 9, units: 240, status: 'rejected', urgent: false, requestedBy: 'Usman Ali', approvedBy: null, rejectedBy: 'Zain Khan', rejectReason: 'Insufficient stock available' },
+      // ── Outgoing: requests the warehouse raised to pull stock in from a branch ──
+      // store = requester (the warehouse) · fulfilledBy = the branch being asked to send stock.
+      { id: 'TR-2026-042', dir: 'out', store: 'Central Warehouse', fulfilledBy: 'Al Fatah DHA Branch', date: 'Jul 20, 2026', items: 3, units: 72, status: 'dispatched', urgent: false, requestedBy: 'Zain Khan', approvedBy: 'Sara Ahmed', rejectedBy: null, rejectReason: null, dispatchedOn: 'Jul 20, 2026' },
+      { id: 'TR-2026-041', dir: 'out', store: 'Central Warehouse', fulfilledBy: 'Al Fatah Model Town', date: 'Jul 18, 2026', items: 2, units: 50, status: 'pending', urgent: true, requestedBy: 'Zain Khan', approvedBy: null, rejectedBy: null, rejectReason: null },
+      { id: 'TR-2026-039', dir: 'out', store: 'Central Warehouse', fulfilledBy: 'Al Fatah Johar Town', date: 'Jul 11, 2026', items: 4, units: 110, status: 'received', urgent: false, requestedBy: 'Zain Khan', approvedBy: 'Usman Ali', rejectedBy: null, rejectReason: null, dispatchedOn: 'Jul 11, 2026', receivedOn: 'Jul 13, 2026' },
+      { id: 'TR-2026-037', dir: 'out', store: 'Central Warehouse', fulfilledBy: 'Al Fatah Main Branch', date: 'Jul 7, 2026', items: 5, units: 130, status: 'received', urgent: false, requestedBy: 'Zain Khan', approvedBy: 'Nadia Hasan', rejectedBy: null, rejectReason: null, dispatchedOn: 'Jul 7, 2026', receivedOn: 'Jul 9, 2026' },
     ];
 
 
@@ -2767,7 +2933,7 @@
         body.innerHTML = items.map(i => {
           const st = invStatus(i); const avail = i.onHand - i.reserved;
           const skuEsc = i.sku.replace(/'/g, "\\'");
-          return `<div class="grid items-center px-5 py-3 hover:bg-gray-50/50 transition" style="grid-template-columns:2fr 1fr 1fr 0.7fr 0.7fr 0.7fr 0.9fr 1.1fr;">
+          return `<div class="grid items-center px-5 py-3 hover:bg-gray-50/50 transition" style="grid-template-columns:1.8fr 0.9fr 0.9fr 1fr 0.75fr 0.8fr 0.9fr 1.1fr;">
       <div class="flex items-center gap-3 min-w-0">
         <div class="w-9 h-9 rounded-lg bg-navy/8 flex items-center justify-center shrink-0"><ion-icon name="cube-outline" class="text-navy" style="font-size:16px;"></ion-icon></div>
         <div class="min-w-0"><p class="text-[12.5px] font-semibold text-navy-dark truncate">${i.name}</p><p class="text-[10px] text-gray-400 truncate">${i.variant}</p></div>
@@ -2854,7 +3020,7 @@
           </div>
           <div class="text-right shrink-0">
             <p class="text-[18px] font-extrabold text-navy-dark leading-none">${item.onHand}</p>
-            <p class="text-[10px] text-gray-400 mt-0.5">on hand</p>
+            <p class="text-[10px] text-gray-400 mt-0.5">physical stock</p>
           </div>
         </div>
         <div class="grid grid-cols-3 gap-2 mb-5">
@@ -3457,258 +3623,213 @@
 
   <script>
     // ─── TRANSFERS ─────────────────────────────────────────────
+    const WH_NAME = 'Central Warehouse';
+    const WH_MANAGER = 'Zain Khan';
+    const TR_STATUS = {
+      pending:    { cls: 'text-brand-purple bg-brand-purple/10', icon: 'hourglass-outline', label: 'Pending' },
+      dispatched: { cls: 'text-brand-orange bg-brand-orange/10', icon: 'cube-outline', label: 'In Transit' },
+      received:   { cls: 'text-brand-green bg-brand-green/10', icon: 'checkmark-circle-outline', label: 'Received' },
+      rejected:   { cls: 'text-brand-red bg-brand-red/10', icon: 'close-circle-outline', label: 'Rejected' },
+      cancelled:  { cls: 'text-gray-500 bg-gray-100', icon: 'close-outline', label: 'Cancelled' },
+    };
+    function trBadge(status) {
+      const s = TR_STATUS[status] || TR_STATUS.pending;
+      return `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${s.cls} capitalize">${s.label}</span>`;
+    }
+    function trPriorityBadge(urgent) {
+      return urgent
+        ? `<span class="text-[9px] font-bold text-white bg-brand-red px-2 py-0.5 rounded-full">URGENT</span>`
+        : `<span class="text-[9px] font-bold text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">Normal</span>`;
+    }
+    // Synthesize deterministic line items from items/units when a record has no explicit lines,
+    // so the dispatch modal + requested-vs-sent table work for every seeded transfer.
+    function trLines(t) {
+      if (t.lines) return t.lines;
+      if (t._lines) return t._lines;
+      const n = Math.max(1, Math.min(t.items || 1, INV_DATA.length));
+      const base = Math.floor((t.units || 0) / n), rem = (t.units || 0) - base * n;
+      const out = [];
+      for (let i = 0; i < n; i++) {
+        const p = INV_DATA[i % INV_DATA.length];
+        const qty = Math.max(1, base + (i < rem ? 1 : 0));
+        out.push({ sku: p.sku, product: `${p.name} — ${p.variant}`, qty });
+      }
+      t._lines = out; return out;
+    }
+    function trAvail(sku) { const p = INV_DATA.find(x => x.sku === sku); return p ? Math.max(0, p.onHand - p.reserved) : 0; }
+
+    // 'in' = stores requesting stock from the warehouse (we fulfil) · 'out' = warehouse pushes to stores
+    let trDir = 'in';
     let trFilter = 'all', trPage_ = 1; const TR_PAGE = 10;
+    function trDataset() { return TRANSFER_DATA.filter(t => (t.dir || 'in') === trDir); }
+
+    function setTrDir(dir) {
+      trDir = dir; trFilter = 'all'; trPage_ = 1;
+      const active = 'tr-dir-btn flex items-center gap-2 px-4 py-2.5 rounded-xl text-[12.5px] font-semibold bg-navy text-white transition';
+      const idle = 'tr-dir-btn flex items-center gap-2 px-4 py-2.5 rounded-xl text-[12.5px] font-semibold bg-white border border-border text-gray-500 hover:text-navy hover:border-navy/30 transition';
+      document.getElementById('tr-dir-in').className = dir === 'in' ? active : idle;
+      document.getElementById('tr-dir-out').className = dir === 'out' ? active : idle;
+      // "Initiate Transfer" only makes sense for outgoing
+      document.getElementById('tr-new-wrap').style.display = dir === 'out' ? '' : 'none';
+      const tabs = document.querySelectorAll('#tr-type-tabs .tr-tab');
+      tabs.forEach(t => { t.className = 'tr-tab px-3 py-1.5 text-[11px] font-medium text-gray-500 hover:bg-white/60 transition'; });
+      if (tabs[0]) tabs[0].className = 'tr-tab px-3 py-1.5 text-[11px] font-semibold bg-navy text-white';
+      renderTransfers();
+    }
     function setTrFilter(f, el) {
       trFilter = f; trPage_ = 1;
-      document.querySelectorAll('.tr-tab').forEach(t => { t.className = 'tr-tab px-3 py-1.5 text-[11px] font-medium text-gray-500 hover:bg-white/60 transition'; });
-      if (el) el.className = 'tr-tab px-3 py-1.5 text-[11px] font-semibold bg-navy text-white';
+      const tabs = document.querySelectorAll('#tr-type-tabs .tr-tab');
+      tabs.forEach(t => { t.className = 'tr-tab px-3 py-1.5 text-[11px] font-medium text-gray-500 hover:bg-white/60 transition'; });
+      const target = el && el.classList && el.classList.contains('tr-tab') ? el
+        : { all: tabs[0], pending: tabs[1], dispatched: tabs[2], received: tabs[3], rejected: tabs[4] }[f];
+      if (target) target.className = 'tr-tab px-3 py-1.5 text-[11px] font-semibold bg-navy text-white';
       renderTransfers();
     }
     function filterTransfers() { trPage_ = 1; renderTransfers(); }
     function trPage(d) { trPage_ = Math.max(1, trPage_ + d); renderTransfers(); }
+    function trDetailOpen(id) {
+      const so = document.getElementById('transfer-detail-slideover');
+      return so.classList.contains('open') && document.getElementById('tr-detail-title').dataset.id === id;
+    }
+
     function openTransferDetail(id) {
-      const tr = TRANSFER_DATA.find(t => t.id === id); if (!tr) return;
-      const m = storeMeta(tr.store);
-      const isWHInitiated = tr.requestedBy && tr.approvedBy && tr.requestedBy === tr.approvedBy;
-      const isPending = tr.status === 'pending';
-      // WH-initiated pending = already decided by WH, waiting for store — treat as read-only
-      const showInputs = isPending && !isWHInitiated;
+      const t = TRANSFER_DATA.find(x => x.id === id); if (!t) return;
+      const inbound = (t.dir || 'in') === 'in';   // inbound = a store requested from us
+      const s = TR_STATUS[t.status] || TR_STATUS.pending;
+      const m = storeMeta(inbound ? t.store : (t.fulfilledBy || t.store));
+      const avatarName = inbound ? t.store : (t.fulfilledBy || t.store);
+      const lines = trLines(t);
 
-      const statusColors = {
-        pending: { bg: 'bg-brand-purple/5', border: 'border-brand-purple/20', text: 'text-brand-purple', icon: 'hourglass-outline' },
-        dispatched: { bg: 'bg-brand-orange/5', border: 'border-brand-orange/20', text: 'text-brand-orange', icon: 'cube-outline' },
-        received: { bg: 'bg-brand-green/5', border: 'border-brand-green/20', text: 'text-brand-green', icon: 'checkmark-circle-outline' },
-        rejected: { bg: 'bg-brand-red/5', border: 'border-brand-red/20', text: 'text-brand-red', icon: 'close-circle-outline' },
-      };
-      const sc = statusColors[tr.status] || statusColors.pending;
+      const titleEl = document.getElementById('tr-detail-title');
+      titleEl.textContent = `Transfer — ${t.id}`;
+      titleEl.dataset.id = t.id;
+      document.getElementById('tr-detail-sub').textContent = `${t.store} · ${t.date}`;
 
-      // Build deterministic line items from transfer data
-      const lineItems = [...Array(Math.min(tr.items, 5))].map((_, i) => {
-        const prod = INV_DATA[i % INV_DATA.length];
-        const reqQty = 8 + i * 4;                        // requested by store
-        const avail = prod.onHand - prod.reserved;       // what warehouse has
-        const maxDispatch = Math.min(reqQty, avail);       // can never exceed requested
-        return { prod, reqQty, avail, maxDispatch };
-      });
+      // Lifecycle timeline
+      const steps = [
+        { key: 'requested', label: inbound ? 'Requested' : 'Initiated', date: t.date, icon: 'paper-plane-outline', done: true },
+        { key: 'approved', label: t.status === 'rejected' ? 'Rejected' : 'Approved', date: t.status === 'rejected' ? t.date : (t.dispatchedOn ? t.date : null), icon: t.status === 'rejected' ? 'close-circle-outline' : 'checkmark-circle-outline', done: ['dispatched', 'received'].includes(t.status), bad: t.status === 'rejected' },
+        { key: 'dispatched', label: 'Dispatched', date: t.dispatchedOn || null, icon: 'cube-outline', done: ['dispatched', 'received'].includes(t.status) },
+        { key: 'received', label: 'Received', date: t.receivedOn || null, icon: 'checkmark-done-outline', done: t.status === 'received' },
+      ];
+      const timeline = (t.status === 'rejected' ? steps.slice(0, 2) : steps).map(st => {
+        const dotBg = st.bad ? 'bg-brand-red' : st.done ? 'bg-brand-green' : 'bg-gray-200';
+        const dotText = (st.done || st.bad) ? 'text-white' : 'text-gray-400';
+        const labelCls = st.bad ? 'text-brand-red font-bold' : st.done ? 'text-brand-green font-semibold' : 'text-gray-400';
+        return `<div class="flex items-center gap-3">
+            <div class="w-7 h-7 rounded-full ${dotBg} ${dotText} flex items-center justify-center shrink-0"><ion-icon name="${st.icon}" style="font-size:13px;"></ion-icon></div>
+            <div class="flex-1"><p class="text-[12px] ${labelCls}">${st.label}</p></div>
+            <p class="text-[10px] text-gray-400">${st.date || '—'}</p>
+          </div>`;
+      }).join('<div class="w-px h-3 bg-gray-200 ml-3.5"></div>');
 
-      const itemRows = lineItems.map((item, i) => {
-        const { prod, reqQty, avail, maxDispatch } = item;
-        const availColor = avail < reqQty ? 'text-brand-red' : 'text-brand-green';
-        const dispatchCol = showInputs
-          ? `<div class="flex flex-col items-end gap-0.5">
-           <input
-             id="disp-qty-${i}"
-             type="number"
-             value="${maxDispatch}"
-             min="0"
-             max="${reqQty}"
-             data-max="${reqQty}"
-             oninput="validateDispatchInput(this)"
-             onblur="clampDispatchInput(this)"
-             class="inp text-[12px] text-right transition"
-             style="padding:5px 8px;width:68px;">
-           <span id="disp-err-${i}" class="text-[9px] text-brand-red hidden">Max ${reqQty}</span>
-         </div>`
-          : `<p class="text-[12px] font-bold text-navy-dark text-right">${maxDispatch}</p>`;
-
-        return `<div class="grid gap-2 items-center py-3 border-b border-gray-100 last:border-0" style="grid-template-columns:2fr 0.65fr 0.65fr 0.75fr;">
-      <div class="flex items-center gap-2.5 min-w-0">
-        <div class="w-6 h-6 rounded-md bg-gray-100 flex items-center justify-center shrink-0 text-[9px] font-bold text-gray-400">${i + 1}</div>
-        <div class="min-w-0">
-          <p class="text-[12px] font-semibold text-navy-dark truncate">${prod.name}</p>
-          <p class="text-[10px] text-gray-400 font-mono">${prod.sku} · ${prod.variant}</p>
-        </div>
-      </div>
-      <p class="text-[12px] font-bold text-navy-dark text-right">${reqQty}</p>
-      <p class="text-[12px] font-semibold ${availColor} text-right">${avail}</p>
-      <div class="flex justify-end">${dispatchCol}</div>
-    </div>`;
+      // Requested vs Sent
+      const wasSent = ['dispatched', 'received'].includes(t.status);
+      const itemsGrid = 'grid-template-columns:0.35fr 2fr 0.75fr 0.85fr;';
+      let totReq = 0, totSent = 0, sentKnown = false;
+      const lineRows = lines.map((l, i) => {
+        const sent = l.dispatched != null ? l.dispatched : (wasSent ? l.qty : null);
+        totReq += l.qty;
+        if (sent != null) { totSent += sent; sentKnown = true; }
+        let sentCell;
+        if (sent == null) {
+          sentCell = `<span class="text-[12px] text-gray-300 font-semibold">—</span>`;
+        } else {
+          const short = sent < l.qty;
+          sentCell = `<span class="inline-flex items-center gap-1 text-[13px] font-extrabold ${short ? 'text-brand-orange' : 'text-brand-green'}">${sent}${short ? `<ion-icon name="alert-circle" style="font-size:11px;"></ion-icon>` : `<ion-icon name="checkmark-circle" style="font-size:11px;"></ion-icon>`}</span>`;
+        }
+        return `<div class="grid items-center px-4 py-2.5 border-b border-gray-100 last:border-0" style="${itemsGrid}">
+          <div class="w-6 h-6 rounded-md bg-gray-100 flex items-center justify-center text-[9px] font-bold text-gray-400">${i + 1}</div>
+          <div class="min-w-0"><p class="text-[12px] font-semibold text-navy-dark truncate">${l.product}</p><p class="text-[10px] text-gray-400 font-mono">${l.sku}</p></div>
+          <p class="text-[13px] font-bold text-navy-dark text-right">${l.qty}</p>
+          <p class="text-right">${sentCell}</p>
+        </div>`;
       }).join('');
+      const itemsHeader = `<div class="grid items-center px-4 py-2 bg-gray-50/70 border-b border-border" style="${itemsGrid}">
+          <div></div>
+          <p class="text-[9px] font-bold text-gray-400 uppercase tracking-[0.06em]">Product</p>
+          <p class="text-[9px] font-bold text-gray-400 uppercase tracking-[0.06em] text-right">Requested</p>
+          <p class="text-[9px] font-bold text-gray-400 uppercase tracking-[0.06em] text-right">Sent</p>
+        </div>`;
+      const itemsFooter = `<div class="grid items-center px-4 py-2.5 bg-gray-50/70 border-t border-border" style="${itemsGrid}">
+          <div></div>
+          <p class="text-[11px] font-bold text-navy-dark">Total</p>
+          <p class="text-[13px] font-extrabold text-navy-dark text-right">${totReq}</p>
+          <p class="text-[13px] font-extrabold text-right ${sentKnown ? (totSent < totReq ? 'text-brand-orange' : 'text-brand-green') : 'text-gray-300'}">${sentKnown ? totSent : '—'}</p>
+        </div>`;
 
-      document.getElementById('tr-detail-title').textContent = `Transfer — ${tr.id}`;
-      document.getElementById('tr-detail-sub').textContent = `${tr.store} · ${tr.date}`;
+      const counterparty = inbound ? t.store : (t.fulfilledBy || 'Unassigned');
+      const routeLine = inbound ? `${t.store} → ${WH_NAME}` : `${WH_NAME} → ${counterparty}`;
+      const routeSub = inbound
+        ? `Requested by ${t.requestedBy} · Fulfilled by <span class="font-semibold text-gray-500">${WH_NAME} (you)</span>`
+        : `Requested by ${t.requestedBy} (you) · Fulfilled by <span class="font-semibold text-gray-500">${counterparty}</span>`;
+
       document.getElementById('tr-detail-body').innerHTML = `
-
-    <!-- Store + status card -->
-    <div class="flex items-center gap-3 p-4 rounded-xl border ${sc.border} ${sc.bg} mb-4">
-      <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 text-[14px] font-extrabold text-white" style="background:${m.color};">${storeInitial(tr.store)}</div>
-      <div class="flex-1 min-w-0">
-        <p class="text-[13px] font-bold text-navy-dark truncate">${tr.store}</p>
-        <p class="text-[10px] text-gray-400 font-mono">${m.code}</p>
-      </div>
-      <div class="text-right shrink-0">
-        <div class="flex items-center gap-1.5 justify-end mb-0.5">
-          <ion-icon name="${sc.icon}" style="font-size:13px;" class="${sc.text}"></ion-icon>
-          <span class="text-[11px] font-bold ${sc.text} capitalize">${tr.status}</span>
-          ${tr.urgent ? `<span class="text-[9px] font-bold text-white bg-brand-red px-1.5 py-0.5 rounded-full ml-1">URGENT</span>` : ''}
-          ${tr.requestedBy && tr.approvedBy && tr.requestedBy === tr.approvedBy ? `<span class="text-[9px] font-bold text-brand-blue bg-brand-blue/10 px-1.5 py-0.5 rounded-full">WH Initiated</span>` : ''}
-        </div>
-        <p class="text-[10px] text-gray-400">${tr.date}</p>
-      </div>
-    </div>
-
-    <!-- Summary strip -->
-    <div class="grid grid-cols-3 gap-3 mb-4">
-      <div class="bg-gray-50 rounded-xl px-3 py-2.5 text-center border border-border">
-        <p class="text-[18px] font-extrabold text-navy-dark">${tr.items}</p>
-        <p class="text-[10px] text-gray-400 font-medium">Items</p>
-      </div>
-      <div class="bg-gray-50 rounded-xl px-3 py-2.5 text-center border border-border">
-        <p class="text-[18px] font-extrabold text-navy-dark">${tr.units}</p>
-        <p class="text-[10px] text-gray-400 font-medium">Units Requested</p>
-      </div>
-      <div class="bg-gray-50 rounded-xl px-3 py-2.5 text-center border border-border">
-        <p class="text-[18px] font-extrabold ${sc.text} capitalize">${tr.status}</p>
-        <p class="text-[10px] text-gray-400 font-medium">Status</p>
-      </div>
-    </div>
-
-    <!-- Requested by / Approved by / Rejected by -->
-    <div class="grid grid-cols-2 gap-3 mb-4">
-      <div class="bg-gray-50 rounded-xl px-4 py-3 border border-border">
-        <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-[0.06em] mb-1.5">Requested By</p>
-        <div class="flex items-center gap-2">
-          <div class="w-6 h-6 rounded-full bg-brand-purple/15 flex items-center justify-center shrink-0 text-[9px] font-extrabold text-brand-purple">
-            ${tr.requestedBy.split(' ').map(w => w[0]).join('').toUpperCase()}
+        <div class="flex items-center gap-3 p-4 rounded-xl border ${s.cls.replace('text-', 'border-').split(' ')[0] + '/25'} mb-4" style="background:rgba(0,0,0,0.015);">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 text-[13px] font-extrabold text-white" style="background:${m.color};">${storeInitial(avatarName)}</div>
+          <div class="flex-1 min-w-0">
+            <p class="text-[13px] font-bold text-navy-dark truncate">${routeLine}</p>
+            <p class="text-[10px] text-gray-400">${routeSub}</p>
           </div>
-          <p class="text-[12px] font-semibold text-navy-dark">${tr.requestedBy}</p>
+          <div class="flex items-center gap-1.5">${trPriorityBadge(t.urgent)}${trBadge(t.status)}</div>
         </div>
-        <p class="text-[10px] text-gray-400 mt-1">${tr.date}</p>
-      </div>
-      <div class="bg-gray-50 rounded-xl px-4 py-3 border border-border">
-        ${tr.status === 'rejected'
-          ? `<p class="text-[10px] font-semibold text-gray-400 uppercase tracking-[0.06em] mb-1.5">Rejected By</p>
-             ${tr.rejectedBy ? `
-             <div class="flex items-center gap-2">
-               <div class="w-6 h-6 rounded-full bg-brand-red/15 flex items-center justify-center shrink-0 text-[9px] font-extrabold text-brand-red">
-                 ${tr.rejectedBy.split(' ').map(w => w[0]).join('').toUpperCase()}
-               </div>
-               <p class="text-[12px] font-semibold text-navy-dark">${tr.rejectedBy}</p>
-             </div>
-             <p class="text-[10px] text-brand-red mt-1 font-medium">${tr.rejectReason || ''}</p>` : `
-             <p class="text-[12px] text-gray-400 italic">Not recorded</p>`}`
-          : `<p class="text-[10px] font-semibold text-gray-400 uppercase tracking-[0.06em] mb-1.5">Approved By</p>
-             ${tr.approvedBy ? `
-             <div class="flex items-center gap-2">
-               <div class="w-6 h-6 rounded-full bg-brand-green/15 flex items-center justify-center shrink-0 text-[9px] font-extrabold text-brand-green">
-                 ${tr.approvedBy.split(' ').map(w => w[0]).join('').toUpperCase()}
-               </div>
-               <p class="text-[12px] font-semibold text-navy-dark">${tr.approvedBy}</p>
-             </div>
-             <p class="text-[10px] text-brand-green mt-1 font-medium">Warehouse Manager</p>` : `
-             <div class="flex items-center gap-2">
-               <div class="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center shrink-0">
-                 <ion-icon name="time-outline" style="font-size:11px;color:#94a3b8;"></ion-icon>
-               </div>
-               <p class="text-[12px] text-gray-400 italic">Pending approval</p>
-             </div>`}`}
-      </div>
-    </div>
 
-    <!-- Line items -->
-    <div class="bg-white rounded-xl border border-border overflow-hidden mb-4">
-      <div class="flex items-center justify-between px-4 py-3 border-b border-border">
-        <p class="text-[12px] font-semibold text-navy-dark">Line Items</p>
-        ${isPending
-          ? `<span class="text-[10px] text-gray-400">Dispatch qty cannot exceed requested qty</span>`
-          : `<span class="text-[10px] text-gray-400">Read-only · transfer ${tr.status}</span>`}
-      </div>
-      <div class="grid text-[10px] font-semibold text-gray-400 uppercase tracking-[0.07em] px-4 py-2 border-b border-border bg-gray-50/60"
-        style="grid-template-columns:2fr 0.65fr 0.65fr 0.75fr;">
-        <div>Product</div>
-        <div class="text-right">Req.</div>
-        <div class="text-right">Avail.</div>
-        <div class="text-right">${showInputs ? 'Dispatch' : 'Sent'}</div>
-      </div>
-      <div class="px-4">${itemRows}</div>
-    </div>
+        <div class="grid grid-cols-2 gap-3 mb-4">
+          <div class="bg-gray-50 rounded-xl px-3 py-2.5 text-center border border-border"><p class="text-[18px] font-extrabold text-navy-dark">${t.items}</p><p class="text-[10px] text-gray-400 font-medium">Items</p></div>
+          <div class="bg-gray-50 rounded-xl px-3 py-2.5 text-center border border-border"><p class="text-[18px] font-extrabold text-navy-dark">${t.units}</p><p class="text-[10px] text-gray-400 font-medium">Units</p></div>
+        </div>
 
-    ${isPending && !isWHInitiated ? `
-    <!-- Note field for store-requested pending -->
-    <div>
-      <label class="block text-[11px] font-semibold text-gray-600 mb-1.5">Note to Store <span class="font-normal text-gray-400">(optional)</span></label>
-      <textarea id="tr-dispatch-note" rows="2" class="inp resize-none" placeholder="Any notes for the store manager…"></textarea>
-    </div>` : isPending && isWHInitiated ? `
-    <!-- WH-initiated: waiting for store -->
-    <div class="flex items-center gap-2 px-3 py-2.5 bg-brand-blue/5 border border-brand-blue/15 rounded-xl">
-      <ion-icon name="time-outline" style="font-size:14px;color:#3366cc;flex-shrink:0;"></ion-icon>
-      <p class="text-[11px] text-brand-blue">This transfer was initiated by your warehouse. The store manager needs to confirm acceptance before it proceeds.</p>
-    </div>` : isWHInitiated && tr.status === 'dispatched' ? `
-    <!-- WH-initiated dispatched: awaiting receipt confirmation -->
-    <div class="flex items-center gap-2 px-3 py-2.5 bg-brand-orange/5 border border-brand-orange/20 rounded-xl">
-      <ion-icon name="cube-outline" style="font-size:14px;color:#ff9800;flex-shrink:0;"></ion-icon>
-      <p class="text-[11px] text-brand-orange">Stock has been dispatched by the store. Click <strong>"Mark as Received"</strong> once you've physically received and counted the items.</p>
-    </div>` : `
-    <!-- Read-only info bar -->
-    <div class="flex items-center gap-2 px-3 py-2.5 bg-gray-50 rounded-xl border border-border">
-      <ion-icon name="information-circle-outline" style="font-size:14px;color:#94a3b8;flex-shrink:0;"></ion-icon>
-      <p class="text-[11px] text-gray-500">This transfer is <strong class="text-navy-dark capitalize">${tr.status}</strong> — no further action required.</p>
-    </div>`}`;
+        ${t.status === 'rejected' && t.rejectReason ? `
+        <div class="flex items-start gap-2.5 bg-brand-red/5 border border-brand-red/15 rounded-xl px-4 py-3 mb-4">
+          <ion-icon name="alert-circle-outline" style="font-size:14px;color:#eb445a;flex-shrink:0;margin-top:1px;"></ion-icon>
+          <div><p class="text-[11px] font-bold text-brand-red">Rejected by ${t.rejectedBy || (inbound ? WH_MANAGER : t.store)}</p><p class="text-[11px] text-gray-600 mt-0.5">${t.rejectReason}</p></div>
+        </div>` : ''}
 
-      document.getElementById('tr-detail-footer').innerHTML = isPending
-        ? tr.requestedBy === tr.approvedBy
-          ? `<!-- WH-initiated: store needs to accept -->
-         <button onclick="closeAllSlideOvers()" class="flex-1 py-2.5 border border-border rounded-xl text-[13px] font-semibold text-gray-600 hover:bg-gray-50 transition">Close</button>
-         <div class="flex-1 flex items-center justify-center gap-2 py-2.5 bg-brand-blue/8 border border-brand-blue/20 rounded-xl">
-           <ion-icon name="time-outline" style="font-size:15px;color:#3366cc;"></ion-icon>
-           <span class="text-[12px] font-semibold text-brand-blue">Awaiting store acceptance</span>
-         </div>`
-          : `<button onclick="closeAllSlideOvers()" class="flex-1 py-2.5 border border-border rounded-xl text-[13px] font-semibold text-gray-600 hover:bg-gray-50 transition">Cancel</button>
-         <button onclick="rejectTransfer('${tr.id}')" class="flex-1 py-2.5 bg-brand-red/10 text-brand-red border border-brand-red/20 rounded-xl text-[13px] font-semibold hover:bg-brand-red/15 transition">Reject</button>
-         <button onclick="approveDispatch('${tr.id}',${lineItems.length})" class="flex-1 py-2.5 bg-brand-green text-white rounded-xl text-[13px] font-semibold hover:bg-brand-green/85 transition">Approve &amp; Dispatch</button>`
-        : isWHInitiated && tr.status === 'dispatched'
-          ? `<!-- WH-initiated dispatched: WH needs to confirm receipt -->
-         <button onclick="closeAllSlideOvers()" class="flex-1 py-2.5 border border-border rounded-xl text-[13px] font-semibold text-gray-600 hover:bg-gray-50 transition">Close</button>
-         <button onclick="markReceived('${tr.id}')" class="flex-1 py-2.5 bg-brand-green text-white rounded-xl text-[13px] font-semibold hover:bg-brand-green/85 transition flex items-center justify-center gap-1.5">
-           <ion-icon name="checkmark-done-outline" style="font-size:15px;"></ion-icon>Mark as Received
-         </button>`
-          : `<button onclick="closeAllSlideOvers()" class="flex-1 py-2.5 border border-border rounded-xl text-[13px] font-semibold text-gray-600 hover:bg-gray-50 transition">Close</button>`;
+        ${t.partial ? `
+        <div class="flex items-start gap-2.5 bg-brand-orange/5 border border-brand-orange/20 rounded-xl px-4 py-3 mb-4">
+          <ion-icon name="git-branch-outline" style="font-size:14px;color:#ff9800;flex-shrink:0;margin-top:1px;"></ion-icon>
+          <div><p class="text-[11px] font-bold text-brand-orange">Partially fulfilled</p><p class="text-[11px] text-gray-600 mt-0.5">${t.units} of ${t.requestedUnits} units requested were dispatched.</p></div>
+        </div>` : ''}
 
+        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.08em] mb-2">Status Timeline</p>
+        <div class="bg-white rounded-xl border border-border p-4 mb-4">${timeline}</div>
+
+        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.08em] mb-2">Items — Requested vs Sent</p>
+        <div class="rounded-xl border border-border overflow-hidden">${itemsHeader}${lineRows}${itemsFooter}</div>`;
+
+      // Footer actions by direction + status
+      let footer = '';
+      if (inbound) {
+        if (t.status === 'pending') {
+          footer = `<button onclick="rejectTransfer('${t.id}')" class="flex-1 py-2.5 border border-brand-red/30 bg-brand-red/10 text-brand-red rounded-xl text-[13px] font-semibold hover:bg-brand-red/20 transition flex items-center justify-center gap-1.5"><ion-icon name="close-outline" style="font-size:15px;"></ion-icon>Reject</button>
+          <button onclick="approveDispatch('${t.id}')" class="flex-1 py-2.5 bg-brand-green text-white rounded-xl text-[13px] font-semibold hover:bg-brand-green/85 transition flex items-center justify-center gap-1.5"><ion-icon name="checkmark-outline" style="font-size:15px;"></ion-icon>Approve &amp; Dispatch</button>`;
+        } else if (t.status === 'dispatched') {
+          footer = `<div class="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-[12px] font-semibold text-brand-orange"><ion-icon name="cube-outline" style="font-size:15px;"></ion-icon>Awaiting receipt by ${t.store}</div>`;
+        } else {
+          footer = `<button onclick="closeAllSlideOvers()" class="flex-1 py-2.5 border border-border rounded-xl text-[13px] font-semibold text-gray-600 bg-white hover:bg-gray-50 transition">Close</button>`;
+        }
+      } else {
+        if (t.status === 'pending') {
+          footer = `<button onclick="cancelTransferRequest('${t.id}')" class="flex-1 py-2.5 border border-brand-red/30 bg-brand-red/10 text-brand-red rounded-xl text-[13px] font-semibold hover:bg-brand-red/20 transition flex items-center justify-center gap-1.5"><ion-icon name="close-outline" style="font-size:15px;"></ion-icon>Cancel Request</button>`;
+        } else if (t.status === 'dispatched') {
+          footer = `<button onclick="confirmTransferReceipt('${t.id}')" class="flex-1 py-2.5 bg-brand-green text-white rounded-xl text-[13px] font-semibold hover:bg-brand-green/85 transition flex items-center justify-center gap-1.5"><ion-icon name="checkmark-done-outline" style="font-size:15px;"></ion-icon>Confirm Receipt</button>`;
+        } else {
+          footer = `<button onclick="closeAllSlideOvers()" class="flex-1 py-2.5 border border-border rounded-xl text-[13px] font-semibold text-gray-600 bg-white hover:bg-gray-50 transition">Close</button>`;
+        }
+      }
+      document.getElementById('tr-detail-footer').innerHTML = footer;
       openSlideOver('transfer-detail-slideover');
     }
 
-    // Validate dispatch input — flag if > max (requested qty)
-    function validateDispatchInput(el) {
-      const max = parseInt(el.dataset.max, 10);
-      const val = parseInt(el.value, 10);
-      const idx = el.id.replace('disp-qty-', '');
-      const err = document.getElementById('disp-err-' + idx);
-      if (isNaN(val) || val < 0 || val > max) {
-        el.style.borderColor = '#eb445a';
-        el.style.background = 'rgba(235,68,90,0.04)';
-        if (err) err.classList.remove('hidden');
-      } else {
-        el.style.borderColor = '';
-        el.style.background = '';
-        if (err) err.classList.add('hidden');
-      }
-    }
-
-    // Clamp on blur — silently fix the value
-    function clampDispatchInput(el) {
-      const max = parseInt(el.dataset.max, 10);
-      let val = parseInt(el.value, 10);
-      if (isNaN(val) || val < 0) val = 0;
-      if (val > max) val = max;
-      el.value = val;
-      el.style.borderColor = '';
-      el.style.background = '';
-      const idx = el.id.replace('disp-qty-', '');
-      const err = document.getElementById('disp-err-' + idx);
-      if (err) err.classList.add('hidden');
-    }
-
+    // ── Reject an incoming request (reuses the reject-modal) ──
     function rejectTransfer(id) {
       const tr = TRANSFER_DATA.find(t => t.id === id); if (!tr) return;
-      // Store id for confirmReject to use
       document.getElementById('reject-modal').dataset.transferId = id;
       document.getElementById('reject-modal-sub').textContent = `${tr.id} · ${tr.store}`;
-      // Reset form
       document.getElementById('reject-modal-reason').value = '';
       document.getElementById('reject-modal-reason').style.borderColor = '';
       document.getElementById('reject-modal-reason-err').classList.add('hidden');
       document.getElementById('reject-modal-note').value = '';
-      // Show modal
       document.getElementById('reject-modal').classList.add('modal-show');
     }
     function clearRejectModalError() {
@@ -3728,99 +3849,116 @@
       const id = document.getElementById('reject-modal').dataset.transferId;
       const tr = TRANSFER_DATA.find(t => t.id === id); if (!tr) return;
       const reason = sel.options[sel.selectedIndex].text;
+      const note = (document.getElementById('reject-modal-note')?.value || '').trim();
       tr.status = 'rejected';
-      tr.rejectedBy = 'Zain Khan';
-      tr.rejectReason = reason;
+      tr.rejectedBy = WH_MANAGER;
+      tr.rejectReason = reason + (note ? ` — ${note}` : '');
       closeRejectModal();
-      closeAllSlideOvers();
-      showToast(`${tr.id} rejected — "${reason}". Store notified.`, 'info');
       renderTransfers();
       renderDashTransfers();
+      if (trDetailOpen(id)) openTransferDetail(id); else closeAllSlideOvers();
+      showToast(`${tr.id} rejected — "${reason}". ${tr.store} notified.`, 'info');
     }
 
-    function approveDispatch(id, itemCount) {
-      const tr = TRANSFER_DATA.find(t => t.id === id); if (!tr) return;
-      // Guard: should never be called for WH-initiated transfers
-      if (tr.requestedBy && tr.approvedBy && tr.requestedBy === tr.approvedBy) {
-        showToast('This transfer is awaiting store acceptance.', 'info'); return;
-      }
-      // Validate all dispatch inputs first
-      let hasError = false;
-      for (let i = 0; i < itemCount; i++) {
-        const inp = document.getElementById('disp-qty-' + i);
-        if (!inp) continue;
-        const max = parseInt(inp.dataset.max, 10);
-        const val = parseInt(inp.value, 10);
-        if (isNaN(val) || val < 0 || val > max) {
-          inp.style.borderColor = '#eb445a';
-          inp.style.background = 'rgba(235,68,90,0.04)';
-          const err = document.getElementById('disp-err-' + i);
-          if (err) err.classList.remove('hidden');
-          hasError = true;
-        }
-      }
-      if (hasError) { showToast('Fix dispatch quantities before approving.', 'error'); return; }
-
-      const m = storeMeta(tr.store);
-
-      // Collect confirmed lines
-      const lines = [];
-      let totalUnits = 0;
-      for (let i = 0; i < itemCount; i++) {
-        const inp = document.getElementById('disp-qty-' + i);
-        const qty = inp ? parseInt(inp.value, 10) : 0;
-        const prod = INV_DATA[i % INV_DATA.length];
-        if (qty > 0) { lines.push({ name: prod.name, variant: prod.variant, qty }); totalUnits += qty; }
-      }
-      const note = (document.getElementById('tr-dispatch-note')?.value || '').trim();
-
-      // Populate dispatch modal
-      document.getElementById('dispatch-modal').dataset.transferId = id;
-      document.getElementById('dispatch-modal-sub').textContent = `${tr.id} · ${tr.store}`;
+    // ── Approve an incoming request → open the editable Confirm Dispatch modal ──
+    function approveDispatch(id) {
+      const t = TRANSFER_DATA.find(x => x.id === id); if (!t || t.status !== 'pending' || (t.dir || 'in') !== 'in') return;
+      const m = storeMeta(t.store);
+      const lines = trLines(t);
+      const modal = document.getElementById('dispatch-modal');
+      modal.dataset.transferId = id;
+      document.getElementById('dispatch-modal-sub').textContent = `${t.id} · ${t.store}`;
 
       document.getElementById('dispatch-modal-dest').innerHTML = `
-    <div class="w-9 h-9 rounded-xl flex items-center justify-center text-[13px] font-extrabold text-white shrink-0" style="background:${m.color};">${storeInitial(tr.store)}</div>
-    <div class="flex-1 min-w-0">
-      <p class="text-[12px] font-bold text-navy-dark truncate">${tr.store}</p>
-      <p class="text-[10px] text-gray-400 font-mono">${m.code}</p>
-    </div>
-    <div class="text-right shrink-0">
-      <p class="text-[13px] font-extrabold text-navy-dark">${lines.length} items · ${totalUnits} units</p>
-      <p class="text-[10px] text-gray-400">to be dispatched</p>
-    </div>`;
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 text-[13px] font-extrabold text-white" style="background:${m.color};">${storeInitial(t.store)}</div>
+        <div class="flex-1 min-w-0">
+          <p class="text-[13px] font-bold text-navy-dark truncate">${t.store}</p>
+          <p class="text-[10px] text-gray-400">Requested by ${t.requestedBy} · ${m.code}</p>
+        </div>
+        <div class="text-right shrink-0"><p class="text-[16px] font-extrabold text-navy-dark leading-none">${t.units}</p><p class="text-[9px] text-gray-400">units</p></div>`;
 
-      document.getElementById('dispatch-modal-lines').innerHTML = lines.map(l => `
-    <div class="flex items-center justify-between px-3 py-2 bg-gray-50 rounded-lg border border-border">
-      <div class="min-w-0">
-        <p class="text-[12px] font-semibold text-navy-dark truncate">${l.name}</p>
-        <p class="text-[10px] text-gray-400">${l.variant}</p>
-      </div>
-      <span class="text-[12px] font-bold text-navy-dark shrink-0 ml-3">${l.qty} units</span>
-    </div>`).join('');
+      document.getElementById('dispatch-modal-lines').innerHTML = lines.map((l, i) => {
+        const avail = trAvail(l.sku);
+        const def = Math.min(l.qty, avail);
+        const short = avail < l.qty;
+        return `<div class="grid items-center gap-2 px-3 py-2 bg-gray-50 border border-border rounded-lg" style="grid-template-columns:1.7fr 0.6fr 0.6fr 0.7fr;">
+          <div class="min-w-0"><p class="text-[11.5px] font-semibold text-navy-dark truncate">${l.product}</p><p class="text-[9px] text-gray-400 font-mono">${l.sku}</p></div>
+          <p class="text-[12px] font-bold text-navy-dark text-right">${l.qty}</p>
+          <p class="text-[11px] ${short ? 'text-brand-red font-bold' : 'text-gray-500'} text-right">${avail}</p>
+          <div class="flex justify-end">
+            <input id="disp-qty-${i}" type="number" min="0" max="${l.qty}" value="${def}"
+              data-req="${l.qty}" data-avail="${avail}"
+              oninput="dispatchRecalc()" class="inp text-[12px] text-right" style="padding:5px 8px;width:60px;">
+          </div>
+        </div>`;
+      }).join('');
 
-      const noteWrap = document.getElementById('dispatch-modal-note-wrap');
-      if (note) {
-        document.getElementById('dispatch-modal-note-text').textContent = note;
-        noteWrap.classList.remove('hidden');
-      } else {
-        noteWrap.classList.add('hidden');
-      }
+      document.getElementById('dispatch-modal-note-wrap').classList.add('hidden');
+      modal.classList.add('modal-show');
+      dispatchRecalc();
+    }
 
-      document.getElementById('dispatch-modal').classList.add('modal-show');
+    function dispatchRecalc() {
+      const id = document.getElementById('dispatch-modal').dataset.transferId;
+      const t = TRANSFER_DATA.find(x => x.id === id); if (!t) return;
+      const lines = trLines(t);
+      let total = 0, reqTotal = 0;
+      lines.forEach((l, i) => {
+        reqTotal += l.qty;
+        const inp = document.getElementById('disp-qty-' + i); if (!inp) return;
+        let v = parseInt(inp.value, 10); if (isNaN(v) || v < 0) v = 0;
+        const req = +inp.dataset.req; if (v > req) { v = req; inp.value = v; }
+        total += v;
+      });
+      document.getElementById('dispatch-modal-total').textContent = total + (total === 1 ? ' unit' : ' units');
+      const partialEl = document.getElementById('dispatch-modal-partial');
+      if (total > 0 && total < reqTotal) { partialEl.classList.remove('hidden'); partialEl.classList.add('flex'); }
+      else { partialEl.classList.add('hidden'); partialEl.classList.remove('flex'); }
+      const emptyErr = document.getElementById('dispatch-modal-empty-err');
+      emptyErr.classList.add('hidden'); emptyErr.classList.remove('flex');
+      return total;
     }
     function closeDispatchModal() {
       document.getElementById('dispatch-modal').classList.remove('modal-show');
     }
     function confirmDispatch() {
       const id = document.getElementById('dispatch-modal').dataset.transferId;
-      const tr = TRANSFER_DATA.find(t => t.id === id); if (!tr) return;
-      tr.status = 'dispatched';
-      tr.approvedBy = 'Zain Khan'; // current warehouse manager
+      const t = TRANSFER_DATA.find(x => x.id === id); if (!t || t.status !== 'pending') return;
+      const lines = trLines(t);
+      let dispatchedTotal = 0, reqTotal = 0;
+      lines.forEach((l, i) => {
+        reqTotal += l.qty;
+        const inp = document.getElementById('disp-qty-' + i);
+        let v = inp ? parseInt(inp.value, 10) : l.qty; if (isNaN(v) || v < 0) v = 0; if (v > l.qty) v = l.qty;
+        l.dispatched = v;
+        dispatchedTotal += v;
+      });
+      if (dispatchedTotal < 1) {
+        const err = document.getElementById('dispatch-modal-empty-err');
+        err.classList.remove('hidden'); err.classList.add('flex');
+        return;
+      }
+      t.status = 'dispatched';
+      t.approvedBy = WH_MANAGER;
+      t.dispatchedOn = 'Jul 21, 2026';
+      t.partial = dispatchedTotal < reqTotal;
+      t.requestedUnits = reqTotal;
+      t.units = dispatchedTotal;
+      // Deduct dispatched amounts from warehouse stock + log outbound movements.
+      lines.forEach(l => {
+        if (!l.dispatched) return;
+        const item = INV_DATA.find(i => i.sku === l.sku);
+        if (item) item.onHand = Math.max(0, item.onHand - l.dispatched);
+        logMovement(l.sku, 'transfer', -l.dispatched, `Dispatched to ${t.store} (${t.id}${l.dispatched < l.qty ? ', partial' : ''})`);
+      });
       closeDispatchModal();
-      closeAllSlideOvers();
-      showToast(`${tr.id} dispatched to ${tr.store}. Store notified.`, 'success');
       renderTransfers();
       renderDashTransfers();
+      if (trDetailOpen(id)) openTransferDetail(id); else closeAllSlideOvers();
+      const msg = t.partial
+        ? `${t.id} partially dispatched — ${dispatchedTotal} of ${reqTotal} units sent to ${t.store}.`
+        : `${t.id} approved — ${dispatchedTotal} units dispatched to ${t.store}.`;
+      showToast(msg, t.partial ? 'warning' : 'success');
     }
     function cancelApprove(id) { openTransferDetail(id); }
     function cancelReject(id) { openTransferDetail(id); }
@@ -3828,10 +3966,273 @@
     function markReceived(id) {
       const tr = TRANSFER_DATA.find(t => t.id === id); if (!tr) return;
       tr.status = 'received';
-      closeAllSlideOvers();
-      showToast(`${tr.id} marked as received. Stock added to warehouse inventory.`, 'success');
+      tr.receivedOn = 'Jul 21, 2026';
       renderTransfers();
       renderDashTransfers();
+      if (trDetailOpen(id)) openTransferDetail(id); else closeAllSlideOvers();
+      showToast(`${tr.id} marked as received.`, 'success');
+    }
+
+    // ── Outgoing requests: cancel (pending) / confirm receipt (dispatched) ──
+    function cancelTransferRequest(id) {
+      const t = TRANSFER_DATA.find(x => x.id === id); if (!t || t.status !== 'pending') return;
+      t.status = 'cancelled';
+      renderTransfers();
+      renderDashTransfers();
+      if (trDetailOpen(id)) openTransferDetail(id); else closeAllSlideOvers();
+      showToast(`${t.id} cancelled. ${t.fulfilledBy || 'The fulfiller'} has been notified.`, 'info');
+    }
+    function confirmTransferReceipt(id) {
+      const t = TRANSFER_DATA.find(x => x.id === id); if (!t || t.status !== 'dispatched') return;
+      t.status = 'received';
+      t.receivedOn = 'Jul 21, 2026';
+      // Add received units into warehouse stock + log a movement per line.
+      trLines(t).forEach(l => {
+        const qty = l.dispatched != null ? l.dispatched : l.qty;
+        if (!qty) return;
+        const item = INV_DATA.find(i => i.sku === l.sku);
+        if (item) item.onHand += qty;
+        logMovement(l.sku, 'received', qty, `Transfer from ${t.fulfilledBy || 'branch'} (${t.id})`);
+      });
+      renderTransfers();
+      renderDashTransfers();
+      if (trDetailOpen(id)) openTransferDetail(id); else closeAllSlideOvers();
+      showToast(`${t.id} received — units added to warehouse stock.`, 'success');
+    }
+
+    // ─── NEW STOCK REQUEST (warehouse raises a request to pull stock from a branch) ───
+    // Mirrors the store portal's New Stock Request flow: typeahead item builder + a
+    // source-availability accordion showing which branch can actually cover the request.
+    const WH_FULFILLERS = ['Al Fatah Main Branch', 'Al Fatah DHA Branch', 'Al Fatah Johar Town', 'Al Fatah Model Town'];
+    function wmSourceStock(source, sku) { return (STORE_INVENTORY[source]?.stock || {})[sku] || 0; }
+    let wmReqLines = [];
+    let wmReqExpandedSource = null;
+    let wmReqSeq = null; // lazily seeded from the highest existing TR id
+
+    function wmNextReqId() {
+      if (wmReqSeq === null) {
+        const max = TRANSFER_DATA.reduce((mx, t) => {
+          const n = parseInt((t.id || '').replace('TR-2026-', ''), 10);
+          return isNaN(n) ? mx : Math.max(mx, n);
+        }, 53);
+        wmReqSeq = max;
+      }
+      return 'TR-2026-' + String(++wmReqSeq).padStart(3, '0');
+    }
+
+    function wmReqCoverage(source) {
+      let itemsFull = 0, unitsCovered = 0, unitsReq = 0;
+      wmReqLines.forEach(l => {
+        const av = wmSourceStock(source, l.sku);
+        unitsReq += l.qty;
+        unitsCovered += Math.min(l.qty, av);
+        if (av >= l.qty) itemsFull++;
+      });
+      return { itemsFull, itemsTotal: wmReqLines.length, unitsCovered, unitsReq };
+    }
+
+    function wmReqOpen(sku) {
+      wmReqLines = [];
+      wmReqExpandedSource = null;
+      const ff = document.getElementById('wm-req-fulfiller');
+      ff.innerHTML = WH_FULFILLERS.map(f => `<option value="${f}">${f}</option>`).join('');
+      ff.value = WH_FULFILLERS[0];
+      document.getElementById('wm-req-product').value = '';
+      document.getElementById('wm-req-search').value = '';
+      document.getElementById('wm-req-qty').value = '';
+      document.getElementById('wm-req-priority').value = 'Normal';
+      document.getElementById('wm-req-line-err').classList.add('hidden');
+      document.getElementById('wm-req-clear').classList.add('hidden');
+      wmReqHideDropdown();
+      if (typeof sku === 'string' && INV_DATA.some(i => i.sku === sku)) wmReqPick(sku);
+      else wmReqOnProduct();
+      wmReqRenderLines();
+      document.getElementById('wm-req-modal').classList.add('modal-show');
+    }
+    function wmReqClose() { wmReqHideDropdown(); document.getElementById('wm-req-modal').classList.remove('modal-show'); }
+    function wmReqHideDropdown() { document.getElementById('wm-req-dropdown').classList.add('hidden'); }
+
+    function wmReqSearch() {
+      const q = (document.getElementById('wm-req-search').value || '').trim().toLowerCase();
+      const dd = document.getElementById('wm-req-dropdown');
+      const chosen = new Set(wmReqLines.map(l => l.sku));
+      const matches = INV_DATA.filter(i =>
+        !q || i.name.toLowerCase().includes(q) || i.variant.toLowerCase().includes(q)
+        || i.cat.toLowerCase().includes(q) || i.sku.toLowerCase().includes(q)
+      ).slice(0, 8);
+      if (!matches.length) {
+        dd.innerHTML = `<p class="text-[11px] text-gray-400 text-center py-4">${q ? 'No products match.' : 'Type to search products.'}</p>`;
+      } else {
+        dd.innerHTML = matches.map(i => {
+          const st = invStatus(i);
+          const already = chosen.has(i.sku);
+          const avail = i.onHand - i.reserved;
+          return `<button type="button" ${already ? 'disabled' : `onclick="wmReqPick('${i.sku.replace(/'/g, "\\'")}')"`}
+            class="w-full flex items-center gap-2.5 px-3 py-2 text-left border-b border-gray-100 last:border-0 transition ${already ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'}">
+            <div class="w-7 h-7 rounded-lg bg-navy/8 flex items-center justify-center shrink-0"><ion-icon name="cube-outline" class="text-navy" style="font-size:13px;"></ion-icon></div>
+            <div class="flex-1 min-w-0">
+              <p class="text-[12px] font-semibold text-navy-dark truncate">${i.name} <span class="text-gray-400 font-normal">· ${i.variant}</span></p>
+              <p class="text-[10px] text-gray-400 truncate font-mono">${i.sku} · ${i.cat}</p>
+            </div>
+            <span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full ${st.cls} shrink-0">${already ? 'Added' : avail + ' avail'}</span>
+          </button>`;
+        }).join('');
+      }
+      dd.classList.remove('hidden');
+    }
+
+    function wmReqPick(sku) {
+      const item = INV_DATA.find(i => i.sku === sku); if (!item) return;
+      document.getElementById('wm-req-product').value = sku;
+      document.getElementById('wm-req-search').value = `${item.name} — ${item.variant}`;
+      document.getElementById('wm-req-clear').classList.remove('hidden');
+      wmReqHideDropdown();
+      wmReqOnProduct();
+      document.getElementById('wm-req-qty').focus();
+    }
+    function wmReqClearPick() {
+      document.getElementById('wm-req-product').value = '';
+      document.getElementById('wm-req-search').value = '';
+      document.getElementById('wm-req-clear').classList.add('hidden');
+      wmReqOnProduct();
+      document.getElementById('wm-req-search').focus();
+    }
+    function wmReqOnProduct() {
+      const sku = document.getElementById('wm-req-product').value;
+      const hint = document.getElementById('wm-req-avail-hint');
+      const item = INV_DATA.find(i => i.sku === sku);
+      if (item) {
+        document.getElementById('wm-req-avail').textContent = item.onHand - item.reserved;
+        hint.classList.remove('hidden');
+      } else { hint.classList.add('hidden'); }
+    }
+    function wmReqAddLine() {
+      const sel = document.getElementById('wm-req-product');
+      const qtyEl = document.getElementById('wm-req-qty');
+      const item = INV_DATA.find(i => i.sku === sel.value);
+      const qty = +qtyEl.value;
+      const err = document.getElementById('wm-req-line-err');
+      if (!item || !qtyEl.value || qty < 1) { err.classList.remove('hidden'); return; }
+      err.classList.add('hidden');
+      const existing = wmReqLines.find(l => l.sku === item.sku);
+      if (existing) existing.qty += qty;
+      else wmReqLines.push({ sku: item.sku, product: `${item.name} — ${item.variant}`, qty });
+      qtyEl.value = '';
+      wmReqClearPick();
+      wmReqRenderLines();
+      document.getElementById('wm-req-search').focus();
+    }
+    function wmReqRemoveLine(i) { wmReqLines.splice(i, 1); wmReqRenderLines(); }
+
+    function wmReqRenderLines() {
+      const wrap = document.getElementById('wm-req-lines');
+      const empty = document.getElementById('wm-req-lines-empty');
+      const units = wmReqLines.reduce((s, l) => s + l.qty, 0);
+      document.getElementById('wm-req-items').textContent = wmReqLines.length;
+      document.getElementById('wm-req-units').textContent = units;
+      if (!wmReqLines.length) { wrap.innerHTML = ''; empty.classList.remove('hidden'); document.getElementById('wm-req-sources').classList.add('hidden'); return; }
+      empty.classList.add('hidden');
+      wrap.innerHTML = wmReqLines.map((l, i) => `
+        <div class="grid items-center px-3 py-2 border-b border-gray-100 last:border-0" style="grid-template-columns:2fr 0.6fr 0.4fr;">
+          <p class="text-[11.5px] font-semibold text-navy-dark truncate">${l.product}</p>
+          <p class="text-[12px] font-bold text-navy-dark text-right">${l.qty}</p>
+          <div class="flex justify-end">
+            <button onclick="wmReqRemoveLine(${i})" class="w-6 h-6 rounded-md border border-border flex items-center justify-center text-gray-400 hover:text-brand-red hover:border-brand-red/40 transition"><ion-icon name="close-outline" style="font-size:13px;"></ion-icon></button>
+          </div>
+        </div>`).join('');
+      wmReqRenderSources();
+    }
+
+    function wmReqRenderSources() {
+      const wrap = document.getElementById('wm-req-sources');
+      const list = document.getElementById('wm-req-sources-list');
+      if (!wrap || !list) return;
+      if (!wmReqLines.length) { wrap.classList.add('hidden'); return; }
+      wrap.classList.remove('hidden');
+      const selected = document.getElementById('wm-req-fulfiller').value;
+      if (wmReqExpandedSource === null) wmReqExpandedSource = selected;
+
+      list.innerHTML = WH_FULFILLERS.map(src => {
+        const c = wmReqCoverage(src);
+        let badge, dotCls;
+        if (c.itemsFull === c.itemsTotal) {
+          dotCls = 'bg-brand-green';
+          badge = `<span class="text-[10px] font-bold text-brand-green bg-brand-green/10 px-2 py-0.5 rounded-full whitespace-nowrap">Fulfils all ${c.itemsTotal}</span>`;
+        } else if (c.unitsCovered > 0) {
+          dotCls = 'bg-brand-orange';
+          badge = `<span class="text-[10px] font-bold text-brand-orange bg-brand-orange/10 px-2 py-0.5 rounded-full whitespace-nowrap">Covers ${c.itemsFull}/${c.itemsTotal} · ${c.unitsCovered}/${c.unitsReq}u</span>`;
+        } else {
+          dotCls = 'bg-gray-300';
+          badge = `<span class="text-[10px] font-bold text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full whitespace-nowrap">No stock</span>`;
+        }
+        const active = src === selected;
+        const expanded = src === wmReqExpandedSource;
+        const esc = src.replace(/'/g, "\\'");
+        const rows = wmReqLines.map(l => {
+          const av = wmSourceStock(src, l.sku);
+          const ok = av >= l.qty, some = av > 0 && av < l.qty;
+          const cls = ok ? 'text-brand-green' : some ? 'text-brand-orange' : 'text-gray-300';
+          const icon = ok ? 'checkmark-circle' : some ? 'alert-circle' : 'close-circle-outline';
+          return `<div class="grid items-center px-3 py-1.5" style="grid-template-columns:1.7fr 0.55fr 0.75fr;">
+            <p class="text-[11px] font-medium text-navy-dark truncate">${l.product}</p>
+            <p class="text-[11px] text-gray-400 text-right">${l.qty}</p>
+            <p class="text-[11px] font-bold ${cls} text-right flex items-center justify-end gap-1"><ion-icon name="${icon}" style="font-size:11px;"></ion-icon>${av}</p>
+          </div>`;
+        }).join('');
+        const body = expanded ? `
+          <div class="border-t border-border bg-gray-50/50">
+            <div class="grid px-3 pt-2 pb-1 text-[9px] font-bold text-gray-400 uppercase tracking-[0.05em]" style="grid-template-columns:1.7fr 0.55fr 0.75fr;">
+              <div>Product</div><div class="text-right">Req.</div><div class="text-right">In stock</div>
+            </div>
+            <div class="divide-y divide-gray-100">${rows}</div>
+            <div class="px-3 py-2.5 border-t border-border">
+              ${active
+                ? `<div class="flex items-center justify-center gap-1.5 text-[11px] font-bold text-navy"><ion-icon name="checkmark-circle" style="font-size:14px;"></ion-icon>Selected as source</div>`
+                : `<button type="button" onclick="wmReqPickSource('${esc}')" class="w-full py-2 rounded-lg bg-navy text-white text-[11px] font-semibold hover:bg-navy-light transition">Use this source</button>`}
+            </div>
+          </div>` : '';
+        return `<div class="rounded-xl border overflow-hidden ${active ? 'border-navy ring-1 ring-navy/20' : 'border-border'}">
+          <button type="button" onclick="wmReqToggleSource('${esc}')" class="w-full flex items-center gap-2.5 px-3 py-2.5 text-left transition ${active ? 'bg-navy/5' : 'bg-white hover:bg-gray-50'}">
+            <div class="w-2 h-2 rounded-full ${dotCls} shrink-0"></div>
+            <ion-icon name="storefront-outline" style="font-size:14px;color:#7c4dff;flex-shrink:0;"></ion-icon>
+            <p class="text-[12px] font-semibold text-navy-dark flex-1 min-w-0 truncate">${src}${active ? ' <span class="text-[9px] font-bold text-navy bg-navy/10 px-1.5 py-0.5 rounded-full align-middle ml-1">Selected</span>' : ''}</p>
+            ${badge}
+            <ion-icon name="chevron-down-outline" style="font-size:14px;color:#94a3b8;flex-shrink:0;transition:transform .15s;transform:rotate(${expanded ? '180' : '0'}deg);"></ion-icon>
+          </button>
+          ${body}
+        </div>`;
+      }).join('');
+    }
+    function wmReqToggleSource(src) { wmReqExpandedSource = (wmReqExpandedSource === src) ? null : src; wmReqRenderSources(); }
+    function wmReqPickSource(src) {
+      document.getElementById('wm-req-fulfiller').value = src;
+      wmReqExpandedSource = src;
+      wmReqRenderSources();
+    }
+
+    function wmReqSubmit() {
+      if (!wmReqLines.length) {
+        const sel = document.getElementById('wm-req-product');
+        const qty = +document.getElementById('wm-req-qty').value;
+        if (sel.value && qty >= 1) { wmReqAddLine(); }
+      }
+      if (!wmReqLines.length) { document.getElementById('wm-req-line-err').classList.remove('hidden'); return; }
+      const priority = document.getElementById('wm-req-priority').value;
+      const fulfilledBy = document.getElementById('wm-req-fulfiller').value || WH_FULFILLERS[0];
+      const units = wmReqLines.reduce((s, l) => s + l.qty, 0);
+      const reqId = wmNextReqId();
+      TRANSFER_DATA.unshift({
+        id: reqId, dir: 'out', store: WH_NAME, fulfilledBy,
+        date: 'Jul 21, 2026', items: wmReqLines.length, units,
+        status: 'pending', urgent: priority === 'Urgent', requestedBy: WH_MANAGER,
+        approvedBy: null, rejectedBy: null, rejectReason: null,
+        lines: wmReqLines.map(l => ({ ...l })),
+      });
+      wmReqClose();
+      wmReqLines = [];
+      trDir = 'out'; setTrDir('out');
+      renderDashTransfers();
+      showToast(`${reqId} sent to ${fulfilledBy} — ${units} units requested.`, 'success');
     }
 
     // ─── INITIATE TRANSFER — FINAL FLOW ────────────────────────
@@ -4212,53 +4613,89 @@
     function confirmInitiateTransfer() {
       const totalUnits = itCart.reduce((s, c) => s + c.qty, 0);
       const newId = 'TR-2026-0' + (54 + TRANSFER_DATA.length);
+      const lines = itCart.map(c => ({ sku: c.product.sku, product: `${c.product.name} — ${c.product.variant}`, qty: c.qty }));
       TRANSFER_DATA.unshift({
-        id: newId, store: itLockedStore, date: 'Jul 21, 2026',
-        items: itCart.length, units: totalUnits, status: 'pending', urgent: false,
-        requestedBy: 'Zain Khan', approvedBy: 'Zain Khan', rejectedBy: null, rejectReason: null,
+        id: newId, dir: 'out', store: itLockedStore, date: 'Jul 21, 2026',
+        items: itCart.length, units: totalUnits, status: 'dispatched', urgent: false,
+        requestedBy: WH_MANAGER, approvedBy: WH_MANAGER, rejectedBy: null, rejectReason: null,
+        dispatchedOn: 'Jul 21, 2026', lines,
+      });
+      // Deduct dispatched stock from the warehouse + log outbound movements.
+      lines.forEach(l => {
+        const item = INV_DATA.find(i => i.sku === l.sku);
+        if (item) item.onHand = Math.max(0, item.onHand - l.qty);
+        logMovement(l.sku, 'transfer', -l.qty, `Dispatched to ${itLockedStore} (${newId})`);
       });
       closeInitiateModal(); closeAllSlideOvers();
+      // Show the newly created outgoing transfer.
+      trDir = 'out'; setTrDir('out');
       showToast(`${newId} dispatched to ${itLockedStore}. Store notified.`, 'success');
-      renderTransfers(); renderDashTransfers();
+      renderDashTransfers();
     }
     function renderTransfers() {
+      const dir = trDir;
+      const dataset = trDataset();
+      const set = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
+
+      // KPIs
+      set('tr-kpi-pending', dataset.filter(t => t.status === 'pending').length);
+      set('tr-kpi-transit', dataset.filter(t => t.status === 'dispatched').length);
+      set('tr-kpi-received', dataset.filter(t => t.status === 'received').length);
+      set('tr-kpi-rejected', dataset.filter(t => t.status === 'rejected').length);
+
+      // Direction-specific labels
+      set('tr-kpi-pending-lbl', dir === 'in' ? 'To Approve' : 'Pending');
+      set('tr-kpi-transit-lbl', dir === 'in' ? 'Dispatched' : 'In Transit');
+      set('tr-tab-pending', dir === 'in' ? 'To Approve' : 'Pending');
+      set('tr-tab-transit', dir === 'in' ? 'Dispatched' : 'In Transit');
+      set('tr-col2', dir === 'in' ? 'From (Store)' : 'To (Fulfils)');
+
+      // Incoming pending badge on the toggle
+      const badge = document.getElementById('tr-dir-in-badge');
+      const inboundPending = TRANSFER_DATA.filter(t => (t.dir || 'in') === 'in' && t.status === 'pending').length;
+      if (inboundPending > 0) { badge.textContent = inboundPending; badge.classList.remove('hidden'); }
+      else badge.classList.add('hidden');
+
       const search = (document.getElementById('tr-search')?.value || '').toLowerCase();
-      let data = TRANSFER_DATA.filter(t => {
-        const ms = !search || t.id.toLowerCase().includes(search) || t.store.toLowerCase().includes(search);
+      let data = dataset.filter(t => {
+        const cp = dir === 'in' ? t.store : (t.fulfilledBy || '');
+        const ms = !search || t.id.toLowerCase().includes(search) || cp.toLowerCase().includes(search);
         const mf = trFilter === 'all' || t.status === trFilter;
         return ms && mf;
       });
       const { items, total, pages } = paginate(data, trPage_, TR_PAGE);
       const body = document.getElementById('tr-tbody'); if (!body) return;
-      body.innerHTML = items.map(t => {
-        const urgentBadge = t.urgent ? `<span class="text-[9px] font-bold text-white bg-brand-red px-1.5 py-0.5 rounded-full">URGENT</span>` : '';
-        const isWHInit = t.requestedBy && t.approvedBy && t.requestedBy === t.approvedBy;
-        const canAct = t.status === 'pending' && !isWHInit;
-        const initials = t.requestedBy.split(' ').map(w => w[0]).join('').toUpperCase();
-        return `<div class="grid items-center px-5 py-3 hover:bg-gray-50/50 transition" style="grid-template-columns:0.9fr 2fr 0.9fr 1fr 0.5fr 0.5fr 0.85fr 1fr;">
-      <p class="text-[12px] font-mono font-semibold text-brand-blue">${t.id}</p>
-      ${storeCell(t.store, urgentBadge)}
-      <p class="text-[11px] text-gray-500">${t.date}</p>
-      <div class="flex items-center gap-2 min-w-0">
-        <div class="w-6 h-6 rounded-full bg-brand-purple/15 flex items-center justify-center shrink-0 text-[9px] font-extrabold text-brand-purple">${initials}</div>
-        <p class="text-[11px] text-gray-600 font-medium truncate">${t.requestedBy}</p>
-      </div>
-      <p class="text-[13px] font-bold text-navy-dark text-right">${t.items}</p>
-      <p class="text-[13px] font-bold text-navy-dark text-right">${t.units}</p>
-      <div class="text-center">${transferStatusCell(t)}</div>
-      <div class="flex items-center gap-1.5 justify-end">
-        <button onclick="openTransferDetail('${t.id}')" class="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold border border-border bg-white text-gray-500 hover:text-navy hover:border-navy/30 hover:bg-gray-50 transition">
-          <ion-icon name="eye-outline" style="font-size:12px;flex-shrink:0;"></ion-icon>View
-        </button>
-        ${canAct ? `<button onclick="openTransferDetail('${t.id}')" class="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold border border-brand-green/30 bg-brand-green/10 text-brand-green hover:bg-brand-green/20 transition">
-          <ion-icon name="checkmark-outline" style="font-size:12px;flex-shrink:0;"></ion-icon>Approve
-        </button>` : isWHInit && t.status === 'pending' ? `<span class="text-[9px] text-brand-blue italic">Awaiting store</span>` : isWHInit && t.status === 'dispatched' ? `<button onclick="markReceived('${t.id}')" class="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold border border-brand-green/30 bg-brand-green/10 text-brand-green hover:bg-brand-green/20 transition">
-          <ion-icon name="checkmark-done-outline" style="font-size:12px;flex-shrink:0;"></ion-icon>Mark Received
-        </button>` : ''}
-      </div>
-    </div>`;
-      }).join('');
-      document.getElementById('tr-info').textContent = `Showing ${Math.min((trPage_ - 1) * TR_PAGE + 1, total)}–${Math.min(trPage_ * TR_PAGE, total)} of ${total}`;
+      if (!items.length) {
+        const msg = dir === 'in' ? 'No incoming requests to fulfil' : 'No outgoing transfers found';
+        body.innerHTML = `<div class="py-16 text-center"><ion-icon name="swap-horizontal-outline" style="font-size:30px;color:#cbd5e1;"></ion-icon><p class="text-[13px] text-gray-400 mt-2">${msg}</p></div>`;
+      } else {
+        body.innerHTML = items.map(t => {
+          const cp = dir === 'in' ? t.store : (t.fulfilledBy || 'Unassigned');
+          let actions = '';
+          if (dir === 'in') {
+            if (t.status === 'pending') actions += `<button onclick="approveDispatch('${t.id}')" class="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold border border-brand-green/30 bg-brand-green/10 text-brand-green hover:bg-brand-green/20 transition"><ion-icon name="checkmark-outline" style="font-size:12px;flex-shrink:0;"></ion-icon>Approve &amp; Dispatch</button><button onclick="rejectTransfer('${t.id}')" class="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold border border-brand-red/30 bg-brand-red/10 text-brand-red hover:bg-brand-red/20 transition"><ion-icon name="close-outline" style="font-size:12px;flex-shrink:0;"></ion-icon>Reject</button>`;
+            else if (t.status === 'dispatched') actions += `<span class="text-[9px] text-brand-orange italic">Awaiting receipt</span>`;
+          } else {
+            if (t.status === 'dispatched') actions += `<button onclick="confirmTransferReceipt('${t.id}')" class="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold border border-brand-green/30 bg-brand-green/10 text-brand-green hover:bg-brand-green/20 transition"><ion-icon name="checkmark-done-outline" style="font-size:12px;flex-shrink:0;"></ion-icon>Confirm Receipt</button>`;
+            else if (t.status === 'pending') actions += `<button onclick="cancelTransferRequest('${t.id}')" class="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold border border-brand-red/30 bg-brand-red/10 text-brand-red hover:bg-brand-red/20 transition"><ion-icon name="close-outline" style="font-size:12px;flex-shrink:0;"></ion-icon>Cancel</button>`;
+          }
+          return `<div class="grid items-center px-5 py-3.5 hover:bg-gray-50/50 transition" style="grid-template-columns:1fr 1.4fr 0.85fr 0.5fr 0.5fr 0.7fr 0.85fr 1.35fr;">
+          <p class="text-[12px] font-mono font-semibold text-brand-blue">${t.id}</p>
+          <div class="flex items-center gap-1.5 min-w-0"><ion-icon name="${dir === 'in' ? 'storefront-outline' : 'business-outline'}" style="font-size:12px;color:#94a3b8;flex-shrink:0;"></ion-icon><p class="text-[11px] font-medium text-navy-dark truncate">${cp}</p></div>
+          <p class="text-[11px] text-gray-500">${t.date}</p>
+          <p class="text-[13px] font-bold text-navy-dark text-right">${t.items}</p>
+          <p class="text-[13px] font-bold text-navy-dark text-right">${t.units}</p>
+          <div class="text-center">${trPriorityBadge(t.urgent)}</div>
+          <div class="text-center">${trBadge(t.status)}</div>
+          <div class="flex items-center gap-1.5 justify-end">
+            <button onclick="openTransferDetail('${t.id}')" class="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold border border-border bg-white text-gray-500 hover:text-navy hover:border-navy/30 hover:bg-gray-50 transition">
+              <ion-icon name="eye-outline" style="font-size:12px;flex-shrink:0;"></ion-icon>View
+            </button>${actions}
+          </div>
+        </div>`;
+        }).join('');
+      }
+      document.getElementById('tr-info').textContent = total ? `Showing ${Math.min((trPage_ - 1) * TR_PAGE + 1, total)}–${Math.min(trPage_ * TR_PAGE, total)} of ${total}` : 'Showing 0 of 0';
       renderPills('tr-pills', trPage_, pages, p => { trPage_ = p; renderTransfers(); });
     }
   </script>
@@ -4304,12 +4741,13 @@
       el.innerHTML = top10.map(t => {
         const urgentBadge = t.urgent
           ? `<span class="text-[9px] font-bold text-white bg-brand-red px-1.5 py-0.5 rounded-full">URGENT</span>` : '';
-        const isWHInit = t.requestedBy && t.approvedBy && t.requestedBy === t.approvedBy;
-        const canAct = t.status === 'pending' && !isWHInit;
+        const inbound = (t.dir || 'in') === 'in';
+        const displayStore = inbound ? t.store : (t.fulfilledBy || t.store);
+        const canAct = inbound && t.status === 'pending';
         const initials = t.requestedBy.split(' ').map(w => w[0]).join('').toUpperCase();
         return `<div class="grid items-center px-5 py-3 hover:bg-gray-50/50 transition" style="grid-template-columns:0.9fr 2fr 0.9fr 1fr 0.5fr 0.5fr 0.85fr 1fr;">
       <p class="text-[12px] font-mono font-semibold text-brand-blue">${t.id}</p>
-      ${storeCell(t.store, urgentBadge)}
+      ${storeCell(displayStore, urgentBadge)}
       <p class="text-[11px] text-gray-500">${t.date}</p>
       <div class="flex items-center gap-2 min-w-0">
         <div class="w-6 h-6 rounded-full bg-brand-purple/15 flex items-center justify-center shrink-0 text-[9px] font-extrabold text-brand-purple">${initials}</div>
@@ -4326,11 +4764,7 @@
             ? `<button onclick="openTransferDetail('${t.id}')" class="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold border border-brand-green/30 bg-brand-green/10 text-brand-green hover:bg-brand-green/20 transition">
                <ion-icon name="checkmark-outline" style="font-size:12px;flex-shrink:0;"></ion-icon>Approve
              </button>`
-            : isWHInit && t.status === 'pending' ? `<span class="text-[9px] text-brand-blue italic">Awaiting store</span>`
-              : isWHInit && t.status === 'dispatched' ? `<button onclick="markReceived('${t.id}')" class="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold border border-brand-green/30 bg-brand-green/10 text-brand-green hover:bg-brand-green/20 transition">
-               <ion-icon name="checkmark-done-outline" style="font-size:12px;flex-shrink:0;"></ion-icon>Mark Received
-             </button>`
-                : ''
+            : t.status === 'dispatched' ? `<span class="text-[9px] text-brand-orange italic">Awaiting receipt</span>` : ''
           }
       </div>
     </div>`;
@@ -4695,7 +5129,7 @@
           <p class="text-[10.5px] text-gray-400 font-mono">${p.sku}</p>
         </div>
         <div class="text-right shrink-0 mr-1">
-          <p class="text-[10px] text-gray-400">On hand</p>
+          <p class="text-[10px] text-gray-400">Physical stock</p>
           <p class="text-[13px] font-extrabold text-navy-dark">${p.onHand}</p>
         </div>
         <button onclick="adjProdClear()" class="w-7 h-7 rounded-lg border border-border flex items-center justify-center text-gray-400 hover:text-brand-red hover:border-brand-red/40 transition shrink-0"><ion-icon name="close-outline" style="font-size:14px;"></ion-icon></button>`;
@@ -4741,7 +5175,7 @@
       const label = `${adjSelectedProd.name} — ${adjSelectedProd.variant}`;
       renderInv(); renderProducts();
       closeAllSlideOvers();
-      showToast(`Stock adjusted for ${label} (${delta > 0 ? '+' : ''}${delta}). New on-hand: ${newQty}.`, 'success');
+      showToast(`Stock adjusted for ${label} (${delta > 0 ? '+' : ''}${delta}). New physical stock: ${newQty}.`, 'success');
     }
 
     // Close dropdown on outside click
