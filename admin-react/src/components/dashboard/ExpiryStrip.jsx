@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import Icon from '../Icon'
 import { expiryStripItems } from '../../data/dashboardData'
 
@@ -21,6 +22,7 @@ const levelStyles = {
 
 export default function ExpiryStrip() {
   const [visible, setVisible] = useState(true)
+  const navigate = useNavigate()
   if (!visible) return null
 
   return (
@@ -61,12 +63,12 @@ export default function ExpiryStrip() {
           })}
         </div>
         <div className="flex items-center gap-2 shrink-0 ml-2">
-          <a
-            href="#"
-            className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-brand-orange bg-brand-orange/10 border border-brand-orange/20 px-3 py-1.5 rounded-lg whitespace-nowrap"
+          <button
+            onClick={() => navigate('/businesses')}
+            className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-brand-orange bg-brand-orange/10 border border-brand-orange/20 px-3 py-1.5 rounded-lg whitespace-nowrap hover:bg-brand-orange/15 transition"
           >
             Review all <Icon name="arrow-forward-outline" size={12} />
-          </a>
+          </button>
           <button
             onClick={() => setVisible(false)}
             className="w-6 h-6 rounded-md flex items-center justify-center text-gray-400 hover:bg-black/5"

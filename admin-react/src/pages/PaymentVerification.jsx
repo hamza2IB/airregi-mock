@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import Icon from '../components/Icon'
 import PaymentCard from '../components/payments/PaymentCard'
 import RejectModal from '../components/dashboard/RejectModal'
@@ -36,9 +37,11 @@ function KpiCard({ icon, iconCls, value, valueCls, label }) {
 
 export default function PaymentVerification() {
   const showToast = useToast()
+  const location = useLocation()
   const [payments, setPayments] = useState(() => PV_DATA.map((p) => ({ ...p })))
   const [search, setSearch] = useState('')
-  const [typeFilter, setTypeFilter] = useState('all')
+  // Honour a tab passed from the dashboard "View all →" link (all / new-reg / renewal).
+  const [typeFilter, setTypeFilter] = useState(location.state?.tab || 'all')
   const [receiptFilter, setReceiptFilter] = useState('')
   const [sortKey, setSortKey] = useState('date-desc')
   const [page, setPage] = useState(1)

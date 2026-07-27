@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import Icon from '../components/Icon'
 import BusinessRow from '../components/businesses/BusinessRow'
 import BusinessDrawer from '../components/businesses/BusinessDrawer'
@@ -42,8 +43,9 @@ function KpiCard({ icon, iconCls, value, valueCls, label }) {
   )
 }
 
-export default function Businesses({ onNavigate }) {
+export default function Businesses() {
   const showToast = useToast()
+  const navigate = useNavigate()
   const [businesses, setBusinesses] = useState(() => BIZ_DATA.map((b) => ({ ...b })))
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
@@ -123,7 +125,7 @@ export default function Businesses({ onNavigate }) {
 
   const goPayments = () => {
     setDrawerBiz(null)
-    onNavigate?.('payments')
+    navigate('/payments')
   }
 
   return (

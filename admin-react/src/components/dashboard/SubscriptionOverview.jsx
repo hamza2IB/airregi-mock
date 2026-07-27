@@ -1,4 +1,5 @@
 import Icon from '../Icon'
+import { useToast } from '../Toast'
 import { expiringSoon, planDistribution } from '../../data/dashboardData'
 
 const rowStyles = {
@@ -39,6 +40,7 @@ function ExpiryRow({ item }) {
 }
 
 export default function SubscriptionOverview() {
+  const showToast = useToast()
   return (
     <div>
       <p className="text-[10px] text-gray-400 uppercase tracking-[0.15em] font-semibold mb-3">Subscription Overview</p>
@@ -69,9 +71,12 @@ export default function SubscriptionOverview() {
           <div className="px-5 py-3 bg-gray-50/70 border-t border-border shrink-0">
             <div className="flex items-center justify-between mb-1.5">
               <p className="text-[10px] text-gray-500 font-medium">8 of 48 businesses at risk</p>
-              <a href="#" className="text-[10px] font-semibold text-brand-blue hover:underline">
+              <button
+                onClick={() => showToast('Renewal reminders sent to 8 businesses at risk.', 'success')}
+                className="text-[10px] font-semibold text-brand-blue hover:underline"
+              >
                 Send reminders →
-              </a>
+              </button>
             </div>
             <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
               <div

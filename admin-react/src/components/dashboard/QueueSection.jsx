@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom'
 import Icon from '../Icon'
 import QueueItem from './QueueItem'
 import { queueItems } from '../../data/dashboardData'
@@ -9,6 +10,7 @@ const tabs = [
 ]
 
 export default function QueueSection({ activeTab, onTabChange, resolvedIds, onVerify, onReject, onViewReceipt }) {
+  const navigate = useNavigate()
   const total = queueItems.length
   const newRegCount = queueItems.filter((q) => q.type === 'new-reg').length
   const renewalCount = queueItems.filter((q) => q.type === 'renewal').length
@@ -35,7 +37,12 @@ export default function QueueSection({ activeTab, onTabChange, resolvedIds, onVe
               </p>
             </div>
           </div>
-          <button className="text-[11px] text-brand-blue font-medium hover:underline shrink-0">View all →</button>
+          <button
+            onClick={() => navigate('/payments', { state: { tab: activeTab } })}
+            className="text-[11px] text-brand-blue font-medium hover:underline shrink-0"
+          >
+            View all →
+          </button>
         </div>
 
         {/* Tab switcher */}

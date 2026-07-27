@@ -1,3 +1,4 @@
+import { NavLink } from 'react-router-dom'
 import Icon from '../Icon'
 
 const navGroups = [
@@ -30,7 +31,7 @@ const navGroups = [
   },
 ]
 
-export default function Sidebar({ activePage, onNavigate, onLogout }) {
+export default function Sidebar({ onLogout }) {
   return (
     <aside className="w-[260px] bg-navy-dark flex flex-col shrink-0 sticky top-0 h-screen overflow-y-auto max-md:hidden">
       {/* Logo / Brand */}
@@ -52,14 +53,14 @@ export default function Sidebar({ activePage, onNavigate, onLogout }) {
               {group.label}
             </p>
             {group.items.map((item) => (
-              <div
+              <NavLink
                 key={item.key}
-                className={`sidebar-link${activePage === item.key ? ' active' : ''}`}
-                onClick={() => onNavigate(item.key)}
+                to={`/${item.key}`}
+                className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`}
               >
                 <Icon name={item.icon} />
                 <span>{item.label}</span>
-              </div>
+              </NavLink>
             ))}
           </div>
         ))}
