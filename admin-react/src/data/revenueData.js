@@ -1,0 +1,103 @@
+// Revenue figures per selectable period — mirrors the `revData` object
+// from the original admin.html dashboard.
+export const revData = {
+  this_month: {
+    label: 'Jul 1 – Jul 13, 2026 · Month-to-date',
+    trend: '↑ 18% vs last month',
+    total: 'Rs.2,412,000',
+    subs: '48',
+    newSubs: '6',
+    newSubsLabel: 'New This Month',
+    renewals: '14',
+    renewalsLabel: 'Renewals This Month',
+    pkg: {
+      ent: { rev: 'Rs.960,000', biz: '8', pct: '100%', note: 'Rs.120,000/business · 39.8% of MRR' },
+      pro: { rev: 'Rs.1,080,000', biz: '18', pct: '88%', note: 'Rs.60,000/business · 44.8% of MRR' },
+      str: { rev: 'Rs.372,000', biz: '22', pct: '31%', note: 'Rs.16,900/business · 15.4% of MRR' },
+    },
+    bars: [160, 178, 192, 205, 204, 241],
+    months: ['Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+    mrrSubtitle: 'Last 6 months',
+    growth: '+18% MoM',
+    growthNote: '+Rs.372k vs last month',
+  },
+  last_month: {
+    label: 'Jun 1 – Jun 30, 2026',
+    trend: '↑ 14% vs May',
+    total: 'Rs.2,040,000',
+    subs: '46',
+    newSubs: '5',
+    newSubsLabel: 'New in June',
+    renewals: '11',
+    renewalsLabel: 'Renewals in June',
+    pkg: {
+      ent: { rev: 'Rs.840,000', biz: '7', pct: '100%', note: 'Rs.120,000/business · 41.2% of MRR' },
+      pro: { rev: 'Rs.900,000', biz: '15', pct: '82%', note: 'Rs.60,000/business · 44.1% of MRR' },
+      str: { rev: 'Rs.300,000', biz: '24', pct: '28%', note: 'Rs.12,500/business · 14.7% of MRR' },
+    },
+    bars: [144, 154, 168, 180, 192, 204],
+    months: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+    mrrSubtitle: 'Jan – Jun 2026',
+    growth: '+14% MoM',
+    growthNote: '+Rs.252k vs May',
+  },
+  last_3: {
+    label: 'Apr 1 – Jun 30, 2026 · Last 3 months',
+    trend: '↑ 31% vs prev quarter',
+    total: 'Rs.5,890,000',
+    subs: '46',
+    newSubs: '14',
+    newSubsLabel: 'New in Period',
+    renewals: '32',
+    renewalsLabel: 'Renewals in Period',
+    pkg: {
+      ent: { rev: 'Rs.2,520,000', biz: '7', pct: '100%', note: 'Rs.120,000/business/mo avg' },
+      pro: { rev: 'Rs.2,700,000', biz: '15', pct: '82%', note: 'Rs.60,000/business/mo avg' },
+      str: { rev: 'Rs.670,000', biz: '24', pct: '26%', note: 'Rs.9,300/business/mo avg' },
+    },
+    bars: [154, 168, 180, 192, 204, 240],
+    months: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+    mrrSubtitle: 'Jan – Jun 2026',
+    growth: '+31% vs prev quarter',
+    growthNote: '+Rs.1.4M vs Q1 2026',
+  },
+  this_year: {
+    label: 'Jan 1 – Jul 13, 2026',
+    trend: '↑ 42% vs last year YTD',
+    total: 'Rs.14,280,000',
+    subs: '48',
+    newSubs: '28',
+    newSubsLabel: 'New in 2026',
+    renewals: '84',
+    renewalsLabel: 'Renewals in 2026',
+    pkg: {
+      ent: { rev: 'Rs.5,760,000', biz: '8', pct: '100%', note: 'Rs.120,000/business/mo avg' },
+      pro: { rev: 'Rs.6,300,000', biz: '18', pct: '88%', note: 'Rs.60,000/business/mo avg' },
+      str: { rev: 'Rs.2,220,000', biz: '22', pct: '31%', note: 'Rs.14,400/business/mo avg' },
+    },
+    bars: [122, 140, 154, 168, 180, 192, 241],
+    months: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+    mrrSubtitle: 'Jan – Jul 2026',
+    growth: '+42% YTD vs 2025',
+    growthNote: '+Rs.4.2M vs Jan–Jul 2025',
+  },
+}
+
+export const revFilterTabs = [
+  { key: 'this_month', label: 'This Month' },
+  { key: 'last_month', label: 'Last Month' },
+  { key: 'last_3', label: 'Last 3 Months' },
+  { key: 'this_year', label: 'This Year' },
+]
+
+// Nav metadata for header breadcrumb / heading (mirrors adminNav `meta`).
+export const navMeta = {
+  dashboard: { title: 'Dashboard', section: 'Overview', heading: 'Dashboard' },
+  businesses: { title: 'All Businesses', section: 'Businesses', heading: 'All Businesses' },
+  payments: { title: 'Payment Verification', section: 'Businesses', heading: 'Payment Verification Queue' },
+  'platform-users': { title: 'Platform Users', section: 'Businesses', heading: 'Platform Users' },
+  packages: { title: 'Packages', section: 'Platform', heading: 'Subscription Packages' },
+  categories: { title: 'Industries', section: 'Platform', heading: 'Platform Industries' },
+  revenue: { title: 'Revenue', section: 'Reports', heading: 'Revenue Report' },
+  settings: { title: 'Platform Settings', section: 'Admin', heading: 'Platform Settings' },
+}

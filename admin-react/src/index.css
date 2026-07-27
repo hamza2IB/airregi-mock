@@ -1,0 +1,80 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: #f4f6f9;
+  color: #111;
+}
+
+body {
+  min-height: 100vh;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+*:focus-visible {
+  outline: none;
+}
+
+input:focus,
+select:focus {
+  outline: none;
+}
+
+@layer components {
+  .sidebar-link {
+    @apply flex items-center gap-3 px-4 py-2.5 rounded-lg text-[13px] font-medium text-white/[.65] transition-all cursor-pointer;
+  }
+
+  .sidebar-link:hover {
+    @apply bg-white/[.08] text-white;
+  }
+
+  .sidebar-link.active {
+    @apply bg-white/[.12] text-white font-semibold;
+  }
+
+  .sidebar-link ion-icon {
+    font-size: 20px;
+  }
+
+  .kpi-card {
+    @apply bg-white rounded-xl border border-border p-5 pb-4 transition-all;
+  }
+
+  .kpi-card:hover {
+    box-shadow: 0 8px 24px rgba(26, 45, 107, 0.08);
+    transform: translateY(-2px);
+  }
+}
+
+/* Thin scrollbar for the expiring-soon list */
+.expiry-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #e8ecf1 transparent;
+}
+
+.expiry-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+
+.expiry-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.expiry-scroll::-webkit-scrollbar-thumb {
+  background: #e8ecf1;
+  border-radius: 99px;
+}
+
+.expiry-scroll::-webkit-scrollbar-thumb:hover {
+  background: #cbd5e1;
+}
+
+.queue-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #e8ecf1 transparent;
+}
