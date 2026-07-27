@@ -1,6 +1,9 @@
 import { useMemo, useState } from 'react'
 import Icon from '../Icon'
+import ActionButton from '../ActionButton'
 import { useToast } from '../Toast'
+import ConfirmModal from '../ConfirmModal'
+import EditStaffSlideover from './EditStaffSlideover'
 import { ROLE_COLORS, STAFF_ROLES, initials } from '../../data/storeDetailData'
 
 function StatusBadge({ status }) {
@@ -16,6 +19,8 @@ export default function StaffTab({ store, users, setUsers, onInvite }) {
   const showToast = useToast()
   const [search, setSearch] = useState('')
   const [role, setRole] = useState('')
+  const [editStaff, setEditStaff] = useState(null)
+  const [confirm, setConfirm] = useState(null)
 
   const staff = useMemo(() => {
     const q = search.toLowerCase()
@@ -31,6 +36,22 @@ export default function StaffTab({ store, users, setUsers, onInvite }) {
     const next = u.status === 'active' ? 'inactive' : 'active'
     setUsers((prev) => prev.map((x) => (x.id === u.id ? { ...x, status: next } : x)))
     showToast(`${u.name} ${next === 'active' ? 'activated' : 'deactivated'}`, next === 'active' ? 'success' : 'info')
+  }
+
+  const saveEdit = (id, patch) => {
+    setUsers((prev) => prev.map((x) => (x.id === id ? { ...x, ...patch } : x)))
+    setEditStaff(null)
+    showToast(`${patch.name} updated`, 'success')
+  }
+
+  const resetPassword = (u) => {
+    setConfirm({
+      title: 'Reset Password',
+      msg: `Send a password reset link to ${u.name} at ${u.phone}? They'll be prompted to set a new password on next login.`,
+      confirmLabel: 'Send Reset Link',
+      tone: 'info',
+      onConfirm: () => showToast(`Password reset link sent to ${u.phone}`, 'success'),
+    })
   }
 
   return (
@@ -76,21 +97,22 @@ export default function StaffTab({ store, users, setUsers, onInvite }) {
                 <div><p className="text-[11px] text-gray-400">{u.lastLogin}</p></div>
                 <div><StatusBadge status={u.status} /></div>
                 <div className="flex items-center justify-end gap-1.5">
-                  <button onClick={() => showToast(`Edit ${u.name}`, 'info')} title="Edit role" className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold border border-border bg-white text-gray-500 hover:text-navy hover:border-navy/30 hover:bg-gray-50 transition whitespace-nowrap shrink-0">
-                    <Icon name="create-outline" style={{ fontSize: '11px' }} />Edit
-                  </button>
-                  <button onClick={() => toggle(u)} title={u.status === 'active' ? 'Deactivate' : 'Activate'} className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold border transition whitespace-nowrap shrink-0 ${u.status === 'active' ? 'border-brand-orange/20 bg-brand-orange/5 text-brand-orange hover:bg-brand-orange/10' : 'border-brand-green/20 bg-brand-green/5 text-brand-green hover:bg-brand-green/10'}`}>
-                    <Icon name={u.status === 'active' ? 'pause-circle-outline' : 'play-circle-outline'} style={{ fontSize: '11px' }} />{u.status === 'active' ? 'Deactivate' : 'Activate'}
-                  </button>
-                  <button onClick={() => showToast(`Password reset link sent to ${u.phone}`, 'success')} title="Reset password" className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold border border-border bg-white text-gray-500 hover:text-navy hover:border-navy/30 hover:bg-gray-50 transition whitespace-nowrap shrink-0">
-                    <Icon name="key-outline" style={{ fontSize: '11px' }} />Reset
-                  </button>
+                  <ActionButton icon="create-outline" label="Edit" onClick={() => setEditStaff(u)} title="Edit staff" />
+                  {u.status === 'active' ? (
+                    <ActionButton icon="pause-circle-outline" label="Deactivate" onClick={() => toggle(u)} tone="orange" />
+                  ) : (
+                    <ActionButton icon="play-circle-outline" label="Activate" onClick={() => toggle(u)} tone="green" />
+                  )}
+                  <ActionButton icon="key-outline" label="Reset" onClick={() => resetPassword(u)} title="Reset password" />
                 </div>
               </div>
             ))
           )}
         </div>
       </div>
+
+      <EditStaffSlideover staff={editStaff} onClose={() => setEditStaff(null)} onSave={saveEdit} />
+      <ConfirmModal state={confirm} onClose={() => setConfirm(null)} />
     </div>
   )
 }

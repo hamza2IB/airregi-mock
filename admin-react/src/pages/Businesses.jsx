@@ -123,6 +123,17 @@ export default function Businesses() {
     showToast(`${target.name} registration rejected. Applicant notified.`, 'error')
   }
 
+  // Verify the registration payment and activate the business (mirrors the
+  // Payment Verification queue's "Verify & Renew/Activate" behaviour).
+  const applyApprove = (biz, refId) => {
+    setBusinesses((prev) => prev.map((b) => (b.id === biz.id ? { ...b, status: 'active' } : b)))
+    setDrawerBiz(null)
+    showToast(
+      `${biz.name} approved & activated${refId ? ` — payment ${refId} verified` : ''}. Owner notified to set up their stores.`,
+      'success',
+    )
+  }
+
   const goPayments = () => {
     setDrawerBiz(null)
     navigate('/payments')
@@ -253,6 +264,7 @@ export default function Businesses() {
                 onSuspend={setSuspendBiz}
                 onReject={setRejectBiz}
                 onReactivate={setReactivateBiz}
+                onVerify={setDrawerBiz}
                 onGoPayments={goPayments}
               />
             ))
@@ -314,6 +326,7 @@ export default function Businesses() {
           setDrawerBiz(null)
           setReactivateBiz(b)
         }}
+        onApprove={applyApprove}
         onGoPayments={goPayments}
       />
 

@@ -1,3 +1,4 @@
+import { NavLink } from 'react-router-dom'
 import Icon from '../Icon'
 
 const NAV_GROUPS = [
@@ -22,12 +23,7 @@ const NAV_GROUPS = [
   { label: 'Settings', items: [{ key: 'settings', icon: 'settings-outline', label: 'Settings' }] },
 ]
 
-// storeDetail shares the Stores nav highlight.
-const NAV_ALIAS = { 'store-detail': 'stores', payments: 'subscription' }
-
-export default function Sidebar({ activePage, onNavigate, mobileOpen, onCloseMobile, onLogout }) {
-  const active = NAV_ALIAS[activePage] || activePage
-
+export default function Sidebar({ mobileOpen, onCloseMobile, onLogout }) {
   return (
     <>
       {/* Mobile overlay */}
@@ -63,14 +59,14 @@ export default function Sidebar({ activePage, onNavigate, mobileOpen, onCloseMob
                 {group.label}
               </p>
               {group.items.map((item) => (
-                <div
+                <NavLink
                   key={item.key}
-                  className={`sidebar-link${active === item.key ? ' active' : ''}`}
-                  onClick={() => onNavigate(item.key)}
+                  to={`/${item.key}`}
+                  className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`}
                 >
                   <Icon name={item.icon} />
                   <span>{item.label}</span>
-                </div>
+                </NavLink>
               ))}
             </div>
           ))}

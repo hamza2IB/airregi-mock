@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import Icon from '../components/Icon'
 import { useToast } from '../components/Toast'
 import ConfirmModal from '../components/ConfirmModal'
@@ -38,8 +39,9 @@ function AboutRow({ icon, label, onClick }) {
   )
 }
 
-export default function Settings({ onNavigate }) {
+export default function Settings() {
   const showToast = useToast()
+  const navigate = useNavigate()
   const [editProfile, setEditProfile] = useState(false)
   const [changeEmail, setChangeEmail] = useState(false)
   const [changePassword, setChangePassword] = useState(false)
@@ -84,7 +86,7 @@ export default function Settings({ onNavigate }) {
           <AccountRow icon="person-outline" iconWrap="bg-navy/10 text-navy group-hover:bg-navy/15" title="Edit Profile" desc="Update name and phone number" onClick={() => setEditProfile(true)} />
           <AccountRow icon="mail-outline" iconWrap="bg-brand-blue/10 text-brand-blue group-hover:bg-brand-blue/15" title="Change Email" desc={OWNER_PROFILE.email} onClick={() => setChangeEmail(true)} />
           <AccountRow icon="lock-closed-outline" iconWrap="bg-brand-orange/10 text-brand-orange group-hover:bg-brand-orange/15" title="Change Password" desc="Update your login password" onClick={() => setChangePassword(true)} />
-          <AccountRow icon="card-outline" iconWrap="bg-brand-purple/10 text-brand-purple group-hover:bg-brand-purple/15" title="Subscription & Billing" desc="Plan, payments, renewal" onClick={() => onNavigate?.('subscription')} />
+          <AccountRow icon="card-outline" iconWrap="bg-brand-purple/10 text-brand-purple group-hover:bg-brand-purple/15" title="Subscription & Billing" desc="Plan, payments, renewal" onClick={() => navigate('/subscription')} />
           <div className="pt-2">
             <AccountRow icon="log-out-outline" iconWrap="bg-brand-red/10 text-brand-red group-hover:bg-brand-red/15" title="Sign Out" desc="Sign out of the owner portal" onClick={signOut} danger />
           </div>

@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import Icon from '../components/Icon'
+import ActionButton from '../components/ActionButton'
 import { useToast } from '../components/Toast'
 import ConfirmModal from '../components/ConfirmModal'
 import ProductDetailSlideover from '../components/products/ProductDetailSlideover'
@@ -16,7 +17,7 @@ import {
 } from '../data/productData'
 
 const PM_PAGE = 8
-const COLS = '52px 2fr 1fr 1fr 0.9fr 0.7fr 0.8fr 0.9fr 1fr'
+const COLS = '52px 2fr 1fr 1fr 0.9fr 0.7fr 0.8fr 0.9fr 1.5fr'
 
 function KpiCard({ icon, iconBg, iconColor, value, valueCls, label }) {
   return (
@@ -242,16 +243,10 @@ export default function Products() {
                   </div>
                   <p className={`text-[13px] font-bold text-right max-md:hidden ${lowStock ? 'text-brand-red' : 'text-navy-dark'}`}>{g.stock.toLocaleString()}</p>
                   <div className="text-center max-md:hidden"><StatusBadge status={g.status} /></div>
-                  <div className="flex items-center justify-center gap-1">
-                    <button onClick={() => openView(g)} title="View" className="w-7 h-7 rounded-lg border border-border flex items-center justify-center text-gray-400 hover:text-brand-blue hover:border-brand-blue/40 transition">
-                      <Icon name="eye-outline" size={14} />
-                    </button>
-                    <button onClick={() => openEdit(g.name)} title="Edit" className="w-7 h-7 rounded-lg border border-border flex items-center justify-center text-gray-400 hover:text-navy hover:border-navy/40 transition">
-                      <Icon name="create-outline" size={14} />
-                    </button>
-                    <button onClick={() => doDelete(g)} title="Delete" className="w-7 h-7 rounded-lg border border-border flex items-center justify-center text-gray-400 hover:text-brand-red hover:border-brand-red/40 transition">
-                      <Icon name="trash-outline" size={14} />
-                    </button>
+                  <div className="flex items-center justify-center gap-1.5">
+                    <ActionButton icon="eye-outline" label="View" onClick={() => openView(g)} />
+                    <ActionButton icon="create-outline" label="Edit" onClick={() => openEdit(g.name)} />
+                    <ActionButton icon="trash-outline" label="Delete" onClick={() => doDelete(g)} tone="red" />
                   </div>
                 </div>
               )

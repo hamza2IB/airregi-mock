@@ -14,7 +14,7 @@ const STATUS_TABS = [
   { key: 'inactive', label: 'Inactive' },
 ]
 
-const GRID = { gridTemplateColumns: '2.5fr 1fr 1fr 1fr' }
+const GRID = { gridTemplateColumns: '2.5fr 1fr 1fr 1.8fr' }
 
 function KpiCard({ icon, iconCls, value, valueCls, label }) {
   return (

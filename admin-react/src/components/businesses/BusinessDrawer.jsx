@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import Icon from '../Icon'
 import { bizAvatarColor, getStoreList, STATUS_BADGE, STATUS_LABEL, PKG_COLOR } from '../../data/businessData'
+import { newRegPaymentFor } from '../../data/paymentData'
 
 // Derive the mocked profile the same way the original drawer did.
 function deriveProfile(b) {
@@ -207,7 +208,7 @@ function StoreCard({ s, index }) {
   )
 }
 
-function DrawerAction({ b, onSuspend, onReject, onReactivate, onGoPayments }) {
+function DrawerAction({ b, onSuspend, onReject, onReactivate, onApprove, onGoPayments }) {
   if (b.status === 'active') {
     return (
       <button
@@ -220,14 +221,24 @@ function DrawerAction({ b, onSuspend, onReject, onReactivate, onGoPayments }) {
     )
   }
   if (b.status === 'pending') {
+    const pay = newRegPaymentFor(b.name)
     return (
-      <button
-        onClick={() => onReject(b)}
-        className="flex-1 h-9 text-[12px] font-semibold text-brand-red bg-brand-red/5 border border-brand-red/20 rounded-xl hover:bg-brand-red/10 transition flex items-center justify-center gap-1.5"
-      >
-        <Icon name="ban-outline" style={{ fontSize: '15px' }} />
-        Reject Registration
-      </button>
+      <>
+        <button
+          onClick={() => onReject(b)}
+          className="flex-1 h-9 text-[12px] font-semibold text-brand-red bg-brand-red/5 border border-brand-red/20 rounded-xl hover:bg-brand-red/10 transition flex items-center justify-center gap-1.5"
+        >
+          <Icon name="ban-outline" style={{ fontSize: '15px' }} />
+          Reject
+        </button>
+        <button
+          onClick={() => onApprove(b, pay?.ref)}
+          className="flex-[1.6] h-9 text-[12px] font-semibold text-white bg-brand-green rounded-xl hover:bg-brand-green/90 transition flex items-center justify-center gap-1.5"
+        >
+          <Icon name="checkmark-circle-outline" style={{ fontSize: '15px' }} />
+          Verify &amp; Approve
+        </button>
+      </>
     )
   }
   if (b.status === 'suspended') {
@@ -255,7 +266,67 @@ function DrawerAction({ b, onSuspend, onReject, onReactivate, onGoPayments }) {
   return null
 }
 
-function DrawerContent({ b, onClose, onSuspend, onReject, onReactivate, onGoPayments }) {
+// Payment-verification card shown for pending businesses so the admin can review
+// the submitted registration payment before approving.
+function PendingPayment({ b, onGoPayments }) {
+  const pay = newRegPaymentFor(b.name)
+  return (
+    <div className="mb-5">
+      <div className="flex items-center justify-between mb-2.5">
+        <div className="flex items-center gap-2">
+          <div className="w-5 h-5 rounded-md flex items-center justify-center shrink-0" style={{ background: 'rgba(45,211,111,0.12)' }}>
+            <Icon name="card-outline" style={{ fontSize: '11px', color: '#2dd36f' }} />
+          </div>
+          <p className="text-[10.5px] font-bold text-gray-400 uppercase tracking-[0.1em]">Registration Payment</p>
+        </div>
+        <button onClick={onGoPayments} className="text-[10px] font-semibold text-brand-blue hover:underline">
+          Open in Payment Queue →
+        </button>
+      </div>
+
+      {pay ? (
+        <div className="bg-white rounded-xl border border-border px-4">
+          <Field label="Plan" value={`${pay.pkg} · ${pay.amountLabel}`} />
+          <Field label="Amount" value={`Rs.${pay.amount.toLocaleString()}`} />
+          <Field label="Bank" value={pay.bank} />
+          <Field label="Reference #" value={pay.ref} />
+          <Field label="Submitted" value={pay.submitted || pay.date} />
+          <div className="flex items-center justify-between gap-4 py-2.5">
+            <span className="text-[11px] text-gray-400 shrink-0 leading-5">Receipt</span>
+            {pay.receipt ? (
+              <button
+                onClick={() => window.alert('Opening receipt: ' + pay.receipt)}
+                className="inline-flex items-center gap-1 text-[11px] font-semibold text-brand-blue hover:underline"
+              >
+                <Icon name="eye-outline" style={{ fontSize: '12px' }} />
+                {pay.receipt}
+              </button>
+            ) : (
+              <span className="inline-flex items-center gap-1 text-[11px] text-brand-orange font-medium">
+                <Icon name="alert-circle-outline" style={{ fontSize: '12px' }} />
+                No receipt uploaded
+              </span>
+            )}
+          </div>
+        </div>
+      ) : (
+        <div className="bg-white rounded-xl border border-border px-4 py-3">
+          <p className="text-[11px] text-gray-400">No payment on record for this registration.</p>
+        </div>
+      )}
+
+      <div className="flex items-start gap-2 mt-3 px-1">
+        <Icon name="information-circle-outline" style={{ fontSize: '13px', color: '#7c4dff', flexShrink: 0, marginTop: '1px' }} />
+        <p className="text-[10.5px] text-gray-500 leading-relaxed">
+          Verify the payment above, then <strong className="text-navy-dark">approve</strong> to activate the business.
+          The owner sets up stores, staff and products after approval.
+        </p>
+      </div>
+    </div>
+  )
+}
+
+function DrawerContent({ b, onClose, onSuspend, onReject, onReactivate, onApprove, onGoPayments }) {
   const hasProfile = b.status !== 'pending'
   const p = hasProfile ? deriveProfile(b) : {}
   const avatar = bizAvatarColor(b.name)
@@ -351,14 +422,7 @@ function DrawerContent({ b, onClose, onSuspend, onReject, onReactivate, onGoPaym
           </div>
         )}
 
-        {b.status === 'pending' && (
-          <div className="rounded-xl border border-brand-purple/20 px-4 py-3 flex gap-3 mb-5" style={{ background: '#f9f7ff' }}>
-            <Icon name="information-circle-outline" style={{ fontSize: '16px', color: '#7c4dff', flexShrink: 0, marginTop: '1px' }} />
-            <p className="text-[11px] text-brand-purple leading-relaxed">
-              Business profile hasn't been created yet. The owner completes this after registration is approved.
-            </p>
-          </div>
-        )}
+        {b.status === 'pending' && <PendingPayment b={b} onGoPayments={onGoPayments} />}
 
         {b.status === 'banned' && (
           <div className="rounded-xl border border-brand-red/20 px-4 py-3 flex gap-3 mb-5" style={{ background: '#fff5f5' }}>
@@ -518,13 +582,13 @@ function DrawerContent({ b, onClose, onSuspend, onReject, onReactivate, onGoPaym
         >
           Close
         </button>
-        <DrawerAction b={b} onSuspend={onSuspend} onReject={onReject} onReactivate={onReactivate} onGoPayments={onGoPayments} />
+        <DrawerAction b={b} onSuspend={onSuspend} onReject={onReject} onReactivate={onReactivate} onApprove={onApprove} onGoPayments={onGoPayments} />
       </div>
     </>
   )
 }
 
-export default function BusinessDrawer({ biz, onClose, onSuspend, onReject, onReactivate, onGoPayments }) {
+export default function BusinessDrawer({ biz, onClose, onSuspend, onReject, onReactivate, onApprove, onGoPayments }) {
   // Keep last business rendered during the slide-out animation.
   const [shown, setShown] = useState(biz)
   useEffect(() => {
@@ -553,6 +617,7 @@ export default function BusinessDrawer({ biz, onClose, onSuspend, onReject, onRe
             onSuspend={onSuspend}
             onReject={onReject}
             onReactivate={onReactivate}
+            onApprove={onApprove}
             onGoPayments={onGoPayments}
           />
         )}

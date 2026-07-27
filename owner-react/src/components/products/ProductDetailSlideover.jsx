@@ -165,9 +165,11 @@ function Body({ g, onClose, onEdit }) {
       {/* Footer */}
       <div className="flex items-center gap-2 px-5 py-3.5 border-t border-border sticky bottom-0 bg-white">
         <button onClick={onClose} className="flex-1 h-9 text-[12px] font-semibold text-gray-500 bg-white border border-border rounded-xl hover:bg-gray-50 transition">Close</button>
-        <button onClick={() => onEdit(g.name)} className="flex-1 h-9 text-[12px] font-semibold text-white bg-navy rounded-xl hover:bg-navy-light transition flex items-center justify-center gap-1.5">
-          <Icon name="create-outline" size={15} />Edit Product
-        </button>
+        {onEdit && (
+          <button onClick={() => onEdit(g.name)} className="flex-1 h-9 text-[12px] font-semibold text-white bg-navy rounded-xl hover:bg-navy-light transition flex items-center justify-center gap-1.5">
+            <Icon name="create-outline" size={15} />Edit Product
+          </button>
+        )}
       </div>
     </>
   )

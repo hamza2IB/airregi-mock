@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import Icon from '../components/Icon'
+import ActionButton from '../components/ActionButton'
 import { useToast } from '../components/Toast'
 import TransactionDetailSlideover from '../components/dashboard/TransactionDetailSlideover'
 import { TXN_DATA, PAY_COLORS } from '../data/dashboardData'
@@ -154,9 +155,7 @@ export default function Revenue() {
                       <p className="text-[10px] text-gray-400 mt-0.5">{t.time}</p>
                     </div>
                     <div className="flex items-center justify-end">
-                      <button onClick={() => setViewTxn(t)} className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold border border-border bg-white text-gray-500 hover:text-navy hover:border-navy/30 hover:bg-gray-50 transition">
-                        <Icon name="eye-outline" style={{ fontSize: '12px', flexShrink: 0 }} />View
-                      </button>
+                      <ActionButton icon="eye-outline" label="View" onClick={() => setViewTxn(t)} />
                     </div>
                   </div>
                 )

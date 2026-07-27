@@ -1,5 +1,7 @@
 import { useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import Icon from '../components/Icon'
+import ActionButton from '../components/ActionButton'
 import { useToast } from '../components/Toast'
 import ConfirmModal from '../components/ConfirmModal'
 import StoreFormSlideover from '../components/stores/StoreFormSlideover'
@@ -22,8 +24,9 @@ function KpiCard({ icon, iconWrap, value, valueCls, label }) {
 const FTAB_ACTIVE = 'store-ftab px-3 py-1.5 text-[11px] font-semibold bg-navy text-white'
 const FTAB_IDLE = 'store-ftab px-3 py-1.5 text-[11px] font-medium text-gray-500 hover:bg-white/60 transition'
 
-export default function Stores({ stores, setStores, onOpenStore }) {
+export default function Stores({ stores, setStores }) {
   const showToast = useToast()
+  const navigate = useNavigate()
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [typeFilter, setTypeFilter] = useState('')
@@ -157,7 +160,7 @@ export default function Stores({ stores, setStores, onOpenStore }) {
             </div>
           )}
           {paged.map((s) => (
-            <StoreRow key={s.id} s={s} onView={() => onOpenStore?.(s.id)} onEdit={() => setFormItem({ store: s })} onToggle={() => toggleStatus(s)} />
+            <StoreRow key={s.id} s={s} onView={() => navigate(`/stores/${s.id}`)} onEdit={() => setFormItem({ store: s })} onToggle={() => toggleStatus(s)} />
           ))}
         </div>
 
@@ -239,20 +242,12 @@ function StoreRow({ s, onView, onEdit, onToggle }) {
       </div>
       {/* Actions */}
       <div className="flex items-center gap-1.5">
-        <button onClick={onView} title="View" className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold border border-border bg-white text-gray-500 hover:text-navy hover:border-navy/30 hover:bg-gray-50 transition whitespace-nowrap shrink-0">
-          <Icon name="eye-outline" style={{ fontSize: '12px', flexShrink: 0 }} />View
-        </button>
-        <button onClick={onEdit} title="Edit" className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold border border-border bg-white text-gray-500 hover:text-navy hover:border-navy/30 hover:bg-gray-50 transition whitespace-nowrap shrink-0">
-          <Icon name="create-outline" style={{ fontSize: '12px', flexShrink: 0 }} />Edit
-        </button>
+        <ActionButton icon="eye-outline" label="View" onClick={onView} />
+        <ActionButton icon="create-outline" label="Edit" onClick={onEdit} />
         {s.status === 'active' ? (
-          <button onClick={onToggle} title="Deactivate" className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold border border-brand-orange/20 bg-brand-orange/5 text-brand-orange hover:bg-brand-orange/10 transition whitespace-nowrap shrink-0">
-            <Icon name="pause-circle-outline" style={{ fontSize: '12px', flexShrink: 0 }} />Suspend
-          </button>
+          <ActionButton icon="pause-circle-outline" label="Suspend" onClick={onToggle} tone="orange" title="Deactivate" />
         ) : (
-          <button onClick={onToggle} title="Activate" className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold border border-brand-green/20 bg-brand-green/5 text-brand-green hover:bg-brand-green/10 transition whitespace-nowrap shrink-0">
-            <Icon name="play-circle-outline" style={{ fontSize: '12px', flexShrink: 0 }} />Activate
-          </button>
+          <ActionButton icon="play-circle-outline" label="Activate" onClick={onToggle} tone="green" />
         )}
       </div>
     </div>

@@ -1,5 +1,7 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import Icon from '../components/Icon'
+import ActionButton from '../components/ActionButton'
 import RenewalSlideover from '../components/subscription/RenewalSlideover'
 import ChangePlanSlideover from '../components/subscription/ChangePlanSlideover'
 import PaymentDetailSlideover from '../components/subscription/PaymentDetailSlideover'
@@ -7,7 +9,8 @@ import { SUBSCRIPTION, PLAN_USAGE, FEATURES_INCLUDED, PAYMENT_BADGE } from '../d
 
 const PAY_COLS = '1fr 0.8fr 0.6fr 0.8fr 1.4fr 0.7fr 0.5fr'
 
-export default function Subscription({ payments, setPayments, onNavigate }) {
+export default function Subscription({ payments, setPayments }) {
+  const navigate = useNavigate()
   const [renewal, setRenewal] = useState(null) // { mode:'renew' } | { mode:'plan-change', plan, billing }
   const [changePlanOpen, setChangePlanOpen] = useState(false)
   const [viewPayment, setViewPayment] = useState(null)
@@ -121,7 +124,7 @@ export default function Subscription({ payments, setPayments, onNavigate }) {
             </div>
           </button>
 
-          <button onClick={() => onNavigate?.('payments')} className="flex items-center gap-3 bg-white border border-border text-navy-dark px-4 py-3.5 rounded-xl text-[13px] font-semibold hover:bg-gray-50 hover:border-navy/20 transition text-left group">
+          <button onClick={() => navigate('/subscription/payments')} className="flex items-center gap-3 bg-white border border-border text-navy-dark px-4 py-3.5 rounded-xl text-[13px] font-semibold hover:bg-gray-50 hover:border-navy/20 transition text-left group">
             <div className="w-9 h-9 rounded-lg bg-brand-blue/[.08] flex items-center justify-center shrink-0 group-hover:bg-brand-blue/[.12] transition">
               <Icon name="receipt-outline" className="text-brand-blue" style={{ fontSize: '18px' }} />
             </div>
@@ -140,7 +143,7 @@ export default function Subscription({ payments, setPayments, onNavigate }) {
             <p className="text-[14px] font-semibold text-navy-dark">Recent Payments</p>
             <p className="text-[11px] text-gray-400 mt-0.5">Last 5 subscription payments</p>
           </div>
-          <button onClick={() => onNavigate?.('payments')} className="text-[12px] font-semibold text-brand-blue hover:underline">View All Payments →</button>
+          <button onClick={() => navigate('/subscription/payments')} className="text-[12px] font-semibold text-brand-blue hover:underline">View All Payments →</button>
         </div>
         <div className="overflow-x-auto thin-scroll">
           <div className="min-w-[720px]">
@@ -164,9 +167,7 @@ export default function Subscription({ payments, setPayments, onNavigate }) {
                     {p.note && <p className="text-[9px] text-brand-red mt-0.5">{p.note}</p>}
                   </div>
                   <div className="flex items-center justify-end">
-                    <button onClick={() => setViewPayment(p)} className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold border border-border bg-white text-gray-500 hover:text-navy hover:border-navy/30 hover:bg-gray-50 transition">
-                      <Icon name="eye-outline" style={{ fontSize: '12px', flexShrink: 0 }} />View
-                    </button>
+                    <ActionButton icon="eye-outline" label="View" onClick={() => setViewPayment(p)} />
                   </div>
                 </div>
               ))}

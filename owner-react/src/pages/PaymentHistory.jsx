@@ -1,5 +1,7 @@
 import { useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import Icon from '../components/Icon'
+import ActionButton from '../components/ActionButton'
 import { useToast } from '../components/Toast'
 import PaymentDetailSlideover from '../components/subscription/PaymentDetailSlideover'
 import RenewalSlideover from '../components/subscription/RenewalSlideover'
@@ -33,8 +35,10 @@ function Kpi({ icon, wrap, value, valueCls, label }) {
   )
 }
 
-export default function PaymentHistory({ payments, setPayments, onBack }) {
+export default function PaymentHistory({ payments, setPayments }) {
   const showToast = useToast()
+  const navigate = useNavigate()
+  const onBack = () => navigate('/subscription')
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState('all')
   const [year, setYear] = useState('')
@@ -156,9 +160,7 @@ export default function PaymentHistory({ payments, setPayments, onBack }) {
                     {p.note && <p className="text-[9px] text-brand-red mt-0.5">{p.note}</p>}
                   </div>
                   <div className="flex items-center justify-end">
-                    <button onClick={() => setViewPayment(p)} className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold border border-border bg-white text-gray-500 hover:text-navy hover:border-navy/30 hover:bg-gray-50 transition">
-                      <Icon name="eye-outline" style={{ fontSize: '12px', flexShrink: 0 }} />View
-                    </button>
+                    <ActionButton icon="eye-outline" label="View" onClick={() => setViewPayment(p)} />
                   </div>
                 </div>
               ))}

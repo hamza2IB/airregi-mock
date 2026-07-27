@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 import Icon from '../components/Icon'
 import { useToast } from '../components/Toast'
 import { storeAvatarColor } from '../data/storesData'
@@ -18,8 +19,12 @@ const TABS = [
   { key: 'shifts', label: 'All Closings', icon: 'time-outline' },
 ]
 
-export default function StoreDetail({ store, setStores, onBack }) {
+export default function StoreDetail({ stores, setStores }) {
   const showToast = useToast()
+  const navigate = useNavigate()
+  const { storeId } = useParams()
+  const store = stores.find((s) => String(s.id) === String(storeId)) || null
+  const onBack = () => navigate('/stores')
   const [bannerPeriod, setBannerPeriod] = useState('today')
   const [tab, setTab] = useState('sales')
   const [users, setUsers] = useState(USERS_DATA)

@@ -1,8 +1,8 @@
-import Icon from '../Icon'
+import ActionButton from '../ActionButton'
 import { bizAvatarColor } from '../../data/businessData'
 import { PU_ROLE_LABEL, PU_ROLE_COLOR } from '../../data/platformUsers'
 
-const GRID = { gridTemplateColumns: '1.8fr 1fr 1.6fr 0.8fr 0.9fr 1.2fr' }
+const GRID = { gridTemplateColumns: '1.8fr 1fr 1.6fr 0.8fr 0.9fr 1.5fr' }
 
 export function PuStatusBadge({ status }) {
   return status === 'active' ? (
@@ -52,29 +52,11 @@ export default function PlatformUserRow({ u, onView, onSuspend, onReactivate }) 
 
       {/* Actions */}
       <div className="flex items-center gap-1.5">
-        <button
-          onClick={() => onView(u)}
-          title="View"
-          className="w-7 h-7 rounded-lg border border-border bg-white flex items-center justify-center text-gray-400 hover:text-navy hover:border-navy/30 transition"
-        >
-          <Icon name="eye-outline" style={{ fontSize: '14px' }} />
-        </button>
+        <ActionButton onClick={() => onView(u)} icon="eye-outline" label="View" />
         {u.status === 'active' ? (
-          <button
-            onClick={() => onSuspend(u)}
-            title="Suspend"
-            className="w-7 h-7 rounded-lg border border-brand-red/20 bg-brand-red/5 text-brand-red hover:bg-brand-red/10 flex items-center justify-center transition"
-          >
-            <Icon name="pause-circle-outline" style={{ fontSize: '14px' }} />
-          </button>
+          <ActionButton onClick={() => onSuspend(u)} icon="pause-circle-outline" label="Suspend" tone="red" />
         ) : (
-          <button
-            onClick={() => onReactivate(u)}
-            title="Reactivate"
-            className="w-7 h-7 rounded-lg border border-brand-green/20 bg-brand-green/5 text-brand-green hover:bg-brand-green/10 flex items-center justify-center transition"
-          >
-            <Icon name="play-circle-outline" style={{ fontSize: '14px' }} />
-          </button>
+          <ActionButton onClick={() => onReactivate(u)} icon="play-circle-outline" label="Reactivate" tone="green" />
         )}
       </div>
     </div>

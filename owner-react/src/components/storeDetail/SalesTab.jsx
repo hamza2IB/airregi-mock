@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import Icon from '../Icon'
+import ActionButton from '../ActionButton'
 import Pager from './Pager'
 import { TXN_DATA, PAY_COLORS } from '../../data/dashboardData'
 import { SD_SALES, SALES_PERIODS, fmtRs, initials } from '../../data/storeDetailData'
@@ -120,9 +121,7 @@ export default function SalesTab({ onViewTxn }) {
                 </div>
                 <div><p className="text-[11px] text-gray-700">{t.date}</p><p className="text-[10px] text-gray-400">{t.time}</p></div>
                 <div className="flex justify-end">
-                  <button onClick={() => onViewTxn(t)} className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold border border-border bg-white text-gray-500 hover:text-navy hover:border-navy/30 transition">
-                    <Icon name="eye-outline" style={{ fontSize: '11px' }} />View
-                  </button>
+                  <ActionButton icon="eye-outline" label="View" onClick={() => onViewTxn(t)} />
                 </div>
               </div>
             )

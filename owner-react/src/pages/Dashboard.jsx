@@ -1,5 +1,7 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import Icon from '../components/Icon'
+import ActionButton from '../components/ActionButton'
 import { useToast } from '../components/Toast'
 import TransactionDetailSlideover from '../components/dashboard/TransactionDetailSlideover'
 import ShiftDetailSlideover from '../components/dashboard/ShiftDetailSlideover'
@@ -39,8 +41,9 @@ function KpiCard({ icon, iconBg, iconColor, badge, badgeCls, value, label, sub }
   )
 }
 
-export default function Dashboard({ onNavigate }) {
+export default function Dashboard() {
   const showToast = useToast()
+  const navigate = useNavigate()
   const [period, setPeriod] = useState('today')
   const [viewTxn, setViewTxn] = useState(null)
   const [viewShift, setViewShift] = useState(null)
@@ -193,7 +196,7 @@ export default function Dashboard({ onNavigate }) {
         <div className="bg-white rounded-xl border border-border p-5">
           <div className="flex items-center justify-between mb-4">
             <p className="text-[14px] font-semibold text-navy-dark">Store Performance</p>
-            <button onClick={() => onNavigate('stores')} className="text-[11px] font-medium text-brand-blue hover:underline">
+            <button onClick={() => navigate('/stores')} className="text-[11px] font-medium text-brand-blue hover:underline">
               View all →
             </button>
           </div>
@@ -201,7 +204,7 @@ export default function Dashboard({ onNavigate }) {
             {STORE_PERF.map((s) => (
               <div
                 key={s.storeId}
-                onClick={() => onNavigate('stores')}
+                onClick={() => navigate('/stores')}
                 className="cursor-pointer hover:bg-gray-50 rounded-xl p-2 py-0 -mx-2 transition"
               >
                 <div className="flex items-center justify-between mb-1.5">
@@ -284,9 +287,7 @@ export default function Dashboard({ onNavigate }) {
                       <span className={`text-[10px] font-bold ${statusColor} ${diffBg} px-2 py-0.5 rounded-full whitespace-nowrap`}>{diffLabel}</span>
                     </div>
                     <div className="flex items-center justify-end">
-                      <button onClick={() => setViewShift(s)} className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold border border-border bg-white text-gray-500 hover:text-navy hover:border-navy/30 hover:bg-gray-50 transition">
-                        <Icon name="eye-outline" style={{ fontSize: '12px', flexShrink: 0 }} />View
-                      </button>
+                      <ActionButton icon="eye-outline" label="View" onClick={() => setViewShift(s)} />
                     </div>
                   </div>
                 )
@@ -350,9 +351,7 @@ export default function Dashboard({ onNavigate }) {
                     <p className="text-[10px] text-gray-400 mt-0.5">{t.time}</p>
                   </div>
                   <div className="flex items-center justify-end">
-                    <button onClick={() => setViewTxn(t)} className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold border border-border bg-white text-gray-500 hover:text-navy hover:border-navy/30 hover:bg-gray-50 transition">
-                      <Icon name="eye-outline" style={{ fontSize: '12px', flexShrink: 0 }} />View
-                    </button>
+                    <ActionButton icon="eye-outline" label="View" onClick={() => setViewTxn(t)} />
                   </div>
                 </div>
               ))}

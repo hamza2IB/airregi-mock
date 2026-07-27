@@ -21,7 +21,7 @@ const SORT_OPTIONS = [
   { value: 'joined-asc', label: 'Sort: Joined (oldest)' },
 ]
 
-const GRID = { gridTemplateColumns: '1.8fr 1fr 1.6fr 0.8fr 0.9fr 1.2fr' }
+const GRID = { gridTemplateColumns: '1.8fr 1fr 1.6fr 0.8fr 0.9fr 1.5fr' }
 
 // Windowed page pills: 1 … 4 5 [6] 7 8 … N (ported from pillWindow).
 function pillWindow(current, total) {

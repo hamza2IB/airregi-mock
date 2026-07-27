@@ -1,6 +1,7 @@
 import Icon from '../Icon'
+import ActionButton from '../ActionButton'
 
-const GRID = { gridTemplateColumns: '2.5fr 1fr 1fr 1fr' }
+const GRID = { gridTemplateColumns: '2.5fr 1fr 1fr 1.8fr' }
 
 export default function IndustryRow({ ind, count, onEdit, onToggle, onDelete }) {
   const inactive = ind.status === 'inactive'
@@ -33,31 +34,13 @@ export default function IndustryRow({ ind, count, onEdit, onToggle, onDelete }) 
 
       {/* Actions */}
       <div className="flex items-center gap-1.5">
-        <button
-          onClick={() => onEdit(ind)}
-          title="Edit"
-          className="w-7 h-7 rounded-lg border border-border bg-white flex items-center justify-center text-gray-400 hover:text-navy hover:border-navy/30 transition"
-        >
-          <Icon name="create-outline" style={{ fontSize: '14px' }} />
-        </button>
-        <button
-          onClick={() => onToggle(ind)}
-          title={ind.status === 'active' ? 'Deactivate' : 'Activate'}
-          className={`w-7 h-7 rounded-lg border transition flex items-center justify-center ${
-            ind.status === 'active'
-              ? 'border-brand-orange/20 bg-brand-orange/5 text-brand-orange hover:bg-brand-orange/10'
-              : 'border-brand-green/20 bg-brand-green/5 text-brand-green hover:bg-brand-green/10'
-          }`}
-        >
-          <Icon name={ind.status === 'active' ? 'eye-off-outline' : 'eye-outline'} style={{ fontSize: '14px' }} />
-        </button>
-        <button
-          onClick={() => onDelete(ind)}
-          title="Delete"
-          className="w-7 h-7 rounded-lg border border-red-200 bg-red-50 text-red-500 hover:bg-red-100 flex items-center justify-center transition"
-        >
-          <Icon name="trash-outline" style={{ fontSize: '14px' }} />
-        </button>
+        <ActionButton onClick={() => onEdit(ind)} icon="create-outline" label="Edit" />
+        {ind.status === 'active' ? (
+          <ActionButton onClick={() => onToggle(ind)} icon="eye-off-outline" label="Deactivate" tone="orange" />
+        ) : (
+          <ActionButton onClick={() => onToggle(ind)} icon="eye-outline" label="Activate" tone="green" />
+        )}
+        <ActionButton onClick={() => onDelete(ind)} icon="trash-outline" label="Delete" tone="red" />
       </div>
     </div>
   )

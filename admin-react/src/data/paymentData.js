@@ -37,3 +37,8 @@ export const PV_DATA = [
     owner: 'Hamza Siddiqui', submitted: 'Jul 9, 2026',
   },
 ]
+
+// Look up the pending new-registration payment submitted for a business (matched
+// by name) so the business drawer can show payment details for verification.
+export const newRegPaymentFor = (name) =>
+  PV_DATA.find((p) => p.type === 'new-reg' && p.name === name) || null

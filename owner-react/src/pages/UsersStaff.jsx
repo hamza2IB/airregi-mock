@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import Icon from '../components/Icon'
+import ActionButton from '../components/ActionButton'
 import { useToast } from '../components/Toast'
 import ConfirmModal from '../components/ConfirmModal'
 import UserFormSlideover from '../components/users/UserFormSlideover'
@@ -181,16 +182,14 @@ export default function UsersStaff() {
                     <td className="px-4 py-3 text-center"><StatusBadge status={u.status} /></td>
                     <td className="px-4 py-3 text-[12px] text-gray-500">{u.lastLogin}</td>
                     <td className="px-5 py-3">
-                      <div className="flex items-center justify-end gap-1">
-                        <button onClick={() => setForm({ user: u })} className="w-7 h-7 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 flex items-center justify-center transition" title="Edit">
-                          <Icon name="create-outline" style={{ fontSize: '14px' }} />
-                        </button>
-                        <button onClick={() => toggleStatus(u)} className={`w-7 h-7 rounded-lg flex items-center justify-center transition ${u.status === 'active' ? 'bg-brand-orange/10 hover:bg-brand-orange/20 text-brand-orange' : 'bg-brand-green/10 hover:bg-brand-green/20 text-brand-green'}`} title={u.status === 'active' ? 'Deactivate' : 'Activate'}>
-                          <Icon name={u.status === 'active' ? 'pause-circle-outline' : 'play-circle-outline'} style={{ fontSize: '14px' }} />
-                        </button>
-                        <button onClick={() => removeUser(u)} className="w-7 h-7 rounded-lg bg-brand-red/10 hover:bg-brand-red/20 text-brand-red flex items-center justify-center transition" title="Delete">
-                          <Icon name="trash-outline" style={{ fontSize: '14px' }} />
-                        </button>
+                      <div className="flex items-center justify-end gap-1.5">
+                        <ActionButton icon="create-outline" label="Edit" onClick={() => setForm({ user: u })} />
+                        {u.status === 'active' ? (
+                          <ActionButton icon="pause-circle-outline" label="Deactivate" onClick={() => toggleStatus(u)} tone="orange" />
+                        ) : (
+                          <ActionButton icon="play-circle-outline" label="Activate" onClick={() => toggleStatus(u)} tone="green" />
+                        )}
+                        <ActionButton icon="trash-outline" label="Delete" onClick={() => removeUser(u)} tone="red" />
                       </div>
                     </td>
                   </tr>
