@@ -4,7 +4,7 @@ import Header from './Header'
 import MobileBottomNav from './MobileBottomNav'
 import { PAGE_META } from '../../data/navMeta'
 
-export default function WarehouseLayout({ activePage, onNavigate, onLogout, onAlerts, children }) {
+export default function WarehouseLayout({ activePage, onNavigate, onLogout, onAlerts, issuesBadge, children }) {
   const [mobileOpen, setMobileOpen] = useState(false)
   const meta = PAGE_META[activePage] || PAGE_META.dashboard
 
@@ -21,6 +21,7 @@ export default function WarehouseLayout({ activePage, onNavigate, onLogout, onAl
         mobileOpen={mobileOpen}
         onCloseMobile={() => setMobileOpen(false)}
         onLogout={onLogout}
+        issuesBadge={issuesBadge}
       />
       <main className="flex-1 min-w-0 flex flex-col">
         <Header meta={meta} onOpenMobileSidebar={() => setMobileOpen(true)} onAlerts={onAlerts} />

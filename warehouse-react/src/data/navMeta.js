@@ -7,4 +7,5 @@ export const PAGE_META = {
   barcodes: { section: 'Tools', page: 'Barcodes', heading: 'Barcodes' },
   orders: { section: 'Orders', page: 'Online Orders', heading: 'Online Orders' },
   refunds: { section: 'Orders', page: 'Refunds', heading: 'Refunds' },
+  issues: { section: 'Orders', page: 'Customer Issues', heading: 'Customer Issues' },
 }

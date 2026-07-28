@@ -7,10 +7,12 @@ import Transfers from './pages/Transfers'
 import Barcodes from './pages/Barcodes'
 import Orders from './pages/Orders'
 import Refunds from './pages/Refunds'
+import CustomerIssues from './pages/CustomerIssues'
 import Icon from './components/Icon'
 import { ToastProvider, useToast } from './components/Toast'
 import { PAGE_META } from './data/navMeta'
 import { ORDER_DATA } from './data/warehouseData'
+import { WM_ISSUES } from './data/issuesData'
 
 // Placeholder for warehouse pages not yet converted (built page-by-page).
 function ComingSoon({ page }) {
@@ -33,6 +35,12 @@ function Shell() {
   const [activePage, setActivePage] = useState('dashboard')
   // Orders + their refunds are shared so the Orders and Refunds pages stay in sync.
   const [orders, setOrders] = useState(ORDER_DATA)
+  // Customer issues raised from the shopping app against orders this warehouse fulfils.
+  const [issues, setIssues] = useState(WM_ISSUES)
+  const openIssues = issues.filter((i) => i.status !== 'resolved').length
+
+  const patchIssue = (id, changes) =>
+    setIssues((prev) => prev.map((i) => (i.id === id ? { ...i, ...changes } : i)))
 
   const handleNavigate = (page) => {
     setActivePage(page)
@@ -45,6 +53,7 @@ function Shell() {
       onNavigate={handleNavigate}
       onLogout={() => showToast('Logged out', 'info')}
       onAlerts={() => handleNavigate('products')}
+      issuesBadge={openIssues}
     >
       {activePage === 'dashboard' ? (
         <Dashboard onNavigate={handleNavigate} />
@@ -60,6 +69,8 @@ function Shell() {
         <Orders orders={orders} setOrders={setOrders} />
       ) : activePage === 'refunds' ? (
         <Refunds orders={orders} setOrders={setOrders} />
+      ) : activePage === 'issues' ? (
+        <CustomerIssues issues={issues} patchIssue={patchIssue} />
       ) : (
         <ComingSoon page={activePage} />
       )}

@@ -11,11 +11,12 @@ const NAV_GROUPS = [
     items: [
       { key: 'orders', icon: 'globe-outline', label: 'Online Orders' },
       { key: 'refunds', icon: 'arrow-undo-outline', label: 'Refunds' },
+      { key: 'issues', icon: 'chatbox-ellipses-outline', label: 'Customer Issues' },
     ],
   },
 ]
 
-export default function Sidebar({ activePage, onNavigate, mobileOpen, onCloseMobile, onLogout }) {
+export default function Sidebar({ activePage, onNavigate, mobileOpen, onCloseMobile, onLogout, issuesBadge }) {
   return (
     <>
       <div
@@ -57,6 +58,9 @@ export default function Sidebar({ activePage, onNavigate, mobileOpen, onCloseMob
                 >
                   <Icon name={item.icon} style={{ fontSize: '20px' }} />
                   <span>{item.label}</span>
+                  {item.key === 'issues' && issuesBadge > 0 && (
+                    <span className="ml-auto text-[9px] font-bold bg-brand-red text-white px-1.5 py-0.5 rounded-full">{issuesBadge}</span>
+                  )}
                 </div>
               ))}
             </div>

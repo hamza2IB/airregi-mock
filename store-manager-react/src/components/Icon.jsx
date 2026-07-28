@@ -66,6 +66,7 @@ import {
   IoBusinessOutline,
   IoPersonOutline,
   IoStar,
+  IoChatboxEllipsesOutline,
 } from 'react-icons/io5'
 
 const ICONS = {
@@ -136,6 +137,7 @@ const ICONS = {
   'business-outline': IoBusinessOutline,
   'person-outline': IoPersonOutline,
   star: IoStar,
+  'chatbox-ellipses-outline': IoChatboxEllipsesOutline,
 }
 
 export default function Icon({ name, size, className = '', style = {}, ...rest }) {

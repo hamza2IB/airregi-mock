@@ -444,6 +444,10 @@
           <ion-icon name="arrow-undo-outline"></ion-icon><span>Refunds</span>
           <span id="nav-refunds-badge" class="ml-auto hidden text-[9px] font-bold bg-brand-red text-white px-1.5 py-0.5 rounded-full">0</span>
         </div>
+        <div class="sidebar-link" id="nav-issues" onclick="smNav('issues',this)">
+          <ion-icon name="chatbox-ellipses-outline"></ion-icon><span>Customer Issues</span>
+          <span id="nav-issues-badge" class="ml-auto hidden text-[9px] font-bold bg-brand-red text-white px-1.5 py-0.5 rounded-full">0</span>
+        </div>
 
         <p class="text-[10px] text-white/30 uppercase tracking-[0.15em] font-semibold px-4 mt-5 mb-2">Team</p>
         <div class="sidebar-link" id="nav-shifts" onclick="smNav('shifts',this)">
@@ -1343,6 +1347,62 @@
       </div>
       <!-- ════ END REFUNDS ════ -->
 
+      <!-- ════ CUSTOMER ISSUES ════ -->
+      <div id="sm-issues" class="sm-page p-4 sm:p-6 md:p-8" data-built="1">
+        <!-- KPI strip -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+          <div class="bg-white rounded-xl border border-border px-4 py-3.5 flex items-center gap-3">
+            <div class="w-9 h-9 rounded-lg bg-brand-orange/10 flex items-center justify-center shrink-0"><ion-icon name="alert-circle-outline" class="text-brand-orange" style="font-size:18px;"></ion-icon></div>
+            <div><p class="text-[22px] font-extrabold text-brand-orange leading-none" id="iss-kpi-open">0</p><p class="text-[10px] text-gray-400 font-medium mt-0.5">Open</p></div>
+          </div>
+          <div class="bg-white rounded-xl border border-border px-4 py-3.5 flex items-center gap-3">
+            <div class="w-9 h-9 rounded-lg bg-brand-blue/10 flex items-center justify-center shrink-0"><ion-icon name="time-outline" class="text-brand-blue" style="font-size:18px;"></ion-icon></div>
+            <div><p class="text-[22px] font-extrabold text-brand-blue leading-none" id="iss-kpi-progress">0</p><p class="text-[10px] text-gray-400 font-medium mt-0.5">In Progress</p></div>
+          </div>
+          <div class="bg-white rounded-xl border border-border px-4 py-3.5 flex items-center gap-3">
+            <div class="w-9 h-9 rounded-lg bg-brand-green/10 flex items-center justify-center shrink-0"><ion-icon name="checkmark-circle-outline" class="text-brand-green" style="font-size:18px;"></ion-icon></div>
+            <div><p class="text-[22px] font-extrabold text-brand-green leading-none" id="iss-kpi-resolved">0</p><p class="text-[10px] text-gray-400 font-medium mt-0.5">Resolved</p></div>
+          </div>
+          <div class="bg-white rounded-xl border border-border px-4 py-3.5 flex items-center gap-3">
+            <div class="w-9 h-9 rounded-lg bg-navy/10 flex items-center justify-center shrink-0"><ion-icon name="layers-outline" class="text-navy" style="font-size:18px;"></ion-icon></div>
+            <div><p class="text-[22px] font-extrabold text-navy-dark leading-none" id="iss-kpi-total">0</p><p class="text-[10px] text-gray-400 font-medium mt-0.5">Total</p></div>
+          </div>
+        </div>
+
+        <!-- Info banner -->
+        <div class="flex items-start gap-2.5 bg-brand-blue/5 border border-brand-blue/15 rounded-xl px-4 py-3 mb-6">
+          <ion-icon name="information-circle-outline" style="font-size:15px;color:#3366cc;flex-shrink:0;margin-top:1px;"></ion-icon>
+          <p class="text-[11px] text-gray-600 leading-relaxed"><strong class="text-navy-dark">Issues raised by customers from the shopping app</strong> against your orders — reported problems, return/refund requests, and cancellations. Review each one, mark it in progress while you work it, and resolve when done.</p>
+        </div>
+
+        <!-- Table card -->
+        <div class="bg-white rounded-xl border border-border overflow-hidden sm-wide-table">
+          <div class="flex items-center gap-3 px-5 py-4 border-b border-border flex-wrap">
+            <div class="flex items-center gap-2 bg-page rounded-lg px-3 py-2 border border-border flex-1 min-w-[200px] max-w-xs">
+              <ion-icon name="search-outline" style="font-size:15px;color:#94a3b8;flex-shrink:0;"></ion-icon>
+              <input id="iss-search" type="text" placeholder="Search issue #, order #, customer…" oninput="filterIssues()"
+                class="bg-transparent text-[12px] text-navy-dark placeholder-gray-400 flex-1 border-none outline-none">
+            </div>
+            <div class="flex bg-page border border-border rounded-lg overflow-hidden" id="iss-status-tabs">
+              <button onclick="setIssFilter('all',this)" class="iss-tab px-3 py-1.5 text-[11px] font-semibold bg-navy text-white">All</button>
+              <button onclick="setIssFilter('open',this)" class="iss-tab px-3 py-1.5 text-[11px] font-medium text-gray-500 hover:bg-white/60 transition">Open</button>
+              <button onclick="setIssFilter('in_progress',this)" class="iss-tab px-3 py-1.5 text-[11px] font-medium text-gray-500 hover:bg-white/60 transition">In Progress</button>
+              <button onclick="setIssFilter('resolved',this)" class="iss-tab px-3 py-1.5 text-[11px] font-medium text-gray-500 hover:bg-white/60 transition">Resolved</button>
+            </div>
+          </div>
+          <div class="grid text-[10px] font-semibold text-gray-400 uppercase tracking-[0.08em] px-5 py-2.5 border-b border-border bg-gray-50/60"
+            style="grid-template-columns:0.9fr 1.1fr 1.2fr 1.4fr 1fr 0.9fr 0.7fr;">
+            <div>Issue #</div><div>Order #</div><div>Customer</div><div>Reason</div><div>Date</div><div class="text-center">Status</div><div class="text-right">Action</div>
+          </div>
+          <div id="iss-tbody" class="divide-y divide-gray-100"></div>
+          <div id="iss-empty" class="hidden py-16 text-center">
+            <ion-icon name="checkmark-done-circle-outline" style="font-size:32px;color:#cbd5e1;"></ion-icon>
+            <p class="text-[13px] text-gray-400 mt-2">No issues match your filters.</p>
+          </div>
+        </div>
+      </div>
+      <!-- ════ END CUSTOMER ISSUES ════ -->
+
 
 
     </main>
@@ -1470,6 +1530,21 @@
     </div>
     <div class="p-6" id="sm-tr-body"></div>
     <div id="sm-tr-footer" class="flex items-center gap-3 px-6 py-4 border-t border-border sticky bottom-0 bg-white"></div>
+  </div>
+
+  <!-- ━━━━ SLIDEOVER: CUSTOMER ISSUE DETAIL ━━━━ -->
+  <div id="sm-issue-slideover" class="slideover thin-scroll">
+    <div class="flex items-center justify-between px-6 py-5 border-b border-border sticky top-0 bg-white z-10">
+      <div>
+        <h2 id="sm-issue-title" class="text-[16px] font-extrabold text-navy-dark">Customer Issue</h2>
+        <p id="sm-issue-sub" class="text-[11px] text-gray-400 mt-0.5"></p>
+      </div>
+      <button onclick="closeAllSlideOvers()" class="w-8 h-8 rounded-lg border border-border flex items-center justify-center hover:bg-gray-50 transition">
+        <ion-icon name="close-outline" style="font-size:18px;color:#64748b;"></ion-icon>
+      </button>
+    </div>
+    <div class="p-6" id="sm-issue-body"></div>
+    <div id="sm-issue-footer" class="flex items-center gap-3 px-6 py-4 border-t border-border sticky bottom-0 bg-white"></div>
   </div>
 
   <!-- ━━━━ MODAL: REJECT INBOUND REQUEST ━━━━ -->
@@ -1846,6 +1921,7 @@
       requests: { section: 'Replenishment', title: 'Stock Transfers', heading: 'Stock Transfers' },
       orders: { section: 'Orders', title: 'Online Orders', heading: 'Online Orders' },
       refunds: { section: 'Orders', title: 'Refunds', heading: 'Refunds' },
+      issues: { section: 'Orders', title: 'Customer Issues', heading: 'Customer Issues' },
       shifts: { section: 'Team', title: 'Cashier Shifts', heading: 'Cashier Shifts' },
       sales: { section: 'Store', title: 'Store Sales', heading: 'Store Sales — POS Transactions' },
     };
@@ -1879,6 +1955,7 @@
       else if (page === 'sales') { renderStoreSales(); }
       else if (page === 'shifts') { renderShifts(); }
       else if (page === 'refunds') { renderRefunds(); }
+      else if (page === 'issues') { renderIssues(); }
       else { renderPlaceholder(page); }
     }
 
@@ -4077,6 +4154,111 @@
 
     // Init badge on load
     document.addEventListener('DOMContentLoaded', updateRefundsBadge);
+  </script>
+
+  <script>
+    // ─── CUSTOMER ISSUES (raised from the shopping app) ────────
+    let SM_ISSUES = [
+      { id: 'ISS-2043', orderId: 'ORD-2026-1043', customer: 'Kamran Yousuf', phone: '0345-2223311', type: 'cancellation', reason: 'Delivery taking too long', note: '', date: 'Jul 23, 2026 12:15', status: 'open' },
+      { id: 'ISS-2041', orderId: 'ORD-2026-1039', customer: 'Sara Hussain', phone: '0333-5551234', type: 'report', reason: 'Item damaged', note: 'One jar arrived cracked and leaking. Photos attached in chat.', date: 'Jul 23, 2026 10:05', status: 'open' },
+      { id: 'ISS-2038', orderId: 'ORD-2026-1038', customer: 'Usman Farooq', phone: '0312-7778888', type: 'return', reason: 'Not as described', note: 'The colour looks different from what was shown on the app.', date: 'Jul 22, 2026 19:20', status: 'in_progress' },
+      { id: 'ISS-2037', orderId: 'ORD-2026-1037', customer: 'Nadia Siddiqui', phone: '0321-4445566', type: 'report', reason: 'Item missing from order', note: 'Paid for 3 items but only received 2 in the bag.', date: 'Jul 22, 2026 16:40', status: 'resolved' }
+    ];
+    const ISS_TYPE = {
+      report: { label: 'Problem', icon: 'alert-circle-outline', color: '#ff9800' },
+      return: { label: 'Return / Refund', icon: 'arrow-undo-outline', color: '#7c4dff' },
+      cancellation: { label: 'Cancellation', icon: 'close-circle-outline', color: '#eb445a' }
+    };
+    const ISS_STATUS = {
+      open: { label: 'Open', cls: 'bg-brand-orange/10 text-brand-orange' },
+      in_progress: { label: 'In Progress', cls: 'bg-brand-blue/10 text-brand-blue' },
+      resolved: { label: 'Resolved', cls: 'bg-brand-green/10 text-brand-green' }
+    };
+    let issFilter = 'all';
+
+    function updateIssuesBadge() {
+      const n = SM_ISSUES.filter(i => i.status !== 'resolved').length;
+      const badge = document.getElementById('nav-issues-badge');
+      if (!badge) return;
+      if (n > 0) { badge.textContent = n; badge.classList.remove('hidden'); } else badge.classList.add('hidden');
+    }
+    function setIssFilter(f, el) {
+      issFilter = f;
+      document.querySelectorAll('.iss-tab').forEach(t => t.className = 'iss-tab px-3 py-1.5 text-[11px] font-medium text-gray-500 hover:bg-white/60 transition');
+      if (el) el.className = 'iss-tab px-3 py-1.5 text-[11px] font-semibold bg-navy text-white';
+      renderIssues();
+    }
+    function filterIssues() { renderIssues(); }
+
+    function renderIssues() {
+      const open = SM_ISSUES.filter(i => i.status === 'open').length;
+      const prog = SM_ISSUES.filter(i => i.status === 'in_progress').length;
+      const res = SM_ISSUES.filter(i => i.status === 'resolved').length;
+      const setTxt = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
+      setTxt('iss-kpi-open', open); setTxt('iss-kpi-progress', prog); setTxt('iss-kpi-resolved', res); setTxt('iss-kpi-total', SM_ISSUES.length);
+      updateIssuesBadge();
+
+      const q = (document.getElementById('iss-search')?.value || '').toLowerCase();
+      const rows = SM_ISSUES.filter(i =>
+        (issFilter === 'all' || i.status === issFilter) &&
+        (!q || i.id.toLowerCase().includes(q) || i.orderId.toLowerCase().includes(q) || i.customer.toLowerCase().includes(q)));
+
+      const tbody = document.getElementById('iss-tbody');
+      const empty = document.getElementById('iss-empty');
+      if (!rows.length) { tbody.innerHTML = ''; empty.classList.remove('hidden'); return; }
+      empty.classList.add('hidden');
+      tbody.innerHTML = rows.map(i => {
+        const s = ISS_STATUS[i.status];
+        return `<div class="grid items-center px-5 py-3 text-[12px] hover:bg-gray-50/50 transition" style="grid-template-columns:0.9fr 1.1fr 1.2fr 1.4fr 1fr 0.9fr 0.7fr;">
+          <div class="font-mono text-[11px] text-navy-dark">${i.id}</div>
+          <div class="font-mono text-[11px] text-gray-500">${i.orderId}</div>
+          <div class="font-semibold text-navy-dark truncate">${i.customer}</div>
+          <div class="text-gray-600 truncate">${i.reason}</div>
+          <div class="text-gray-400 text-[11px]">${i.date.split(',')[0]}</div>
+          <div class="text-center"><span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${s.cls}">${s.label}</span></div>
+          <div class="text-right"><button onclick="openIssue('${i.id}')" class="text-[11px] font-semibold text-brand-blue hover:underline">View</button></div>
+        </div>`;
+      }).join('');
+    }
+
+    function openIssue(id) {
+      const i = SM_ISSUES.find(x => x.id === id); if (!i) return;
+      const s = ISS_STATUS[i.status];
+      document.getElementById('sm-issue-title').textContent = i.id;
+      document.getElementById('sm-issue-sub').textContent = `Order ${i.orderId}`;
+      document.getElementById('sm-issue-body').innerHTML = `
+        <div class="flex items-center gap-2 mb-4">
+          <span id="iss-status-pill" class="text-[11px] font-bold px-2.5 py-1 rounded-full ${s.cls}">${s.label}</span>
+        </div>
+        <div class="bg-gray-50 border border-border rounded-xl p-4 mb-4">
+          <div class="grid grid-cols-2 gap-y-3 gap-x-4 text-[12px]">
+            <div><p class="text-[10px] text-gray-400 uppercase font-bold tracking-wide">Customer</p><p class="font-semibold text-navy-dark mt-0.5">${i.customer}</p></div>
+            <div><p class="text-[10px] text-gray-400 uppercase font-bold tracking-wide">Phone</p><p class="font-semibold text-navy-dark mt-0.5">${i.phone}</p></div>
+            <div><p class="text-[10px] text-gray-400 uppercase font-bold tracking-wide">Order</p><p class="font-mono text-navy-dark mt-0.5">${i.orderId}</p></div>
+            <div><p class="text-[10px] text-gray-400 uppercase font-bold tracking-wide">Raised</p><p class="font-semibold text-navy-dark mt-0.5">${i.date}</p></div>
+          </div>
+        </div>
+        <p class="text-[11px] font-bold text-gray-500 uppercase tracking-[0.08em] mb-1.5">Reason</p>
+        <p class="text-[13.5px] font-bold text-navy-dark">${i.reason}</p>
+        <p class="text-[11px] font-bold text-gray-500 uppercase tracking-[0.08em] mt-4 mb-1.5">Details</p>
+        <p class="text-[12.5px] text-gray-600 leading-relaxed">${i.note ? i.note : '<span class="text-gray-400 italic">No additional details provided.</span>'}</p>`;
+
+      let btns = `<button onclick="closeAllSlideOvers()" class="flex-1 py-2.5 border border-border rounded-xl text-[13px] font-semibold text-gray-600 bg-white hover:bg-gray-50 transition">Close</button>`;
+      if (i.status === 'open') btns += `<button onclick="issAdvance('${i.id}','in_progress')" class="flex-1 py-2.5 bg-brand-blue text-white rounded-xl text-[13px] font-semibold hover:bg-brand-blue/85 transition flex items-center justify-center gap-1.5"><ion-icon name="play-outline" style="font-size:15px"></ion-icon>Start resolving</button>`;
+      else if (i.status === 'in_progress') btns += `<button onclick="issAdvance('${i.id}','resolved')" class="flex-1 py-2.5 bg-brand-green text-white rounded-xl text-[13px] font-semibold hover:bg-brand-green/85 transition flex items-center justify-center gap-1.5"><ion-icon name="checkmark-outline" style="font-size:15px"></ion-icon>Mark resolved</button>`;
+      document.getElementById('sm-issue-footer').innerHTML = btns;
+      closeAllSlideOvers();
+      openSlideOver('sm-issue-slideover');
+    }
+    function issAdvance(id, st) {
+      const i = SM_ISSUES.find(x => x.id === id); if (!i) return;
+      i.status = st;
+      renderIssues();
+      openIssue(id);
+      showToast(st === 'resolved' ? `${id} marked resolved.` : `Started resolving ${id}.`, 'success');
+    }
+
+    document.addEventListener('DOMContentLoaded', updateIssuesBadge);
   </script>
 </body>
 

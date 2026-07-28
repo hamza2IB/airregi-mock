@@ -1,0 +1,2876 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>RetailOS — Shop</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            navy: { dark: '#0a1535', DEFAULT: '#1a2d6b', light: '#2a4494' },
+            brand: { blue: '#3366cc', green: '#2dd36f', orange: '#ff9800', red: '#eb445a', purple: '#7c4dff' },
+            page: '#f4f6f9',
+            border: '#e8ecf1'
+          },
+          fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] }
+        }
+      }
+    }
+  </script>
+  <script src="https://unpkg.com/ionicons@7.1.0/dist/ionicons.js"></script>
+  <style>
+    * { -webkit-tap-highlight-color: transparent; }
+    html, body { margin: 0; padding: 0; background: #dfe4ec; color: #0a1535; }
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+
+    /* ── Phone shell (centered on desktop, full-bleed on mobile) ── */
+    #device {
+      position: relative;
+      width: 100%;
+      max-width: 430px;
+      margin: 0 auto;
+      min-height: 100vh;
+      background: #f4f6f9;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(10, 21, 53, .18);
+    }
+    @media (min-width: 480px) {
+      body { padding: 0; }
+      #device { min-height: 100dvh; }
+    }
+
+    .page { display: none; }
+    .page.active { display: block; }
+
+    .screen {
+      height: 100dvh;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: 88px;
+      scrollbar-width: none;
+    }
+    .screen::-webkit-scrollbar { display: none; }
+
+    .press { transition: transform .12s ease, opacity .12s ease; }
+    .press:active { transform: scale(.96); opacity: .92; }
+    .tnum { font-variant-numeric: tabular-nums; }
+    .no-sb { scrollbar-width: none; }
+    .no-sb::-webkit-scrollbar { display: none; }
+
+    input:focus, select:focus { outline: none; }
+
+    /* ── Bottom tab bar ── */
+    #tabbar {
+      position: absolute;
+      left: 0; right: 0; bottom: 0;
+      z-index: 60;
+      background: #fff;
+      border-top: 1px solid #e8ecf1;
+      display: flex;
+      align-items: flex-end;
+      padding: 8px 6px calc(8px + env(safe-area-inset-bottom));
+      box-shadow: 0 -6px 24px rgba(10, 21, 53, .06);
+    }
+    .tab {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      color: #94a3b8;
+      font-size: 10px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: color .15s;
+      padding: 2px 0;
+    }
+    .tab ion-icon { font-size: 22px; }
+    .tab.active { color: #1a2d6b; }
+    .tab-pay {
+      transform: translateY(-14px);
+    }
+    .tab-pay .pay-orb {
+      width: 52px; height: 52px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #3366cc, #1a2d6b);
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 8px 20px rgba(26, 45, 107, .38);
+      border: 4px solid #fff;
+    }
+    .tab-pay .pay-orb ion-icon { font-size: 24px; color: #fff; }
+
+    /* ── Toast ── */
+    #toast-wrap {
+      position: absolute;
+      left: 16px; right: 16px; bottom: 96px;
+      z-index: 200;
+      display: flex; flex-direction: column; gap: 8px;
+      pointer-events: none;
+    }
+    .toast {
+      display: flex; align-items: center; gap: 9px;
+      background: #0a1535; color: #fff;
+      padding: 11px 15px; border-radius: 12px;
+      font-size: 12.5px; font-weight: 600;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, .25);
+      animation: tin .25s ease;
+    }
+    @keyframes tin { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+    .card-hover { transition: box-shadow .2s, transform .2s; }
+
+    /* ── Settings toggle switch ── */
+    .sw {
+      width: 42px; height: 24px; border-radius: 999px;
+      background: #cbd5e1; position: relative; cursor: pointer;
+      transition: background .2s; flex-shrink: 0;
+    }
+    .sw.on { background: #2dd36f; }
+    .sw::after {
+      content: ''; position: absolute; top: 2px; left: 2px;
+      width: 20px; height: 20px; border-radius: 999px; background: #fff;
+      transition: transform .2s; box-shadow: 0 1px 3px rgba(0, 0, 0, .25);
+    }
+    .sw.on::after { transform: translateX(18px); }
+
+    /* ── Settings form input ── */
+    .sinp {
+      width: 100%; border: 1.5px solid #e8ecf1; border-radius: 10px;
+      padding: 11px 13px; font-size: 13px; color: #0a1535; background: #fff;
+      font-family: inherit; box-sizing: border-box; transition: border-color .15s;
+    }
+    .sinp:focus { border-color: #1a2d6b; outline: none; }
+    .slbl { display: block; font-size: 11px; font-weight: 700; color: #64748b; margin-bottom: 5px; }
+
+    /* ── Bottom sheet ── */
+    #sheet-backdrop {
+      position: absolute; inset: 0; z-index: 150;
+      background: rgba(10, 21, 53, .4);
+      opacity: 0; pointer-events: none; transition: opacity .25s;
+    }
+    #sheet-backdrop.show { opacity: 1; pointer-events: auto; }
+    #sheet {
+      position: absolute; left: 0; right: 0; bottom: 0; z-index: 160;
+      background: #fff; border-radius: 20px 20px 0 0;
+      transform: translateY(101%); transition: transform .32s cubic-bezier(.4, 0, .2, 1);
+      max-height: 88%; overflow-y: auto;
+      box-shadow: 0 -12px 40px rgba(10, 21, 53, .2);
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+    #sheet.open { transform: translateY(0); }
+    .sheet-handle { width: 36px; height: 4px; border-radius: 99px; background: #e2e8f0; margin: 10px auto 4px; }
+  </style>
+</head>
+
+<body>
+  <div id="device">
+
+    <!-- ═══════════════════════════════════════════════════════
+         PAGE: HOME
+    ═══════════════════════════════════════════════════════ -->
+    <div id="page-home" class="page active">
+      <div class="screen">
+
+        <!-- Header -->
+        <div class="bg-gradient-to-br from-navy-dark to-navy px-5 pt-12 pb-6 rounded-b-3xl relative overflow-hidden">
+          <div class="absolute top-0 right-0 w-52 h-52 bg-white/5 rounded-full -translate-y-1/3 translate-x-1/4"></div>
+          <div class="relative z-10">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-11 h-11 rounded-full bg-white/15 border border-white/20 flex items-center justify-center text-white font-extrabold text-[14px] shrink-0">
+                AK</div>
+              <div class="flex-1 min-w-0">
+                <p class="text-white/50 text-[11px] font-medium leading-tight">Good afternoon</p>
+                <p class="text-white font-extrabold text-[15px] leading-tight truncate">Ayesha Khan</p>
+              </div>
+              <button class="relative w-10 h-10 rounded-xl bg-white/10 border border-white/15 flex items-center justify-center press" onclick="toast('No new notifications')">
+                <ion-icon name="notifications-outline" class="text-white" style="font-size:19px;"></ion-icon>
+                <span class="absolute top-2 right-2.5 w-2 h-2 rounded-full bg-brand-orange"></span>
+              </button>
+            </div>
+
+            <!-- Location -->
+            <button onclick="toast('Change delivery location')" class="flex items-center gap-1.5 press mb-4">
+              <ion-icon name="location" class="text-brand-green shrink-0" style="font-size:15px;"></ion-icon>
+              <span class="text-[12px] text-white/70"><span class="text-white/40">Deliver to</span> <span class="font-semibold text-white">Gulberg III, Lahore</span></span>
+              <ion-icon name="chevron-down" class="text-white/40 shrink-0" style="font-size:13px;"></ion-icon>
+            </button>
+
+            <!-- Search -->
+            <button onclick="go('products')" class="w-full flex items-center gap-2.5 bg-white rounded-xl px-4 py-3 press">
+              <ion-icon name="search-outline" class="text-gray-400 shrink-0" style="font-size:18px;"></ion-icon>
+              <span class="text-[13px] text-gray-400 font-medium">Search stores, products…</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- ── 1. STATS PANEL ── -->
+        <div class="px-5 -mt-4 relative z-20">
+          <div class="bg-white rounded-2xl border border-border shadow-sm px-2 py-3.5 grid grid-cols-4">
+            <button onclick="go('orders')" class="flex flex-col items-center gap-1 press">
+              <div class="w-9 h-9 rounded-xl bg-brand-blue/10 flex items-center justify-center mb-0.5">
+                <ion-icon name="bag-handle-outline" class="text-brand-blue" style="font-size:17px;"></ion-icon>
+              </div>
+              <p class="text-[16px] font-extrabold text-navy-dark leading-none tnum">12</p>
+              <p class="text-[9px] font-semibold text-gray-400 uppercase tracking-wide">Orders</p>
+            </button>
+            <button onclick="go('orders')" class="flex flex-col items-center gap-1 press border-l border-border">
+              <div class="w-9 h-9 rounded-xl bg-brand-green/10 flex items-center justify-center mb-0.5">
+                <ion-icon name="wallet-outline" class="text-brand-green" style="font-size:17px;"></ion-icon>
+              </div>
+              <p class="text-[16px] font-extrabold text-navy-dark leading-none tnum">84k</p>
+              <p class="text-[9px] font-semibold text-gray-400 uppercase tracking-wide">Spent</p>
+            </button>
+            <button onclick="openSettings('wishlist')" class="flex flex-col items-center gap-1 press border-l border-border">
+              <div class="w-9 h-9 rounded-xl bg-brand-red/10 flex items-center justify-center mb-0.5">
+                <ion-icon name="heart-outline" class="text-brand-red" style="font-size:17px;"></ion-icon>
+              </div>
+              <p id="home-wishlist-count" class="text-[16px] font-extrabold text-navy-dark leading-none tnum">0</p>
+              <p class="text-[9px] font-semibold text-gray-400 uppercase tracking-wide">Wishlist</p>
+            </button>
+            <button onclick="toast('Rewards — coming soon')" class="flex flex-col items-center gap-1 press border-l border-border">
+              <div class="w-9 h-9 rounded-xl bg-brand-orange/10 flex items-center justify-center mb-0.5">
+                <ion-icon name="star-outline" class="text-brand-orange" style="font-size:17px;"></ion-icon>
+              </div>
+              <p class="text-[16px] font-extrabold text-navy-dark leading-none tnum">1,240</p>
+              <p class="text-[9px] font-semibold text-gray-400 uppercase tracking-wide">Points</p>
+            </button>
+          </div>
+        </div>
+
+        <!-- ── ACTIVE ORDER TRACKER ── -->
+        <div id="home-tracker" class="px-5 mt-5"></div>
+
+        <!-- ── 2. BROWSE OPTIONS ── -->
+        <div class="px-5 mt-6">
+          <div class="grid grid-cols-3 gap-3">
+            <button onclick="go('stores')" class="press bg-white rounded-2xl border border-border p-3.5 flex flex-col items-center gap-2 card-hover">
+              <div class="w-12 h-12 rounded-2xl bg-brand-blue/10 flex items-center justify-center">
+                <ion-icon name="storefront-outline" class="text-brand-blue" style="font-size:24px;"></ion-icon>
+              </div>
+              <div class="text-center">
+                <p class="text-[12px] font-bold text-navy-dark leading-tight">All Stores</p>
+                <p class="text-[9.5px] text-gray-400 mt-0.5 tnum" id="opt-stores-count">0 shops</p>
+              </div>
+            </button>
+            <button onclick="go('products')" class="press bg-white rounded-2xl border border-border p-3.5 flex flex-col items-center gap-2 card-hover">
+              <div class="w-12 h-12 rounded-2xl bg-brand-purple/10 flex items-center justify-center">
+                <ion-icon name="cube-outline" class="text-brand-purple" style="font-size:24px;"></ion-icon>
+              </div>
+              <div class="text-center">
+                <p class="text-[12px] font-bold text-navy-dark leading-tight">All Products</p>
+                <p class="text-[9.5px] text-gray-400 mt-0.5 tnum" id="opt-products-count">0 items</p>
+              </div>
+            </button>
+            <button onclick="go('categories')" class="press bg-white rounded-2xl border border-border p-3.5 flex flex-col items-center gap-2 card-hover">
+              <div class="w-12 h-12 rounded-2xl bg-brand-green/10 flex items-center justify-center">
+                <ion-icon name="grid-outline" class="text-brand-green" style="font-size:24px;"></ion-icon>
+              </div>
+              <div class="text-center">
+                <p class="text-[12px] font-bold text-navy-dark leading-tight">Categories</p>
+                <p class="text-[9.5px] text-gray-400 mt-0.5 tnum" id="opt-cats-count">0 types</p>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- ── SHOP BY CATEGORY ── -->
+        <div class="mt-7">
+          <div class="flex items-center justify-between px-5 mb-3">
+            <h2 class="text-[16px] font-extrabold text-navy-dark leading-tight">Shop by category</h2>
+            <button onclick="go('categories')" class="text-[12px] text-brand-blue font-semibold press">See all</button>
+          </div>
+          <div id="home-catrow" class="flex gap-3 overflow-x-auto no-sb px-5 pb-1"></div>
+        </div>
+
+        <!-- ── DEALS FOR YOU ── -->
+        <div class="mt-7">
+          <div class="flex items-center justify-between px-5 mb-3">
+            <div>
+              <h2 class="text-[16px] font-extrabold text-navy-dark leading-tight flex items-center gap-2">
+                Deals for you
+                <span class="text-[9px] font-bold bg-brand-red/10 text-brand-red px-2 py-0.5 rounded-full uppercase tracking-wide">Sale</span>
+              </h2>
+              <p class="text-[10.5px] text-gray-400 mt-0.5">Limited-time discounts across stores</p>
+            </div>
+            <button onclick="go('products')" class="text-[12px] text-brand-blue font-semibold press">See all</button>
+          </div>
+          <div id="home-deals" class="flex gap-3 overflow-x-auto no-sb px-5 pb-1"></div>
+        </div>
+
+        <!-- ── 3. STORES NEAR YOU ── -->
+        <div class="mt-7">
+          <div class="flex items-center justify-between px-5 mb-3">
+            <div>
+              <h2 class="text-[16px] font-extrabold text-navy-dark leading-tight">Stores near you</h2>
+              <p class="text-[10.5px] text-gray-400 flex items-center gap-1 mt-0.5">
+                <ion-icon name="navigate-circle-outline" class="text-brand-green" style="font-size:13px;"></ion-icon>
+                Within 5 km of Gulberg III
+              </p>
+            </div>
+            <button onclick="go('stores')" class="text-[12px] text-brand-blue font-semibold press">See all</button>
+          </div>
+          <div id="home-near" class="flex gap-3 overflow-x-auto no-sb px-5 pb-1"></div>
+        </div>
+
+        <!-- ── 4. POPULAR SHOPS ── -->
+        <div class="mt-7">
+          <div class="flex items-center justify-between px-5 mb-3">
+            <div>
+              <h2 class="text-[16px] font-extrabold text-navy-dark leading-tight">Popular shops</h2>
+              <p class="text-[10.5px] text-gray-400 mt-0.5">Most followed on RetailOS</p>
+            </div>
+            <button onclick="go('stores')" class="text-[12px] text-brand-blue font-semibold press">See all</button>
+          </div>
+          <div id="home-popular" class="px-5 space-y-2.5"></div>
+        </div>
+
+        <div class="h-4"></div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════
+         PAGE: ALL STORES
+    ═══════════════════════════════════════════════════════ -->
+    <div id="page-stores" class="page">
+      <div class="screen">
+        <!-- Header -->
+        <div class="sticky top-0 z-40 bg-white border-b border-border px-4 pt-11 pb-3">
+          <div class="flex items-center gap-3 mb-3">
+            <button onclick="back()" class="w-9 h-9 rounded-xl bg-page border border-border flex items-center justify-center press">
+              <ion-icon name="chevron-back-outline" class="text-navy" style="font-size:17px;"></ion-icon>
+            </button>
+            <div class="flex-1 min-w-0">
+              <h1 class="text-[16px] font-extrabold text-navy-dark leading-tight">All Stores</h1>
+              <p class="text-[10.5px] text-gray-400 leading-tight" id="stores-sub">Browse businesses</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 bg-page rounded-xl px-3 py-2.5 border border-border">
+            <ion-icon name="search-outline" class="text-gray-400 shrink-0" style="font-size:16px;"></ion-icon>
+            <input id="stores-search" oninput="renderStores()" placeholder="Search stores…"
+              class="bg-transparent text-[13px] text-navy-dark placeholder-gray-400 flex-1 border-none">
+          </div>
+          <!-- Industry chips -->
+          <div id="stores-chips" class="flex gap-2 overflow-x-auto no-sb mt-3 pb-0.5"></div>
+        </div>
+        <div id="stores-list" class="p-4 grid grid-cols-2 gap-3"></div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════
+         PAGE: STORE DETAIL (each business = its own storefront)
+    ═══════════════════════════════════════════════════════ -->
+    <div id="page-store-detail" class="page">
+      <div class="screen" id="store-detail-screen"><!-- injected by JS --></div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════
+         PAGE: PRODUCT DETAIL (image slider + add to cart)
+    ═══════════════════════════════════════════════════════ -->
+    <div id="page-product-detail" class="page">
+      <div class="screen" id="pdp-screen" style="padding-bottom:96px;"><!-- injected by JS --></div>
+      <!-- sticky add-to-cart bar -->
+      <div id="pdp-bar" class="absolute left-0 right-0 bottom-0 z-50 bg-white border-t border-border px-4 pt-3"
+        style="padding-bottom:calc(14px + env(safe-area-inset-bottom));display:none;">
+        <div class="flex items-center gap-3">
+          <div class="flex items-center bg-page border border-border rounded-xl">
+            <button onclick="pdpStep(-1)" class="w-9 h-10 flex items-center justify-center text-navy press">
+              <ion-icon name="remove-outline" style="font-size:18px"></ion-icon>
+            </button>
+            <span id="pdp-qty" class="w-7 text-center text-[14px] font-extrabold text-navy-dark tnum">1</span>
+            <button onclick="pdpStep(1)" class="w-9 h-10 flex items-center justify-center text-navy press">
+              <ion-icon name="add-outline" style="font-size:18px"></ion-icon>
+            </button>
+          </div>
+          <button onclick="pdpAdd()" class="flex-1 h-11 bg-navy text-white rounded-xl text-[13.5px] font-bold flex items-center justify-center gap-2 press">
+            <ion-icon name="cart-outline" style="font-size:18px"></ion-icon>
+            Add to cart · <span id="pdp-bar-total" class="tnum">Rs.0</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════
+         PAGE: ALL PRODUCTS
+    ═══════════════════════════════════════════════════════ -->
+    <div id="page-products" class="page">
+      <div class="screen">
+        <div class="sticky top-0 z-40 bg-white border-b border-border px-4 pt-11 pb-3">
+          <div class="flex items-center gap-3 mb-3">
+            <button onclick="back()" class="w-9 h-9 rounded-xl bg-page border border-border flex items-center justify-center press">
+              <ion-icon name="chevron-back-outline" class="text-navy" style="font-size:17px;"></ion-icon>
+            </button>
+            <div class="flex-1 min-w-0">
+              <h1 class="text-[16px] font-extrabold text-navy-dark leading-tight">All Products</h1>
+              <p class="text-[10.5px] text-gray-400 leading-tight" id="products-sub">Across all stores</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 bg-page rounded-xl px-3 py-2.5 border border-border">
+            <ion-icon name="search-outline" class="text-gray-400 shrink-0" style="font-size:16px;"></ion-icon>
+            <input id="products-search" oninput="renderProducts()" placeholder="Search products…"
+              class="bg-transparent text-[13px] text-navy-dark placeholder-gray-400 flex-1 border-none">
+          </div>
+          <div id="products-chips" class="flex gap-2 overflow-x-auto no-sb mt-3 pb-0.5"></div>
+        </div>
+        <div id="products-grid" class="p-4 grid grid-cols-2 gap-3"></div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════
+         PAGE: ALL CATEGORIES (platform industries)
+    ═══════════════════════════════════════════════════════ -->
+    <div id="page-categories" class="page">
+      <div class="screen">
+        <div class="sticky top-0 z-40 bg-white border-b border-border px-4 pt-11 pb-3">
+          <div class="flex items-center gap-3 mb-3">
+            <button onclick="back()" class="w-9 h-9 rounded-xl bg-page border border-border flex items-center justify-center press">
+              <ion-icon name="chevron-back-outline" class="text-navy" style="font-size:17px;"></ion-icon>
+            </button>
+            <div class="flex-1 min-w-0">
+              <h1 class="text-[16px] font-extrabold text-navy-dark leading-tight">Categories</h1>
+              <p class="text-[10.5px] text-gray-400 leading-tight">Shop by category</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 bg-page rounded-xl px-3 py-2.5 border border-border">
+            <ion-icon name="search-outline" class="text-gray-400 shrink-0" style="font-size:16px;"></ion-icon>
+            <input id="cats-search" oninput="renderCategories()" placeholder="Search categories…"
+              class="bg-transparent text-[13px] text-navy-dark placeholder-gray-400 flex-1 border-none">
+          </div>
+        </div>
+        <div id="cats-grid" class="p-4 grid grid-cols-2 gap-3"></div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════
+         PAGE: CART  (stub — focus is Home)
+    ═══════════════════════════════════════════════════════ -->
+    <div id="page-cart" class="page">
+      <div class="screen">
+        <div class="px-5 pt-12 pb-3">
+          <h1 class="text-[20px] font-extrabold text-navy-dark">Cart</h1>
+          <p class="text-[12px] text-gray-400 mt-0.5">Items you're ready to buy, grouped by store</p>
+        </div>
+        <div id="cart-body" class="px-4"></div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════
+         PAGE: PAY  (stub)
+    ═══════════════════════════════════════════════════════ -->
+    <div id="page-pay" class="page">
+      <div class="screen">
+        <div class="px-5 pt-12 pb-4">
+          <h1 class="text-[20px] font-extrabold text-navy-dark">Pay</h1>
+          <p class="text-[12px] text-gray-400 mt-0.5">Scan a store QR to pay in seconds</p>
+        </div>
+        <div class="px-5">
+          <div class="bg-gradient-to-br from-navy-dark to-navy rounded-3xl p-8 flex flex-col items-center text-center relative overflow-hidden">
+            <div class="absolute inset-0 opacity-10" style="background:radial-gradient(circle at 30% 20%,#fff,transparent 60%)"></div>
+            <div class="relative z-10 w-24 h-24 rounded-3xl bg-white/10 border border-white/20 flex items-center justify-center mb-5">
+              <ion-icon name="qr-code-outline" class="text-white" style="font-size:52px;"></ion-icon>
+            </div>
+            <p class="relative z-10 text-white font-bold text-[15px]">Scan &amp; Pay</p>
+            <p class="relative z-10 text-white/50 text-[12px] mt-1 leading-relaxed">Point your camera at the register QR at checkout.</p>
+            <button onclick="toast('Camera scanner — coming soon')" class="relative z-10 mt-5 bg-white text-navy text-[13px] font-bold px-6 py-3 rounded-xl press">Open scanner</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════
+         PAGE: ORDERS  (stub)
+    ═══════════════════════════════════════════════════════ -->
+    <div id="page-orders" class="page">
+      <div class="screen">
+        <div class="px-5 pt-12 pb-4">
+          <h1 class="text-[20px] font-extrabold text-navy-dark">Orders</h1>
+          <p class="text-[12px] text-gray-400 mt-0.5">Your online &amp; in-store purchases</p>
+        </div>
+        <div id="orders-list" class="px-5 space-y-2.5"></div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════
+         PAGE: SETTINGS  (stub)
+    ═══════════════════════════════════════════════════════ -->
+    <div id="page-settings" class="page">
+      <div class="screen">
+        <div class="bg-gradient-to-br from-navy-dark to-navy px-5 pt-12 pb-6">
+          <div class="flex items-center gap-3.5">
+            <div id="set-avatar" class="w-14 h-14 rounded-full bg-white/15 border border-white/20 flex items-center justify-center text-white font-extrabold text-[18px]">AK</div>
+            <div class="flex-1 min-w-0">
+              <p id="set-name" class="text-white font-extrabold text-[16px] leading-tight truncate">Ayesha Khan</p>
+              <p id="set-email" class="text-white/50 text-[12px] leading-tight truncate">ayesha.k@gmail.com</p>
+            </div>
+            <button onclick="openSettings('profile')" class="w-9 h-9 rounded-xl bg-white/10 border border-white/15 flex items-center justify-center press">
+              <ion-icon name="create-outline" class="text-white" style="font-size:17px;"></ion-icon>
+            </button>
+          </div>
+        </div>
+        <div class="p-4 space-y-2.5" id="settings-list"></div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════
+         PAGE: SETTINGS DETAIL (reusable sub-page)
+    ═══════════════════════════════════════════════════════ -->
+    <div id="page-settings-detail" class="page">
+      <div class="screen">
+        <div class="sticky top-0 z-40 bg-white border-b border-border px-4 pt-11 pb-3 flex items-center gap-3">
+          <button onclick="back()" class="w-9 h-9 rounded-xl bg-page border border-border flex items-center justify-center press shrink-0">
+            <ion-icon name="chevron-back-outline" class="text-navy" style="font-size:17px"></ion-icon>
+          </button>
+          <div class="flex-1 min-w-0">
+            <h1 id="sd-title" class="text-[16px] font-extrabold text-navy-dark leading-tight truncate">Settings</h1>
+            <p id="sd-sub" class="text-[10.5px] text-gray-400 leading-tight truncate"></p>
+          </div>
+          <button id="sd-action" class="hidden shrink-0 text-[12px] font-bold text-brand-blue press"></button>
+        </div>
+        <div id="settings-detail-body" class="p-4"></div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════
+         PAGE: ORDER TRACKING (full-screen)
+    ═══════════════════════════════════════════════════════ -->
+    <div id="page-order-track" class="page">
+      <div class="screen">
+        <div class="sticky top-0 z-40 bg-white border-b border-border px-4 pt-11 pb-3 flex items-center gap-3">
+          <button onclick="back()" class="w-9 h-9 rounded-xl bg-page border border-border flex items-center justify-center press shrink-0">
+            <ion-icon name="chevron-back-outline" class="text-navy" style="font-size:17px"></ion-icon>
+          </button>
+          <div class="flex-1 min-w-0">
+            <h1 class="text-[16px] font-extrabold text-navy-dark leading-tight">Track order</h1>
+            <p id="ot-sub" class="text-[10.5px] text-gray-400 leading-tight truncate"></p>
+          </div>
+        </div>
+        <div id="order-track-body" class="p-4"></div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════
+         PAGE: CHECKOUT (full-screen, multi-step)
+    ═══════════════════════════════════════════════════════ -->
+    <div id="page-checkout" class="page">
+      <div class="screen">
+        <div class="sticky top-0 z-40 bg-white border-b border-border px-4 pt-11 pb-3 flex items-center gap-3">
+          <button onclick="coBack()" class="w-9 h-9 rounded-xl bg-page border border-border flex items-center justify-center press shrink-0">
+            <ion-icon name="chevron-back-outline" class="text-navy" style="font-size:17px"></ion-icon>
+          </button>
+          <div class="flex-1 min-w-0">
+            <h1 class="text-[16px] font-extrabold text-navy-dark leading-tight">Checkout</h1>
+            <p class="text-[10.5px] text-gray-400 leading-tight">Secure checkout</p>
+          </div>
+          <ion-icon name="lock-closed-outline" class="text-gray-300" style="font-size:18px"></ion-icon>
+        </div>
+        <div id="checkout-body" class="p-4"></div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════
+         PAGE: ORDER SUCCESS (full-screen confirmation)
+    ═══════════════════════════════════════════════════════ -->
+    <div id="page-order-success" class="page">
+      <div class="screen">
+        <div id="order-success-body" class="px-4 pb-6"></div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════
+         BOTTOM TAB BAR
+    ═══════════════════════════════════════════════════════ -->
+    <nav id="tabbar">
+      <div class="tab active" data-tab="home" onclick="go('home')">
+        <ion-icon name="home-outline"></ion-icon><span>Home</span>
+      </div>
+      <div class="tab relative" data-tab="cart" onclick="go('cart')">
+        <span id="cart-badge" class="absolute -top-0.5 right-[26%] min-w-[16px] h-[16px] px-1 bg-brand-red text-white text-[9px] font-bold rounded-full items-center justify-center" style="display:none;"></span>
+        <ion-icon name="cart-outline"></ion-icon><span>Cart</span>
+      </div>
+      <div class="tab tab-pay" data-tab="pay" onclick="go('pay')">
+        <div class="pay-orb"><ion-icon name="qr-code-outline"></ion-icon></div>
+      </div>
+      <div class="tab" data-tab="orders" onclick="go('orders')">
+        <ion-icon name="receipt-outline"></ion-icon><span>Orders</span>
+      </div>
+      <div class="tab" data-tab="settings" onclick="go('settings')">
+        <ion-icon name="settings-outline"></ion-icon><span>Settings</span>
+      </div>
+    </nav>
+
+    <!-- Bottom sheet -->
+    <div id="sheet-backdrop" onclick="closeSheet()"></div>
+    <div id="sheet"><div id="sheet-body"></div></div>
+
+    <!-- Toast -->
+    <div id="toast-wrap"></div>
+
+  </div><!-- /device -->
+
+  <script>
+    /* ══════════════════════════════════════════════════════════
+       DATA — marketplace of businesses (each is its own storefront)
+       Aligned with the RetailOS portal ecosystem.
+    ══════════════════════════════════════════════════════════ */
+
+    // icon per category name (ionicons)
+    const CAT_ICON = {
+      'Grocery & Supermarket': 'basket-outline',
+      'Fashion & Apparel': 'shirt-outline',
+      'Electronics': 'hardware-chip-outline',
+      'Mobile & Accessories': 'phone-portrait-outline',
+      'Pharmacy & Health': 'medkit-outline',
+      'Home & Living': 'bed-outline',
+      'Beauty & Personal Care': 'sparkles-outline',
+      'Bakery & Sweets': 'cafe-outline',
+      'Beverages': 'wine-outline',
+      'Snacks': 'fast-food-outline',
+      'Dairy': 'nutrition-outline',
+      'Cleaning': 'sparkles-outline',
+      'Hair Care': 'cut-outline',
+      'Fruits & Veg': 'leaf-outline',
+      'Menswear': 'man-outline',
+      'Womenswear': 'woman-outline',
+      'Footwear': 'footsteps-outline',
+      'Accessories': 'watch-outline',
+      'Laptops': 'laptop-outline',
+      'Audio': 'headset-outline',
+      'Smartphones': 'phone-portrait-outline',
+      'Wellness': 'fitness-outline',
+      'Baby Care': 'happy-outline',
+      'Kitchen': 'restaurant-outline',
+      'Decor': 'color-palette-outline',
+      'Skincare': 'water-outline',
+      'Makeup': 'brush-outline',
+      'Cakes': 'gift-outline',
+      'Breads': 'cafe-outline',
+      'Dairy & Eggs': 'nutrition-outline',
+      'Dairy': 'nutrition-outline',
+      'Pantry': 'basket-outline',
+      'Bakery': 'cafe-outline',
+      'Computers': 'laptop-outline',
+      'Mobiles': 'phone-portrait-outline',
+      'Appliances': 'tv-outline',
+      'Medicine': 'medkit-outline',
+      'Bedding': 'bed-outline',
+      'Storage': 'file-tray-stacked-outline'
+    };
+
+    // P(name, category, sub-category, price, unit, imgKeyword)
+    const P = (name, cat, sub, price, unit, img) =>
+      ({ name, cat, sub, price, unit: unit || 'each', img: img || '' });
+
+    const BUSINESSES = [
+      {
+        id: 'alfatah', name: 'Al Fatah', initials: 'AF', color: '#3366cc',
+        industry: 'Grocery & Supermarket', rating: 4.8, followers: 24800, distanceKm: 1.2,
+        tagline: 'Pakistan’s favourite superstore', stores: 6,
+        cats: [
+          { name: 'Fruits & Veg', subs: ['Fresh Fruit', 'Vegetables'] },
+          { name: 'Dairy & Eggs', subs: ['Milk', 'Eggs', 'Butter & Cheese'] },
+          { name: 'Beverages', subs: ['Soft Drinks', 'Tea & Coffee'] },
+          { name: 'Snacks', subs: ['Chips', 'Biscuits'] },
+          { name: 'Pantry', subs: ['Rice & Grains'] },
+          { name: 'Cleaning', subs: ['Laundry'] }
+        ],
+        products: [
+          P('Fresh Bananas', 'Fruits & Veg', 'Fresh Fruit', 220, 'dozen', 'bananas'),
+          P('Red Apples', 'Fruits & Veg', 'Fresh Fruit', 420, 'kg', 'apples'),
+          P('Nestlé Milk Pak 1L', 'Dairy & Eggs', 'Milk', 320, 'each', 'milk,carton'),
+          P('Farm Eggs (Tray of 30)', 'Dairy & Eggs', 'Eggs', 480, 'tray', 'eggs'),
+          P('Coca-Cola 1.5L', 'Beverages', 'Soft Drinks', 180, 'each', 'cola,bottle'),
+          P('Nescafé Classic 100g', 'Beverages', 'Tea & Coffee', 1180, 'each', 'coffee,jar'),
+          P('Lays Masala 80g', 'Snacks', 'Chips', 120, 'each', 'potato,chips'),
+          P('Basmati Rice 5kg', 'Pantry', 'Rice & Grains', 2450, 'bag', 'rice,bag'),
+          P('Surf Excel 1kg', 'Cleaning', 'Laundry', 640, 'each', 'detergent')
+        ]
+      },
+      {
+        id: 'metro', name: 'Metro Karachi', initials: 'MK', color: '#2dd36f',
+        industry: 'Grocery & Supermarket', rating: 4.6, followers: 18200, distanceKm: 3.4,
+        tagline: 'Wholesale & retail, all under one roof', stores: 4,
+        cats: [
+          { name: 'Pantry', subs: ['Sugar & Flour', 'Cooking Oil'] },
+          { name: 'Beverages', subs: ['Soft Drinks', 'Tea & Coffee'] },
+          { name: 'Cleaning', subs: ['Dishwashing'] },
+          { name: 'Snacks', subs: ['Biscuits'] }
+        ],
+        products: [
+          P('Sugar 10kg', 'Pantry', 'Sugar & Flour', 1650, 'bag', 'sugar'),
+          P('Cooking Oil 5L', 'Pantry', 'Cooking Oil', 2890, 'can', 'cooking,oil'),
+          P('Sprite 2.25L', 'Beverages', 'Soft Drinks', 260, 'each', 'soda,bottle'),
+          P('Tea Whitener 1kg', 'Beverages', 'Tea & Coffee', 980, 'each', 'tea,powder'),
+          P('Dish Wash Liquid 1L', 'Cleaning', 'Dishwashing', 420, 'each', 'dish,soap'),
+          P('Prince Biscuits (Pack of 12)', 'Snacks', 'Biscuits', 300, 'pack', 'biscuits')
+        ]
+      },
+      {
+        id: 'khaadi', name: 'Khaadi Flagship', initials: 'KH', color: '#7c4dff',
+        industry: 'Fashion & Apparel', rating: 4.9, followers: 41500, distanceKm: 2.1,
+        tagline: 'Handcrafted premium fabrics', stores: 3,
+        cats: [
+          { name: 'Womenswear', subs: ['Unstitched', 'Stitched', 'Dupattas'] },
+          { name: 'Menswear', subs: ['Kurta', 'Shalwar Kameez'] },
+          { name: 'Footwear', subs: ['Khussa'] },
+          { name: 'Accessories', subs: ['Bags'] }
+        ],
+        products: [
+          P('Printed Lawn 3-Piece', 'Womenswear', 'Unstitched', 6490, 'suit', 'fabric,textile'),
+          P('Embroidered Kurta', 'Womenswear', 'Stitched', 3990, 'each', 'kurta,dress'),
+          P('Silk Dupatta', 'Womenswear', 'Dupattas', 1890, 'each', 'scarf,silk'),
+          P('Men’s Shalwar Kameez', 'Menswear', 'Shalwar Kameez', 5490, 'each', 'mens,clothing'),
+          P('Cotton Kurta', 'Menswear', 'Kurta', 2990, 'each', 'shirt,men'),
+          P('Leather Peshawari', 'Footwear', 'Khussa', 4990, 'pair', 'leather,sandals'),
+          P('Woven Clutch Bag', 'Accessories', 'Bags', 2290, 'each', 'handbag,clutch')
+        ]
+      },
+      {
+        id: 'hyperstar', name: 'Hyperstar Clifton', initials: 'HS', color: '#ff9800',
+        industry: 'Electronics', rating: 4.5, followers: 15600, distanceKm: 4.7,
+        tagline: 'Big brands, bigger savings', stores: 2,
+        cats: [
+          { name: 'Computers', subs: ['Laptops'] },
+          { name: 'Audio', subs: ['Headphones', 'Power Banks'] },
+          { name: 'Mobiles', subs: ['Smartphones'] },
+          { name: 'Appliances', subs: ['Kitchen', 'Television'] }
+        ],
+        products: [
+          P('HP Pavilion 15 i5', 'Computers', 'Laptops', 154900, 'each', 'laptop'),
+          P('Sony WH-1000XM5', 'Audio', 'Headphones', 89900, 'each', 'headphones'),
+          P('Anker PowerBank 20K', 'Audio', 'Power Banks', 6490, 'each', 'powerbank'),
+          P('Samsung A55 5G', 'Mobiles', 'Smartphones', 119900, 'each', 'smartphone'),
+          P('Air Fryer 5.5L', 'Appliances', 'Kitchen', 22900, 'each', 'airfryer,kitchen'),
+          P('Smart LED 43"', 'Appliances', 'Television', 74900, 'each', 'television')
+        ]
+      },
+      {
+        id: 'naheed', name: 'Naheed Supermarket', initials: 'NS', color: '#eb445a',
+        industry: 'Grocery & Supermarket', rating: 4.4, followers: 9800, distanceKm: 2.9,
+        tagline: 'Your neighbourhood grocer', stores: 2,
+        cats: [
+          { name: 'Fruits & Veg', subs: ['Fresh Fruit'] },
+          { name: 'Dairy', subs: ['Milk & Yogurt', 'Butter & Cheese'] },
+          { name: 'Bakery', subs: ['Cakes', 'Bread'] },
+          { name: 'Snacks', subs: ['Nuts'] }
+        ],
+        products: [
+          P('Fresh Apples 1kg', 'Fruits & Veg', 'Fresh Fruit', 420, 'kg', 'apples,fruit'),
+          P('Yogurt 1kg', 'Dairy', 'Milk & Yogurt', 360, 'each', 'yogurt'),
+          P('Butter 200g', 'Dairy', 'Butter & Cheese', 540, 'each', 'butter'),
+          P('Chocolate Cake Slice', 'Bakery', 'Cakes', 280, 'each', 'chocolate,cake'),
+          P('Whole Wheat Bread', 'Bakery', 'Bread', 190, 'each', 'bread,loaf'),
+          P('Salted Cashews 250g', 'Snacks', 'Nuts', 890, 'each', 'cashew,nuts')
+        ]
+      },
+      {
+        id: 'jalalsons', name: 'Jalal Sons', initials: 'JS', color: '#1a2d6b',
+        industry: 'Bakery & Sweets', rating: 4.7, followers: 13400, distanceKm: 1.8,
+        tagline: 'Fresh bakes since 1976', stores: 5,
+        cats: [
+          { name: 'Cakes', subs: ['Whole Cakes', 'Slices & Jars'] },
+          { name: 'Breads', subs: ['Pastries', 'Savoury'] },
+          { name: 'Snacks', subs: ['Patties'] },
+          { name: 'Beverages', subs: ['Juices'] }
+        ],
+        products: [
+          P('Chocolate Fudge Cake 1lb', 'Cakes', 'Whole Cakes', 1450, 'lb', 'chocolate,cake'),
+          P('Red Velvet Jar', 'Cakes', 'Slices & Jars', 640, 'each', 'dessert,jar'),
+          P('Croissant (Pack of 4)', 'Breads', 'Pastries', 520, 'pack', 'croissant'),
+          P('Garlic Bread', 'Breads', 'Savoury', 380, 'each', 'garlic,bread'),
+          P('Chicken Patties (6)', 'Snacks', 'Patties', 600, 'box', 'pastry,snack'),
+          P('Fresh Orange Juice 500ml', 'Beverages', 'Juices', 320, 'each', 'orange,juice'),
+          P('Tea-Time Party Box', 'Snacks', 'Patties', 1490, 'box', 'party,platter,snacks')
+        ]
+      },
+      {
+        id: 'watsons', name: 'Watsons Pharmacy', initials: 'WP', color: '#2dd36f',
+        industry: 'Pharmacy & Health', rating: 4.6, followers: 7600, distanceKm: 3.1,
+        tagline: 'Health & wellness essentials', stores: 3,
+        cats: [
+          { name: 'Medicine', subs: ['Pain Relief', 'First Aid'] },
+          { name: 'Wellness', subs: ['Vitamins'] },
+          { name: 'Skincare', subs: ['Moisturisers'] },
+          { name: 'Baby Care', subs: ['Wipes & Diapers'] }
+        ],
+        products: [
+          P('Panadol Extra (20 tabs)', 'Medicine', 'Pain Relief', 260, 'pack', 'medicine,pills'),
+          P('Digital Thermometer', 'Medicine', 'First Aid', 890, 'each', 'thermometer'),
+          P('Hand Sanitiser 500ml', 'Medicine', 'First Aid', 420, 'each', 'sanitiser'),
+          P('Vitamin C 1000mg', 'Wellness', 'Vitamins', 1290, 'bottle', 'vitamins,supplement'),
+          P('CeraVe Moisturiser', 'Skincare', 'Moisturisers', 3490, 'each', 'skincare,cream'),
+          P('Baby Wipes (72)', 'Baby Care', 'Wipes & Diapers', 640, 'pack', 'baby,wipes')
+        ]
+      },
+      {
+        id: 'homebox', name: 'HomeBox Living', initials: 'HB', color: '#7c4dff',
+        industry: 'Home & Living', rating: 4.3, followers: 5400, distanceKm: 4.9,
+        tagline: 'Everything for a beautiful home', stores: 1,
+        cats: [
+          { name: 'Kitchen', subs: ['Cookware', 'Dinnerware'] },
+          { name: 'Decor', subs: ['Candles', 'Wall Decor'] },
+          { name: 'Bedding', subs: ['Bedsheets'] },
+          { name: 'Storage', subs: ['Organisers'] }
+        ],
+        products: [
+          P('Non-stick Pan Set', 'Kitchen', 'Cookware', 4890, 'set', 'cookware,pan'),
+          P('Ceramic Dinner Set (18pc)', 'Kitchen', 'Dinnerware', 7490, 'set', 'plates,dinnerware'),
+          P('Scented Candle Trio', 'Decor', 'Candles', 1290, 'set', 'candles'),
+          P('Wall Clock Minimal', 'Decor', 'Wall Decor', 1690, 'each', 'wall,clock'),
+          P('Cotton Bedsheet Queen', 'Bedding', 'Bedsheets', 3990, 'each', 'bedsheet,linen'),
+          P('Storage Baskets (3)', 'Storage', 'Organisers', 2290, 'set', 'basket,storage')
+        ]
+      }
+    ];
+
+    // stable product id + fast lookup (pid → { p, b })
+    const PID = {};
+    BUSINESSES.forEach(b => b.products.forEach((p, i) => {
+      p.pid = b.id + '-' + i; p.bizId = b.id;
+      PID[p.pid] = { p, b };
+    }));
+
+    /* ── Product metadata (mirrors what the owner/warehouse portal captures
+          when adding a product: type, variant options, bundle contents,
+          description, and specification details). Keyed by product name;
+          anything not listed falls back to sensible generated defaults. ── */
+    const PRODUCT_META = {
+      'Printed Lawn 3-Piece': { type: 'variant', desc: 'Premium unstitched lawn suit with intricate digital prints — includes shirt, trouser and dupatta. Perfect for summer stitching.', options: [{ name: 'Size', values: ['S', 'M', 'L', 'XL'] }], specs: { Material: '100% Lawn Cotton', Includes: 'Shirt · Trouser · Dupatta', 'Country of Origin': 'Pakistan', Care: 'Dry clean recommended' } },
+      'Embroidered Kurta': { type: 'variant', desc: 'Ready-to-wear embroidered kurta with a regular fit, crafted from breathable cotton blend.', options: [{ name: 'Size', values: ['XS', 'S', 'M', 'L', 'XL'] }, { name: 'Colour', values: ['Ivory', 'Black', 'Teal'] }], specs: { Material: 'Cotton blend', Fit: 'Regular', 'Country of Origin': 'Pakistan', Care: 'Machine wash cold' } },
+      'Silk Dupatta': { type: 'variant', desc: 'Lightweight pure-silk dupatta with a soft drape and finished edges.', options: [{ name: 'Colour', values: ['Maroon', 'Emerald', 'Gold', 'Navy'] }], specs: { Material: '100% Silk', Length: '2.5 m', 'Country of Origin': 'Pakistan' } },
+      'Men’s Shalwar Kameez': { type: 'variant', desc: 'Classic stitched shalwar kameez in a tailored fit — an everyday staple.', options: [{ name: 'Size', values: ['S', 'M', 'L', 'XL', 'XXL'] }, { name: 'Colour', values: ['White', 'Grey', 'Beige'] }], specs: { Material: 'Wash & wear', Fit: 'Tailored', 'Country of Origin': 'Pakistan' } },
+      'Cotton Kurta': { type: 'variant', desc: 'Soft cotton kurta for daily comfort.', options: [{ name: 'Size', values: ['S', 'M', 'L', 'XL'] }], specs: { Material: '100% Cotton', Fit: 'Relaxed', 'Country of Origin': 'Pakistan' } },
+      'Leather Peshawari': { type: 'variant', desc: 'Handcrafted genuine-leather Peshawari chappal with a cushioned sole.', options: [{ name: 'Size', values: ['6', '7', '8', '9', '10', '11'] }], specs: { Material: 'Genuine leather', Sole: 'Rubber grip', 'Country of Origin': 'Pakistan', Warranty: '30-day stitching warranty' } },
+      'Woven Clutch Bag': { type: 'variant', desc: 'Hand-woven clutch with detachable strap and magnetic clasp.', options: [{ name: 'Colour', values: ['Tan', 'Black', 'Rust'] }], specs: { Material: 'Woven jute + faux leather', Dimensions: '24 × 14 cm', 'Country of Origin': 'Pakistan' } },
+      'HP Pavilion 15 i5': { type: 'variant', desc: '15.6-inch full-HD laptop powered by 12th-gen Intel Core i5 — built for work and everyday multitasking.', options: [{ name: 'RAM', values: ['8GB', '16GB'] }, { name: 'Storage', values: ['512GB SSD', '1TB SSD'] }], specs: { Processor: 'Intel Core i5-1335U', Display: '15.6" FHD IPS', Graphics: 'Intel Iris Xe', Warranty: '1-year official', 'Country of Origin': 'China' } },
+      'Sony WH-1000XM5': { type: 'variant', desc: 'Industry-leading noise-cancelling over-ear headphones with 30-hour battery life.', options: [{ name: 'Colour', values: ['Black', 'Silver'] }], specs: { Type: 'Over-ear, ANC', Battery: 'Up to 30 hours', Connectivity: 'Bluetooth 5.2', Warranty: '1-year official' } },
+      'Anker PowerBank 20K': { desc: '20,000mAh power bank with fast charging and dual USB output.', specs: { Capacity: '20,000 mAh', Output: 'USB-C PD 20W', Warranty: '18-month warranty' } },
+      'Samsung A55 5G': { type: 'variant', desc: '6.6-inch Super AMOLED 5G smartphone with a 50MP triple camera and all-day battery.', options: [{ name: 'Storage', values: ['128GB', '256GB'] }, { name: 'Colour', values: ['Awesome Navy', 'Lilac', 'Lemon'] }], specs: { Display: '6.6" Super AMOLED 120Hz', Battery: '5000 mAh', Camera: '50MP + 12MP + 5MP', Warranty: '1-year official' } },
+      'Air Fryer 5.5L': { desc: 'Family-size 5.5L air fryer with rapid-air technology and digital controls.', specs: { Capacity: '5.5 L', Power: '1700 W', Warranty: '1-year warranty', 'Country of Origin': 'China' } },
+      'Smart LED 43"': { type: 'variant', desc: '43-inch Full-HD Smart LED TV with built-in streaming apps.', options: [{ name: 'Size', values: ['43"', '50"', '55"'] }], specs: { Resolution: '1920 × 1080 FHD', 'Smart OS': 'Android TV', Warranty: '2-year panel warranty' } },
+      'Basmati Rice 5kg': { desc: 'Aged extra-long-grain basmati rice — aromatic and fluffy every time.', specs: { Weight: '5 kg', Type: 'Extra long grain', 'Country of Origin': 'Pakistan', Storage: 'Store in a cool, dry place' } },
+      'Coca-Cola 1.5L': { desc: 'Chilled classic Coca-Cola, 1.5-litre bottle.', specs: { Volume: '1.5 L', Type: 'Carbonated soft drink', Storage: 'Best served chilled' } },
+      'Nestlé Milk Pak 1L': { desc: 'UHT full-cream milk, 1-litre pack.', specs: { Volume: '1 L', Type: 'UHT full cream', Storage: 'Refrigerate after opening', Shelf: '6 months (sealed)' } },
+      'Farm Eggs (Tray of 30)': { desc: 'Farm-fresh eggs, tray of 30.', specs: { Quantity: '30 eggs', Grade: 'Medium', Storage: 'Refrigerate' } },
+      'Lays Masala 80g': { desc: 'Crispy potato chips, masala flavour.', specs: { Weight: '80 g', Flavour: 'Masala', Storage: 'Store in a dry place' } },
+      'Surf Excel 1kg': { desc: 'High-performance detergent powder for tough stains.', specs: { Weight: '1 kg', Type: 'Detergent powder', Usage: 'Machine & hand wash' } },
+      'Nescafé Classic 100g': { desc: 'Rich instant coffee, 100g jar.', specs: { Weight: '100 g', Type: 'Instant coffee', 'Country of Origin': 'Pakistan' } },
+      'CeraVe Moisturiser': { desc: 'Daily moisturising cream with hyaluronic acid and ceramides.', specs: { Volume: '340 g', 'Skin Type': 'Normal to dry', Ingredients: 'Hyaluronic acid, 3 ceramides', 'Country of Origin': 'USA' } },
+      'Vitamin C 1000mg': { desc: 'High-strength Vitamin C supplement to support immunity.', specs: { Count: '60 tablets', Dosage: '1000 mg', Storage: 'Store below 30°C' } },
+      'Panadol Extra (20 tabs)': { desc: 'Fast pain relief with paracetamol and caffeine.', specs: { Count: '20 tablets', 'Active Ingredient': 'Paracetamol 500mg + Caffeine', Storage: 'Store below 30°C' } },
+      'Baby Wipes (72)': { desc: 'Gentle, alcohol-free baby wipes.', specs: { Count: '72 wipes', Feature: 'Alcohol-free, aloe vera', 'Skin Type': 'Sensitive' } },
+      'Non-stick Pan Set': { desc: 'Durable non-stick cookware set with heat-resistant handles.', specs: { Includes: '2 pans + lid', Material: 'Aluminium, non-stick coating', Compatibility: 'Gas & induction', Warranty: '6-month warranty' } },
+      'Ceramic Dinner Set (18pc)': { desc: '18-piece ceramic dinner set for six.', specs: { Pieces: '18 (serves 6)', Material: 'Ceramic', 'Microwave Safe': 'Yes', 'Dishwasher Safe': 'Yes' } },
+      'Cotton Bedsheet Queen': { type: 'variant', desc: 'Soft cotton queen bedsheet with two pillowcases.', options: [{ name: 'Colour', values: ['White', 'Grey', 'Blue', 'Blush'] }], specs: { Size: 'Queen (90 × 100 in)', Material: '100% Cotton', Includes: '1 sheet + 2 pillowcases' } },
+      'Chocolate Fudge Cake 1lb': { desc: 'Rich, moist chocolate fudge cake — freshly baked daily.', specs: { Weight: '1 lb', Flavour: 'Chocolate fudge', 'Best Before': '2 days', Storage: 'Refrigerate' } },
+      'Tea-Time Party Box': {
+        type: 'bundle',
+        desc: 'A ready-made tea-time platter — everything you need for guests, bundled at a saving.',
+        bundle: [
+          { name: 'Croissant (Pack of 4)', qty: 1 },
+          { name: 'Chicken Patties (6)', qty: 1 },
+          { name: 'Fresh Orange Juice 500ml', qty: 2 }
+        ],
+        specs: { Serves: '3–4 people', 'Best Before': 'Same day', Storage: 'Consume fresh' }
+      }
+    };
+
+    function productMeta(p) {
+      const m = PRODUCT_META[p.name] || {};
+      return { type: m.type || 'simple', desc: m.desc || '', options: m.options || [], bundle: m.bundle || [], specs: m.specs || {} };
+    }
+    // derived (auto-generated) attributes so every product page is rich
+    const UOM = { each: 'Piece', kg: 'Kg', dozen: 'Dozen', tray: 'Tray', pack: 'Pack', box: 'Box', bag: 'Bag', can: 'Can', bottle: 'Bottle', pair: 'Pair', suit: 'Suit', lb: 'Pound', set: 'Set' };
+    function uomLabel(p) { return UOM[p.unit] || 'Piece'; }
+    function skuOf(p) {
+      const parts = p.name.replace(/[^a-zA-Z0-9 ]/g, '').split(/\s+/).filter(Boolean).slice(0, 2).map(w => w.slice(0, 3).toUpperCase());
+      return (parts.join('-') || 'SKU') + '-' + (Math.abs(hashStr(p.pid)) % 9000 + 1000);
+    }
+    function barcodeOf(p) { let n = Math.abs(hashStr(p.name || p.pid)).toString().repeat(3); return '8964' + n.slice(0, 9); }
+    function stockOf(p) { return Math.abs(hashStr(p.pid + 'stk')) % 220 + 6; } // 6..225
+
+    /* ── Navigation state ── */
+    const TABS = ['home', 'cart', 'pay', 'orders', 'settings'];
+    let navStack = ['home'];
+
+    function currentPage() { return navStack[navStack.length - 1]; }
+
+    function setActive(page) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      const el = document.getElementById('page-' + page);
+      if (el) el.classList.add('active');
+      // scroll the page's screen to top
+      const scr = el && el.querySelector('.screen');
+      if (scr) scr.scrollTop = 0;
+      // full-screen drill-in pages hide the tab bar
+      document.getElementById('tabbar').style.display = (page === 'product-detail' || page === 'order-track' || page === 'checkout' || page === 'order-success') ? 'none' : 'flex';
+      if (page !== 'product-detail' && pdpAutoTimer) { clearInterval(pdpAutoTimer); pdpAutoTimer = null; }
+      // sync tab bar highlight to the root tab
+      const rootTab = TABS.includes(page) ? page : navStack.find(p => TABS.includes(p)) || 'home';
+      document.querySelectorAll('.tab').forEach(t =>
+        t.classList.toggle('active', t.dataset.tab === rootTab));
+    }
+
+    // go to a page. Tabs reset the stack; sub-pages push onto it.
+    function go(page) {
+      if (TABS.includes(page)) {
+        navStack = [page];
+      } else if (currentPage() !== page) {
+        navStack.push(page);
+      }
+      if (page === 'cart') renderCart();
+      if (page === 'checkout') renderCheckout();
+      if (page === 'order-success') renderOrderSuccess();
+      setActive(page);
+    }
+
+    function back() {
+      if (navStack.length > 1) navStack.pop();
+      setActive(currentPage());
+    }
+
+    /* ── Helpers ── */
+    function money(n) { return 'Rs.' + n.toLocaleString('en-PK'); }
+    function fFollowers(n) { return n >= 1000 ? (n / 1000).toFixed(1).replace('.0', '') + 'k' : '' + n; }
+    function allProducts() {
+      const out = [];
+      BUSINESSES.forEach(b => b.products.forEach(p => out.push({ ...p, biz: b })));
+      return out;
+    }
+    function platformCategories() {
+      const map = {};
+      BUSINESSES.forEach(b => {
+        b.products.forEach(p => {
+          if (!map[p.cat]) map[p.cat] = { name: p.cat, products: 0, bizIds: new Set() };
+          map[p.cat].products++;
+          map[p.cat].bizIds.add(b.id);
+        });
+      });
+      return Object.values(map)
+        .map(c => ({ name: c.name, products: c.products, stores: c.bizIds.size }))
+        .sort((a, b) => b.products - a.products);
+    }
+    function icon(cat) { return CAT_ICON[cat] || 'pricetag-outline'; }
+    function hashStr(s) { let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return h; }
+    // Real product photo (keyword-based) with a stable seed; falls back to an icon tile if offline.
+    function imgKeyword(p) {
+      let kw = p.img;
+      if (!kw) {
+        kw = p.name.replace(/\(.*?\)/g, '')
+          .replace(/\b(\d+[a-z]*|kg|g|ml|l|lb|mg|pack|tray|box|set|pair|suit|can|bag|bottle|dozen|each|pcs?|classic|extra|5g)\b/gi, '')
+          .replace(/[^a-zA-Z ]/g, '').trim().split(/\s+/).slice(0, 2).join(',');
+      }
+      return kw || p.cat;
+    }
+    function flickr(kw, size, lock) {
+      return 'https://loremflickr.com/' + size + '/' + size + '/' + encodeURIComponent(kw) + '?lock=' + lock;
+    }
+    function imgUrl(p) { return flickr(imgKeyword(p), 320, Math.abs(hashStr(p.name)) % 90 + 1); }
+    // Multiple gallery shots of the same product (same keyword, different seeds)
+    function productImages(p, n, size) {
+      n = n || 4; size = size || 640;
+      const kw = imgKeyword(p), base = Math.abs(hashStr(p.name)) % 70 + 1, out = [];
+      for (let i = 0; i < n; i++) out.push(flickr(kw, size, base + i * 11));
+      return out;
+    }
+    function unitPrice(p) { const d = DISCOUNTS[p.name]; return d ? Math.round(p.price * (1 - d / 100)) : p.price; }
+
+    function toast(msg) {
+      const w = document.getElementById('toast-wrap');
+      const t = document.createElement('div');
+      t.className = 'toast';
+      t.innerHTML = '<ion-icon name="information-circle-outline" style="font-size:17px"></ion-icon><span>' + msg + '</span>';
+      w.appendChild(t);
+      setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translateY(10px)'; t.style.transition = 'all .25s'; }, 2000);
+      setTimeout(() => t.remove(), 2300);
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       HOME
+    ══════════════════════════════════════════════════════════ */
+    function storeLogo(b, size) {
+      size = size || 52;
+      return `<div class="rounded-2xl flex items-center justify-center font-extrabold text-white shrink-0"
+        style="width:${size}px;height:${size}px;background:${b.color};font-size:${size * 0.36}px;">${b.initials}</div>`;
+    }
+
+    // discount % keyed by product name → drives the "Deals for you" rail
+    const DISCOUNTS = {
+      'Coca-Cola 1.5L': 15, 'Lays Masala 80g': 25, 'Surf Excel 1kg': 20,
+      'Sony WH-1000XM5': 10, 'Embroidered Kurta': 30, 'Air Fryer 5.5L': 18,
+      'Croissant (Pack of 4)': 20, 'CeraVe Moisturiser': 15, 'Non-stick Pan Set': 22,
+      'Samsung A55 5G': 8
+    };
+    function getDeals() {
+      return allProducts()
+        .filter(p => DISCOUNTS[p.name])
+        .map(p => {
+          const disc = DISCOUNTS[p.name];
+          return { ...p, disc, oldPrice: p.price, price: Math.round(p.price * (1 - disc / 100)) };
+        })
+        .sort((a, b) => b.disc - a.disc);
+    }
+
+    function renderHome() {
+      document.getElementById('opt-stores-count').textContent = BUSINESSES.length + ' shops';
+      document.getElementById('opt-products-count').textContent = allProducts().length + ' items';
+      document.getElementById('opt-cats-count').textContent = platformCategories().length + ' types';
+      const wc = document.getElementById('home-wishlist-count'); if (wc) wc.textContent = wishlist.length;
+      renderTracker();
+      renderCatRow();
+      renderDeals();
+
+      // Near you (≤5km), sorted by distance
+      const near = BUSINESSES.filter(b => b.distanceKm <= 5).sort((a, b) => a.distanceKm - b.distanceKm);
+      document.getElementById('home-near').innerHTML = near.map(b => `
+        <button onclick="openStore('${b.id}')" class="press text-left shrink-0 w-[164px] bg-white rounded-2xl border border-border overflow-hidden card-hover">
+          <div class="h-20 relative" style="background:linear-gradient(135deg,${b.color},${b.color}bb);">
+            <span class="absolute top-2 left-2 bg-white/90 text-navy-dark text-[9.5px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+              <ion-icon name="navigate-outline" style="font-size:10px"></ion-icon>${b.distanceKm} km</span>
+            <div class="absolute -bottom-4 left-3">${storeLogo(b, 40)}</div>
+          </div>
+          <div class="pt-5 px-3 pb-3">
+            <p class="text-[12.5px] font-bold text-navy-dark truncate">${b.name}</p>
+            <p class="text-[10px] text-gray-400 truncate">${b.industry}</p>
+            <div class="flex items-center gap-1 mt-1.5">
+              <ion-icon name="star" class="text-brand-orange" style="font-size:11px"></ion-icon>
+              <span class="text-[10.5px] font-semibold text-navy-dark tnum">${b.rating}</span>
+              <span class="text-[10px] text-gray-400">· ${fFollowers(b.followers)} followers</span>
+            </div>
+          </div>
+        </button>`).join('');
+
+      // Popular (by followers)
+      const pop = [...BUSINESSES].sort((a, b) => b.followers - a.followers).slice(0, 5);
+      document.getElementById('home-popular').innerHTML = pop.map((b, i) => `
+        <button onclick="openStore('${b.id}')" class="press w-full flex items-center gap-3 bg-white rounded-2xl border border-border p-3 card-hover text-left">
+          ${storeLogo(b, 46)}
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-1.5">
+              <p class="text-[13px] font-bold text-navy-dark truncate">${b.name}</p>
+              ${i === 0 ? '<span class="text-[8.5px] font-bold bg-brand-orange/15 text-brand-orange px-1.5 py-0.5 rounded-full">#1</span>' : ''}
+            </div>
+            <p class="text-[10.5px] text-gray-400 truncate">${b.tagline}</p>
+            <div class="flex items-center gap-2 mt-1">
+              <span class="text-[10px] font-semibold text-navy-dark flex items-center gap-0.5"><ion-icon name="star" class="text-brand-orange" style="font-size:11px"></ion-icon>${b.rating}</span>
+              <span class="text-[10px] text-gray-400">${fFollowers(b.followers)} followers</span>
+              <span class="text-[10px] text-gray-400">· ${b.products.length} products</span>
+            </div>
+          </div>
+          <ion-icon name="chevron-forward" class="text-gray-300 shrink-0" style="font-size:16px"></ion-icon>
+        </button>`).join('');
+    }
+
+    /* ── Active order tracker ── */
+    const TRACK_STEPS = [
+      { key: 'Confirmed', icon: 'checkmark-circle-outline' },
+      { key: 'Packing', icon: 'cube-outline' },
+      { key: 'Shipped', icon: 'car-outline' },
+      { key: 'Delivered', icon: 'home-outline' }
+    ];
+    function renderTracker() {
+      const wrap = document.getElementById('home-tracker');
+      const order = ORDERS.find(o => !['Delivered', 'Cancelled'].includes(o.status));
+      if (!order) { wrap.innerHTML = ''; return; }
+      const cur = TRACK_STEPS.findIndex(s => s.key === order.status);
+      wrap.innerHTML = `
+        <button onclick="go('orders')" class="press w-full text-left bg-white rounded-2xl border border-border p-4 card-hover">
+          <div class="flex items-center gap-2.5 mb-3.5">
+            <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style="background:${order.color}18;">
+              <ion-icon name="bag-handle-outline" style="font-size:18px;color:${order.color}"></ion-icon>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-[12.5px] font-bold text-navy-dark leading-tight truncate">${order.biz} · <span class="tnum text-gray-400 font-semibold">${order.id}</span></p>
+              <p class="text-[10.5px] font-semibold text-brand-blue leading-tight mt-0.5 flex items-center gap-1">
+                <ion-icon name="cube-outline" style="font-size:12px"></ion-icon>${({ Confirmed: 'Order confirmed', Packing: 'Being prepared', Shipped: 'On the way' }[order.status] || 'In progress')}</p>
+            </div>
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${STATUS_STYLE[order.status]} shrink-0">${order.status}</span>
+          </div>
+          <div class="flex items-center">
+            ${TRACK_STEPS.map((s, i) => {
+              const done = i <= cur;
+              const line = i < TRACK_STEPS.length - 1
+                ? `<div class="flex-1 h-0.5 ${i < cur ? 'bg-brand-green' : 'bg-border'}"></div>` : '';
+              return `<div class="flex items-center ${i < TRACK_STEPS.length - 1 ? 'flex-1' : ''}">
+                <div class="flex flex-col items-center gap-1 shrink-0" style="width:34px;">
+                  <div class="w-7 h-7 rounded-full flex items-center justify-center ${done ? 'bg-brand-green text-white' : 'bg-page text-gray-300 border border-border'}">
+                    <ion-icon name="${s.icon}" style="font-size:14px"></ion-icon>
+                  </div>
+                  <span class="text-[8px] font-semibold ${done ? 'text-navy-dark' : 'text-gray-300'}">${s.key}</span>
+                </div>${line}</div>`;
+            }).join('')}
+          </div>
+        </button>`;
+    }
+
+    /* ── Shop by category row ── */
+    const CAT_COLORS = ['#3366cc', '#2dd36f', '#ff9800', '#eb445a', '#7c4dff', '#1a2d6b'];
+    function renderCatRow() {
+      const cats = platformCategories().slice(0, 8);
+      document.getElementById('home-catrow').innerHTML = cats.map((c, i) => {
+        const col = CAT_COLORS[i % CAT_COLORS.length];
+        return `<button onclick="prodFilter='${c.name.replace(/'/g, "\\'")}';go('products');renderProducts()"
+          class="press shrink-0 flex flex-col items-center gap-1.5" style="width:60px;">
+          <div class="w-14 h-14 rounded-2xl flex items-center justify-center" style="background:${col}18;">
+            <ion-icon name="${icon(c.name)}" style="font-size:24px;color:${col};"></ion-icon>
+          </div>
+          <span class="text-[9.5px] font-semibold text-gray-600 text-center leading-tight" style="min-height:24px;">${c.name.split(' ')[0]}</span>
+        </button>`;
+      }).join('');
+    }
+
+    /* ── Deals rail ── */
+    function dealCard(p) {
+      const b = p.biz;
+      return `<div class="press shrink-0 w-[150px] bg-white rounded-2xl border border-border overflow-hidden card-hover cursor-pointer" onclick="openProduct('${p.pid}')">
+        <div class="relative">
+          ${productThumb(p, b, 96)}
+          <span class="absolute z-20 top-2 left-2 bg-brand-red text-white text-[9.5px] font-bold px-1.5 py-0.5 rounded-md shadow-sm">-${p.disc}%</span>
+        </div>
+        <div class="p-2.5">
+          <p class="text-[9.5px] font-semibold text-gray-400 truncate">${b.name}</p>
+          <p class="text-[12px] font-bold text-navy-dark leading-tight mt-0.5" style="min-height:30px;">${p.name}</p>
+          <div class="flex items-baseline gap-1.5 mt-1">
+            <span class="text-[13px] font-extrabold text-brand-red tnum">${money(p.price)}</span>
+            <span class="text-[10px] text-gray-400 line-through tnum">${money(p.oldPrice)}</span>
+          </div>
+        </div>
+      </div>`;
+    }
+    function renderDeals() {
+      document.getElementById('home-deals').innerHTML = getDeals().map(dealCard).join('');
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       ALL STORES
+    ══════════════════════════════════════════════════════════ */
+    let storeFilter = 'All';
+    function renderStores() {
+      const industries = ['All', ...new Set(BUSINESSES.map(b => b.industry))];
+      document.getElementById('stores-chips').innerHTML = industries.map(ind =>
+        `<button onclick="storeFilter='${ind.replace(/'/g, "\\'")}';renderStores()"
+          class="press shrink-0 px-3.5 py-1.5 rounded-full text-[11.5px] font-semibold whitespace-nowrap ${storeFilter === ind ? 'bg-navy text-white' : 'bg-page border border-border text-gray-500'}">${ind}</button>`).join('');
+
+      const q = (document.getElementById('stores-search').value || '').toLowerCase();
+      let list = BUSINESSES.filter(b =>
+        (storeFilter === 'All' || b.industry === storeFilter) &&
+        (b.name.toLowerCase().includes(q) || b.industry.toLowerCase().includes(q)));
+      document.getElementById('stores-sub').textContent = list.length + ' of ' + BUSINESSES.length + ' businesses';
+
+      document.getElementById('stores-list').innerHTML = list.map(b => `
+        <button onclick="openStore('${b.id}')" class="press text-left bg-white rounded-2xl border border-border overflow-hidden card-hover">
+          <div class="h-16 relative" style="background:linear-gradient(135deg,${b.color},${b.color}aa);">
+            <span class="absolute top-2 right-2 bg-white/90 text-navy-dark text-[9.5px] font-bold px-2 py-0.5 rounded-full flex items-center gap-0.5">
+              <ion-icon name="navigate-outline" style="font-size:10px"></ion-icon>${b.distanceKm} km</span>
+            <div class="absolute -bottom-5 left-3">${storeLogo(b, 44)}</div>
+          </div>
+          <div class="pt-6 px-3 pb-3">
+            <p class="text-[13px] font-bold text-navy-dark truncate">${b.name}</p>
+            <p class="text-[10px] text-gray-400 truncate">${b.tagline}</p>
+            <div class="flex items-center gap-1.5 mt-1.5">
+              <span class="text-[10.5px] font-semibold text-navy-dark flex items-center gap-0.5"><ion-icon name="star" class="text-brand-orange" style="font-size:11px"></ion-icon>${b.rating}</span>
+              <span class="text-[10px] text-gray-400 truncate">${fFollowers(b.followers)} followers</span>
+            </div>
+            <span class="inline-block mt-2 text-[9px] font-semibold bg-brand-blue/10 text-brand-blue px-2 py-0.5 rounded-full truncate max-w-full">${b.industry}</span>
+          </div>
+        </button>`).join('') || emptyState('No stores match your search', true);
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       STORE DETAIL — each business behaves like its own website
+    ══════════════════════════════════════════════════════════ */
+    let sdBizId = null, sdCat = 'All', sdSub = 'All';
+    const esc = s => String(s).replace(/'/g, "\\'");
+    function openStore(id) {
+      sdBizId = id; sdCat = 'All'; sdSub = 'All';
+      go('store-detail');
+      renderStoreDetail();
+      document.getElementById('store-detail-screen').scrollTop = 0;
+    }
+    function setSdCat(name) { sdCat = name; sdSub = 'All'; renderStoreDetail(); }
+    function setSdSub(name) { sdSub = name; renderStoreDetail(); }
+
+    function bizProductCount(b, cat, sub) {
+      return b.products.filter(p => (!cat || cat === 'All' || p.cat === cat) && (!sub || sub === 'All' || p.sub === sub)).length;
+    }
+
+    function renderStoreDetail() {
+      const b = BUSINESSES.find(x => x.id === sdBizId);
+      if (!b) return;
+
+      const topCats = ['All', ...b.cats.map(c => c.name)];
+      const activeCat = b.cats.find(c => c.name === sdCat);
+      const subs = activeCat ? ['All', ...activeCat.subs] : [];
+      const prods = b.products
+        .filter(p => sdCat === 'All' || p.cat === sdCat)
+        .filter(p => sdSub === 'All' || p.sub === sdSub);
+
+      // top category pills
+      const catPills = topCats.map(c => `
+        <button onclick="setSdCat('${esc(c)}')"
+          class="press shrink-0 px-3.5 py-2 rounded-xl text-[11.5px] font-semibold whitespace-nowrap flex items-center gap-1.5 ${sdCat === c ? 'bg-navy text-white' : 'bg-white border border-border text-gray-600'}">
+          ${c !== 'All' ? `<ion-icon name="${icon(c)}" style="font-size:14px"></ion-icon>` : `<ion-icon name="apps-outline" style="font-size:14px"></ion-icon>`}${c}</button>`).join('');
+
+      // sub-category pills (only when a specific category is active)
+      const subRow = activeCat ? `
+        <div class="flex gap-2 overflow-x-auto no-sb px-5 mt-2.5 pb-0.5">
+          ${subs.map(s => `<button onclick="setSdSub('${esc(s)}')"
+            class="press shrink-0 px-3 py-1.5 rounded-full text-[11px] font-semibold whitespace-nowrap ${sdSub === s ? 'bg-brand-blue/10 text-brand-blue border border-brand-blue/30' : 'bg-page border border-border text-gray-500'}">
+            ${s === 'All' ? 'All ' + sdCat : s} <span class="opacity-60 tnum">${bizProductCount(b, sdCat, s)}</span></button>`).join('')}
+        </div>` : '';
+
+      // breadcrumb / label
+      const label = sdCat === 'All' ? 'All products'
+        : (sdSub === 'All' ? sdCat : `${sdCat} › ${sdSub}`);
+
+      document.getElementById('store-detail-screen').innerHTML = `
+        <!-- Cover -->
+        <div class="relative">
+          <div class="h-36" style="background:linear-gradient(135deg,${b.color},${b.color}99);"></div>
+          <button onclick="back()" class="absolute top-11 left-4 w-9 h-9 rounded-xl bg-white/90 backdrop-blur flex items-center justify-center press">
+            <ion-icon name="chevron-back-outline" class="text-navy" style="font-size:18px"></ion-icon>
+          </button>
+          <button onclick="toast('Shared ${b.name}')" class="absolute top-11 right-4 w-9 h-9 rounded-xl bg-white/90 backdrop-blur flex items-center justify-center press">
+            <ion-icon name="share-social-outline" class="text-navy" style="font-size:16px"></ion-icon>
+          </button>
+        </div>
+
+        <!-- Store header card -->
+        <div class="px-5 -mt-10 relative z-10">
+          <div class="bg-white rounded-2xl border border-border p-4 shadow-sm">
+            <div class="flex items-center gap-3">
+              ${storeLogo(b, 58)}
+              <div class="flex-1 min-w-0">
+                <p class="text-[16px] font-extrabold text-navy-dark leading-tight truncate">${b.name}</p>
+                <p class="text-[11px] text-gray-400 truncate">${b.tagline}</p>
+                <span class="inline-block mt-1 text-[9px] font-semibold bg-brand-blue/10 text-brand-blue px-2 py-0.5 rounded-full">${b.industry}</span>
+              </div>
+            </div>
+            <div class="grid grid-cols-4 mt-4 pt-3 border-t border-border">
+              <div class="text-center">
+                <p class="text-[13px] font-extrabold text-navy-dark flex items-center justify-center gap-0.5"><ion-icon name="star" class="text-brand-orange" style="font-size:12px"></ion-icon>${b.rating}</p>
+                <p class="text-[9px] text-gray-400 uppercase font-semibold mt-0.5">Rating</p>
+              </div>
+              <div class="text-center border-l border-border">
+                <p class="text-[13px] font-extrabold text-navy-dark tnum">${b.products.length}</p>
+                <p class="text-[9px] text-gray-400 uppercase font-semibold mt-0.5">Products</p>
+              </div>
+              <div class="text-center border-l border-border">
+                <p class="text-[13px] font-extrabold text-navy-dark tnum">${b.cats.length}</p>
+                <p class="text-[9px] text-gray-400 uppercase font-semibold mt-0.5">Categories</p>
+              </div>
+              <div class="text-center border-l border-border">
+                <p class="text-[13px] font-extrabold text-navy-dark flex items-center justify-center gap-0.5"><ion-icon name="location-outline" class="text-brand-blue" style="font-size:12px"></ion-icon>${b.distanceKm}</p>
+                <p class="text-[9px] text-gray-400 uppercase font-semibold mt-0.5">km away</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Category browser (store's own categories → sub-categories) -->
+        <div class="mt-5 sticky top-0 z-20 bg-page/95 backdrop-blur pt-1 pb-2">
+          <p class="px-5 text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-2">Shop by category</p>
+          <div class="flex gap-2 overflow-x-auto no-sb px-5 pb-0.5">${catPills}</div>
+          ${subRow}
+        </div>
+
+        <!-- Products -->
+        <div class="mt-3 px-5">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-[14px] font-bold text-navy-dark truncate">${label}</h3>
+            <span class="text-[11px] text-gray-400 tnum shrink-0 ml-2">${prods.length} item${prods.length === 1 ? '' : 's'}</span>
+          </div>
+          ${prods.length ? `<div class="grid grid-cols-2 gap-3">${prods.map(p => productCard(p, b)).join('')}</div>`
+            : emptyState('No products in this category yet', true)}
+        </div>
+        <div class="h-6"></div>`;
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       PRODUCT CARD  (shared)
+    ══════════════════════════════════════════════════════════ */
+    // One image cell: centered icon placeholder (always visible) + photo layered on top.
+    // If the photo fails to load it simply hides, revealing the placeholder — never blank.
+    function imgCell(src, cat, color, w, h) {
+      return `<div class="relative bg-page overflow-hidden" style="${w ? 'width:' + w + ';' : ''}height:${h}px;">
+          <div class="absolute inset-0 flex items-center justify-center">
+            <ion-icon name="${icon(cat)}" style="font-size:${Math.round(h * 0.32)}px;color:${color}55;"></ion-icon>
+          </div>
+          <img src="${src}" alt="" loading="lazy" class="absolute inset-0 w-full h-full object-cover" onerror="this.style.display='none'">
+        </div>`;
+    }
+    function productThumb(p, b, h) {
+      return imgCell(imgUrl(p), p.cat, b.color, null, h);
+    }
+    // Swipeable mini image slider used inside listing cards
+    function cardSlider(p, b, h) {
+      const imgs = productImages(p, 3, 320);
+      return `<div class="relative" style="height:${h}px;">
+        <div class="card-slider flex overflow-x-auto snap-x snap-mandatory no-sb h-full" onscroll="cardSlide(this)">
+          ${imgs.map(u => `<div class="shrink-0 snap-center h-full" style="width:100%;">${imgCell(u, p.cat, b.color, '100%', h)}</div>`).join('')}
+        </div>
+        <div class="cdots absolute bottom-1.5 left-1/2 -translate-x-1/2 flex items-center gap-1" style="pointer-events:none;">
+          ${imgs.map((_, i) => `<span class="cdot rounded-full bg-white" style="height:5px;width:${i === 0 ? '13px' : '5px'};opacity:${i === 0 ? '1' : '.5'};box-shadow:0 1px 2px rgba(0,0,0,.35);transition:all .15s;"></span>`).join('')}
+        </div>
+      </div>`;
+    }
+    function cardSlide(el) {
+      const i = Math.round(el.scrollLeft / el.clientWidth);
+      const dots = el.parentElement.querySelectorAll('.cdot');
+      dots.forEach((d, idx) => { const on = idx === i; d.style.width = on ? '13px' : '5px'; d.style.opacity = on ? '1' : '.5'; });
+    }
+    function productCard(p, b) {
+      const unit = p.unit && p.unit !== 'each' ? ' <span class="text-[9px] font-medium text-gray-400">/ ' + p.unit + '</span>' : '';
+      const price = unitPrice(p), disc = DISCOUNTS[p.name];
+      return `<div onclick="openProduct('${p.pid}')" class="press bg-white rounded-2xl border border-border overflow-hidden card-hover flex flex-col cursor-pointer">
+        <div class="relative">
+          ${cardSlider(p, b, 128)}
+          <button onclick="event.stopPropagation();toggleWishlist('${p.pid}');this.querySelector('ion-icon').setAttribute('name', isWished('${p.pid}')?'heart':'heart-outline')" class="absolute z-20 top-2 right-2 w-7 h-7 rounded-full bg-white/95 shadow-sm flex items-center justify-center press">
+            <ion-icon name="${isWished(p.pid) ? 'heart' : 'heart-outline'}" class="text-brand-red" style="font-size:14px"></ion-icon>
+          </button>
+          <span class="absolute z-20 top-2 left-2 bg-white/95 shadow-sm text-navy-dark text-[9px] font-bold px-1.5 py-0.5 rounded-md flex items-center gap-0.5">
+            <ion-icon name="star" class="text-brand-orange" style="font-size:9px"></ion-icon>${b.rating}</span>
+          ${disc ? `<span class="absolute z-20 top-8 left-2 bg-brand-red text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md shadow-sm">-${disc}%</span>` : ''}
+        </div>
+        <div class="p-2.5 flex flex-col flex-1">
+          <p class="text-[9px] font-semibold text-brand-blue uppercase tracking-wide truncate">${p.sub || p.cat}</p>
+          <p class="text-[12px] font-bold text-navy-dark leading-tight mt-0.5" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:30px;">${p.name}</p>
+          <div class="flex items-end justify-between mt-auto pt-2">
+            <div class="min-w-0">
+              <p class="text-[13.5px] font-extrabold text-navy-dark tnum leading-none">${money(price)}${unit}</p>
+              ${disc ? `<p class="text-[10px] text-gray-400 line-through tnum mt-0.5">${money(p.price)}</p>` : ''}
+            </div>
+            <button onclick="event.stopPropagation();addToCart('${p.pid}',1)" class="w-8 h-8 rounded-xl bg-navy flex items-center justify-center press shrink-0">
+              <ion-icon name="add-outline" class="text-white" style="font-size:17px"></ion-icon>
+            </button>
+          </div>
+        </div>
+      </div>`;
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       ALL PRODUCTS
+    ══════════════════════════════════════════════════════════ */
+    let prodFilter = 'All';
+    function renderProducts() {
+      const cats = ['All', ...platformCategories().map(c => c.name)];
+      document.getElementById('products-chips').innerHTML = cats.map(c =>
+        `<button onclick="prodFilter='${c.replace(/'/g, "\\'")}';renderProducts()"
+          class="press shrink-0 px-3.5 py-1.5 rounded-full text-[11.5px] font-semibold whitespace-nowrap ${prodFilter === c ? 'bg-navy text-white' : 'bg-page border border-border text-gray-500'}">${c}</button>`).join('');
+
+      const q = (document.getElementById('products-search').value || '').toLowerCase();
+      let list = allProducts().filter(p =>
+        (prodFilter === 'All' || p.cat === prodFilter) &&
+        (p.name.toLowerCase().includes(q) || p.biz.name.toLowerCase().includes(q)));
+      document.getElementById('products-sub').textContent = list.length + ' items across all stores';
+      document.getElementById('products-grid').innerHTML =
+        list.map(p => productCard(p, p.biz)).join('') || emptyState('No products found', true);
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       CATEGORIES (platform industries)
+    ══════════════════════════════════════════════════════════ */
+    function renderCategories() {
+      const q = (document.getElementById('cats-search').value || '').toLowerCase();
+      const cats = platformCategories().filter(c => c.name.toLowerCase().includes(q));
+      const colors = ['#3366cc', '#2dd36f', '#ff9800', '#eb445a', '#7c4dff', '#1a2d6b'];
+      document.getElementById('cats-grid').innerHTML = cats.map((c, i) => {
+        const col = colors[i % colors.length];
+        return `<button onclick="prodFilter='${c.name.replace(/'/g, "\\'")}';go('products');renderProducts()"
+          class="press bg-white rounded-2xl border border-border p-4 flex flex-col gap-3 card-hover text-left">
+          <div class="w-12 h-12 rounded-2xl flex items-center justify-center" style="background:${col}18;">
+            <ion-icon name="${icon(c.name)}" style="font-size:24px;color:${col};"></ion-icon>
+          </div>
+          <div>
+            <p class="text-[13px] font-bold text-navy-dark leading-tight">${c.name}</p>
+            <p class="text-[10.5px] text-gray-400 mt-1 tnum">${c.products} products · ${c.stores} stores</p>
+          </div>
+        </button>`;
+      }).join('') || emptyState('No categories found', true);
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       ORDERS (stub content)
+    ══════════════════════════════════════════════════════════ */
+    const ORDERS = [
+      { id: 'EC-1038', bizId: 'khaadi', status: 'Shipped', date: 'Jul 27',
+        lines: [{ pid: 'khaadi-0', qty: 1 }, { pid: 'khaadi-1', qty: 1 }] },
+      { id: 'EC-1031', bizId: 'hyperstar', status: 'Packing', date: 'Jul 26',
+        lines: [{ pid: 'hyperstar-1', qty: 1 }] },
+      { id: 'EC-1042', bizId: 'alfatah', status: 'Delivered', date: 'Jul 24',
+        lines: [{ pid: 'alfatah-7', qty: 1 }, { pid: 'alfatah-5', qty: 1 }, { pid: 'alfatah-3', qty: 1 }, { pid: 'alfatah-2', qty: 1 }, { pid: 'alfatah-0', qty: 1 }, { pid: 'alfatah-4', qty: 1 }] },
+      { id: 'EC-1024', bizId: 'jalalsons', status: 'Delivered', date: 'Jul 12',
+        lines: [{ pid: 'jalalsons-0', qty: 1 }, { pid: 'jalalsons-2', qty: 1 }, { pid: 'jalalsons-4', qty: 1 }, { pid: 'jalalsons-3', qty: 1 }] }
+    ];
+    // keep compatibility fields (biz name / accent colour) + derived totals
+    ORDERS.forEach(o => {
+      const b = BUSINESSES.find(x => x.id === o.bizId);
+      o.biz = b ? b.name : o.bizId; o.color = b ? b.color : '#1a2d6b';
+      o.items = o.lines.reduce((s, l) => s + l.qty, 0);
+      o.total = o.lines.reduce((s, l) => s + (PID[l.pid] ? unitPrice(PID[l.pid].p) * l.qty : 0), 0);
+    });
+    const STATUS_STYLE = {
+      Delivered: 'bg-brand-green/10 text-brand-green',
+      Shipped: 'bg-brand-blue/10 text-brand-blue',
+      Packing: 'bg-brand-orange/10 text-brand-orange',
+      Confirmed: 'bg-brand-blue/10 text-brand-blue',
+      Cancelled: 'bg-brand-red/10 text-brand-red'
+    };
+    const ordersOpen = { 'EC-1038': true }; // most recent expanded by default
+    function toggleOrder(id) { ordersOpen[id] = !ordersOpen[id]; renderOrders(); }
+    function reorder(id) {
+      const o = ORDERS.find(x => x.id === id);
+      if (!o) return;
+      o.lines.forEach(l => { if (PID[l.pid]) { const it = cart.find(c => c.pid === l.pid); if (it) it.qty += l.qty; else cart.push({ pid: l.pid, qty: l.qty }); } });
+      updateCartBadge();
+      toast('Added ' + o.items + ' items to cart');
+      go('cart');
+    }
+    function renderOrders() {
+      document.getElementById('orders-list').innerHTML = ORDERS.map(o => {
+        const open = !!ordersOpen[o.id];
+        const active = !['Delivered', 'Cancelled'].includes(o.status);
+        const lines = o.lines.map(l => PID[l.pid] ? { ...l, p: PID[l.pid].p, b: PID[l.pid].b } : null).filter(Boolean);
+        const body = open ? `
+          <div>
+            <!-- Items zone (distinct light background, each item a white card) -->
+            <div class="bg-page border-t border-border px-3 py-3">
+              <p class="px-1 pb-2 text-[10px] font-bold text-gray-400 uppercase tracking-[0.08em]">Items (${lines.length})</p>
+              <div class="space-y-2">
+                ${lines.map(l => `
+                  <div onclick="event.stopPropagation();openProduct('${l.pid}')" class="press cursor-pointer flex items-center gap-3 bg-white border border-border rounded-xl p-2">
+                    <div class="w-11 h-11 rounded-lg overflow-hidden shrink-0">${imgCell(imgUrl(l.p), l.p.cat, l.b.color, '100%', 44)}</div>
+                    <div class="flex-1 min-w-0">
+                      <p class="text-[12px] font-semibold text-navy-dark truncate">${l.p.name}</p>
+                      <p class="text-[10.5px] text-gray-400">${money(unitPrice(l.p))} × ${l.qty}</p>
+                    </div>
+                    <span class="text-[12px] font-bold text-navy-dark tnum shrink-0">${money(unitPrice(l.p) * l.qty)}</span>
+                  </div>`).join('')}
+              </div>
+            </div>
+            <!-- Order total + actions (on white, clearly the order footer) -->
+            <div class="flex items-center justify-between px-4 py-3 border-t border-border">
+              <span class="text-[12px] font-bold text-navy-dark">Order total</span>
+              <span class="text-[14px] font-extrabold text-navy-dark tnum">${money(o.total)}</span>
+            </div>
+            <div class="px-4 pb-3">
+              <button onclick="event.stopPropagation();${active ? `openOrderTrack('${o.id}')` : `toast('Receipt for ' + '${o.id}')`}" class="press w-full h-10 bg-navy text-white rounded-xl text-[12.5px] font-bold flex items-center justify-center gap-1.5">
+                <ion-icon name="${active ? 'navigate-outline' : 'receipt-outline'}" style="font-size:15px"></ion-icon>${active ? 'Track order' : 'View receipt'}</button>
+            </div>
+          </div>` : '';
+        return `
+        <div class="bg-white rounded-2xl border border-border overflow-hidden">
+          <button onclick="toggleOrder('${o.id}')" class="press w-full flex items-center gap-3 p-3.5 text-left">
+            <div class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style="background:${o.color}18;">
+              <ion-icon name="bag-handle-outline" style="font-size:20px;color:${o.color}"></ion-icon>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center justify-between gap-2">
+                <p class="text-[13px] font-bold text-navy-dark truncate">${o.biz}</p>
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${STATUS_STYLE[o.status]}">${o.status}</span>
+              </div>
+              <p class="text-[10.5px] text-gray-400 mt-0.5 tnum">${o.id} · ${o.items} item${o.items === 1 ? '' : 's'} · ${o.date}</p>
+              <div class="flex items-center justify-between mt-1">
+                <p class="text-[13px] font-extrabold text-navy-dark tnum">${money(o.total)}</p>
+                <span class="flex items-center gap-1 text-[11px] font-semibold text-brand-blue">
+                  ${open ? 'Hide items' : 'View items'}
+                  <ion-icon name="chevron-${open ? 'up' : 'down'}" style="font-size:14px"></ion-icon>
+                </span>
+              </div>
+            </div>
+          </button>
+          ${body}
+        </div>`;
+      }).join('');
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       ORDER TRACKING
+    ══════════════════════════════════════════════════════════ */
+    const TRACK_DESC = {
+      Confirmed: 'Your order has been placed and confirmed',
+      Packing: 'The store is preparing your items',
+      Shipped: 'Your order is on its way',
+      Delivered: 'Order delivered'
+    };
+    let trackId = null;
+    function openOrderTrack(id) {
+      trackId = id;
+      go('order-track');
+      renderOrderTrack();
+      document.querySelector('#page-order-track .screen').scrollTop = 0;
+    }
+    function renderOrderTrack() {
+      const o = ORDERS.find(x => x.id === trackId);
+      if (!o) return;
+      const b = BUSINESSES.find(x => x.id === o.bizId);
+      const cur = TRACK_STEPS.findIndex(s => s.key === o.status);
+      const lines = o.lines.map(l => PID[l.pid] ? { ...l, p: PID[l.pid].p, b: PID[l.pid].b } : null).filter(Boolean);
+      const addr = ADDRESSES.find(a => a.def) || ADDRESSES[0];
+      document.getElementById('ot-sub').textContent = o.id + ' · ' + o.biz;
+
+      // vertical status timeline (no times — just stages)
+      const timeline = TRACK_STEPS.map((s, i) => {
+        const done = i < cur, current = i === cur, reached = i <= cur;
+        const isLast = i === TRACK_STEPS.length - 1;
+        const nodeBg = reached ? (current ? '#1a2d6b' : '#2dd36f') : '#fff';
+        const nodeBorder = reached ? nodeBg : '#e2e8f0';
+        const nodeColor = reached ? '#fff' : '#cbd5e1';
+        return `
+          <div class="flex gap-3">
+            <div class="flex flex-col items-center">
+              <div class="w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${current ? 'ring-4 ring-navy/15' : ''}"
+                style="background:${nodeBg};border:2px solid ${nodeBorder};">
+                <ion-icon name="${done ? 'checkmark-outline' : s.icon}" style="font-size:16px;color:${nodeColor}"></ion-icon>
+              </div>
+              ${isLast ? '' : `<div class="w-0.5 flex-1 my-1" style="min-height:26px;background:${i < cur ? '#2dd36f' : '#e8ecf1'};"></div>`}
+            </div>
+            <div class="pb-5 ${current ? '' : ''}">
+              <p class="text-[13px] font-bold ${reached ? 'text-navy-dark' : 'text-gray-400'}">${s.key}${current ? '<span class="ml-2 text-[9px] font-bold bg-navy text-white px-2 py-0.5 rounded-full align-middle">Current</span>' : ''}</p>
+              <p class="text-[11px] ${reached ? 'text-gray-500' : 'text-gray-400'} mt-0.5 leading-snug">${TRACK_DESC[s.key]}</p>
+            </div>
+          </div>`;
+      }).join('');
+
+      document.getElementById('order-track-body').innerHTML = `
+        <!-- Status hero -->
+        <div class="bg-gradient-to-br from-navy-dark to-navy rounded-2xl p-5 text-white relative overflow-hidden mb-4">
+          <div class="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full -translate-y-1/3 translate-x-1/4"></div>
+          <div class="relative z-10">
+            <p class="text-[11px] text-white/50 uppercase tracking-wider font-medium">Current status</p>
+            <p class="text-[22px] font-extrabold mt-0.5">${o.status}</p>
+            <p class="text-[12px] text-white/70 mt-1">${TRACK_DESC[o.status] || ''}</p>
+          </div>
+        </div>
+
+        <!-- Timeline -->
+        <div class="bg-white rounded-2xl border border-border p-4 mb-4">
+          <p class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.08em] mb-3">Progress</p>
+          ${timeline}
+        </div>
+
+        <!-- Store -->
+        <button onclick="openStore('${b.id}')" class="press w-full flex items-center gap-3 bg-white rounded-2xl border border-border p-3.5 mb-4 text-left">
+          ${storeLogo(b, 40)}
+          <div class="flex-1 min-w-0">
+            <p class="text-[13px] font-bold text-navy-dark truncate">${b.name}</p>
+            <p class="text-[11px] text-gray-400">Sold & shipped by store</p>
+          </div>
+          <ion-icon name="chevron-forward" class="text-gray-300" style="font-size:15px"></ion-icon>
+        </button>
+
+        <!-- Delivery address -->
+        ${addr ? `
+        <div class="bg-white rounded-2xl border border-border p-4 mb-4">
+          <p class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.08em] mb-2">Delivery address</p>
+          <div class="flex items-start gap-3">
+            <div class="w-9 h-9 rounded-lg bg-page flex items-center justify-center shrink-0">
+              <ion-icon name="${addr.label === 'Office' ? 'business-outline' : 'home-outline'}" class="text-navy" style="font-size:18px"></ion-icon>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-[12.5px] font-bold text-navy-dark">${addr.label}</p>
+              <p class="text-[12px] text-gray-600 leading-snug">${addr.line}, ${addr.city}</p>
+              <p class="text-[11px] text-gray-400 mt-0.5">${addr.name} · ${addr.phone}</p>
+            </div>
+          </div>
+        </div>` : ''}
+
+        <!-- Items -->
+        <div class="bg-white rounded-2xl border border-border overflow-hidden mb-4">
+          <p class="px-4 pt-3 pb-1 text-[10px] font-bold text-gray-400 uppercase tracking-[0.08em]">Items (${lines.length})</p>
+          ${lines.map(l => `
+            <div onclick="openProduct('${l.pid}')" class="press cursor-pointer flex items-center gap-3 px-4 py-2.5 border-t border-border">
+              <div class="w-11 h-11 rounded-lg overflow-hidden shrink-0">${imgCell(imgUrl(l.p), l.p.cat, l.b.color, '100%', 44)}</div>
+              <div class="flex-1 min-w-0">
+                <p class="text-[12px] font-semibold text-navy-dark truncate">${l.p.name}</p>
+                <p class="text-[10.5px] text-gray-400">${money(unitPrice(l.p))} × ${l.qty}</p>
+              </div>
+              <span class="text-[12px] font-bold text-navy-dark tnum shrink-0">${money(unitPrice(l.p) * l.qty)}</span>
+            </div>`).join('')}
+          <div class="flex items-center justify-between px-4 py-3 border-t border-border bg-gray-50/60">
+            <span class="text-[12px] font-bold text-navy-dark">Order total</span>
+            <span class="text-[14px] font-extrabold text-navy-dark tnum">${money(o.total)}</span>
+          </div>
+        </div>
+
+        <button onclick="openOrderHelp('${o.id}')" class="press w-full h-11 bg-white border border-border text-navy-dark rounded-xl text-[13px] font-bold flex items-center justify-center gap-2">
+          <ion-icon name="help-buoy-outline" style="font-size:17px"></ion-icon>Need help with this order?</button>
+        <div class="h-4"></div>`;
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       BOTTOM SHEET + ORDER HELP
+    ══════════════════════════════════════════════════════════ */
+    function openSheet(html) {
+      document.getElementById('sheet-body').innerHTML = html;
+      document.getElementById('sheet').classList.add('open');
+      document.getElementById('sheet-backdrop').classList.add('show');
+    }
+    function closeSheet() {
+      document.getElementById('sheet').classList.remove('open');
+      document.getElementById('sheet-backdrop').classList.remove('show');
+    }
+
+    let helpOrderId = null;
+    function openOrderHelp(id) { helpOrderId = id; renderOrderHelp(); }
+    function renderOrderHelp() {
+      const o = ORDERS.find(x => x.id === helpOrderId); if (!o) return;
+      const b = BUSINESSES.find(x => x.id === o.bizId);
+      const canCancel = ['Confirmed', 'Packing'].includes(o.status);
+      const delivered = o.status === 'Delivered';
+      const opt = (icon, color, title, sub, onclick) => `
+        <button onclick="${onclick}" class="press w-full flex items-center gap-3 px-4 py-3.5 text-left border-t border-border first:border-0">
+          <div class="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style="background:${color}18;"><ion-icon name="${icon}" style="font-size:18px;color:${color}"></ion-icon></div>
+          <div class="flex-1 min-w-0"><p class="text-[13px] font-semibold text-navy-dark">${title}</p><p class="text-[11px] text-gray-400">${sub}</p></div>
+          <ion-icon name="chevron-forward" class="text-gray-300 shrink-0" style="font-size:15px"></ion-icon>
+        </button>`;
+      openSheet(`
+        <div class="sheet-handle"></div>
+        <div class="px-5 pt-1 pb-3">
+          <p class="text-[16px] font-extrabold text-navy-dark">Need help?</p>
+          <p class="text-[11.5px] text-gray-400 tnum">${o.id} · ${b.name}</p>
+        </div>
+        <div class="mx-4 mb-3 bg-white border border-border rounded-2xl overflow-hidden">
+          ${opt('chatbubbles-outline', '#3366cc', 'Contact the store', 'Reach ' + b.name + ' about this order', `contactStore('${b.id}')`)}
+          ${opt('alert-circle-outline', '#ff9800', 'Report a problem', 'Missing, damaged or wrong item', `orderHelpForm('report')`)}
+          ${delivered ? opt('arrow-undo-outline', '#7c4dff', 'Request return / refund', 'Start a return for this order', `orderHelpForm('return')`) : ''}
+          ${canCancel ? opt('close-circle-outline', '#eb445a', 'Cancel order', 'Cancel before it ships', `cancelOrderFlow()`) : ''}
+          ${opt('chatbox-ellipses-outline', '#1a2d6b', 'My requests', 'See problems & returns you raised', `closeSheet();go('settings');openSettings('myissues')`)}
+          ${opt('help-circle-outline', '#2dd36f', 'Help center', 'Delivery, payments & returns FAQ', `closeSheet();go('settings');openSettings('help')`)}
+        </div>
+        <div class="px-4 pb-5"><button onclick="closeSheet()" class="press w-full h-11 rounded-xl border border-border text-gray-500 text-[13px] font-bold">Close</button></div>`);
+    }
+
+    function contactStore(id) {
+      const b = BUSINESSES.find(x => x.id === id);
+      const row = (icon, color, title, val, onclick) => `
+        <button onclick="${onclick}" class="press w-full flex items-center gap-3 px-4 py-3.5 text-left border-t border-border first:border-0">
+          <div class="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style="background:${color}18;"><ion-icon name="${icon}" style="font-size:18px;color:${color}"></ion-icon></div>
+          <div class="flex-1 min-w-0"><p class="text-[13px] font-semibold text-navy-dark">${title}</p><p class="text-[11px] text-gray-400">${val}</p></div>
+        </button>`;
+      openSheet(`
+        <div class="sheet-handle"></div>
+        <div class="px-5 pt-1 pb-3 flex items-center gap-2.5">
+          <button onclick="renderOrderHelp()" class="w-8 h-8 rounded-lg border border-border flex items-center justify-center press shrink-0"><ion-icon name="chevron-back-outline" style="font-size:16px;color:#64748b"></ion-icon></button>
+          <div class="min-w-0"><p class="text-[15px] font-extrabold text-navy-dark truncate">Contact ${b.name}</p><p class="text-[11px] text-gray-400 tnum">Order ${helpOrderId}</p></div>
+        </div>
+        <div class="mx-4 mb-4 bg-white border border-border rounded-2xl overflow-hidden">
+          ${row('call-outline', '#2dd36f', 'Call store', '+92 42 111 222 333', `toast('Calling ${b.name}')`)}
+          ${row('logo-whatsapp', '#2dd36f', 'WhatsApp', 'Chat on WhatsApp', `toast('Opening WhatsApp')`)}
+        </div>`);
+    }
+
+    function orderHelpForm(kind) {
+      const o = ORDERS.find(x => x.id === helpOrderId);
+      const cfg = {
+        report: { title: 'Report a problem', cta: 'Submit report', reasons: ['Item missing from order', 'Item damaged', 'Wrong item received', 'Item quality issue', 'Other'] },
+        return: { title: 'Request return / refund', cta: 'Request return', reasons: ['Changed my mind', 'Wrong size / fit', 'Damaged or defective', 'Not as described', 'Other'] }
+      }[kind];
+      openSheet(`
+        <div class="sheet-handle"></div>
+        <div class="px-5 pt-1 pb-3 flex items-center gap-2.5">
+          <button onclick="renderOrderHelp()" class="w-8 h-8 rounded-lg border border-border flex items-center justify-center press shrink-0"><ion-icon name="chevron-back-outline" style="font-size:16px;color:#64748b"></ion-icon></button>
+          <div class="min-w-0"><p class="text-[15px] font-extrabold text-navy-dark truncate">${cfg.title}</p><p class="text-[11px] text-gray-400 tnum">${o.id} · ${o.biz}</p></div>
+        </div>
+        <div class="px-4 space-y-3">
+          <div><label class="slbl">Reason</label>
+            <select id="oh-reason" class="sinp">${['<option value="">Select a reason…</option>', ...cfg.reasons.map(r => `<option>${r}</option>`)].join('')}</select>
+          </div>
+          <div><label class="slbl">Details <span class="text-gray-300 font-normal">(optional)</span></label>
+            <textarea id="oh-note" rows="3" class="sinp resize-none" placeholder="Tell the store what happened…"></textarea></div>
+        </div>
+        <div class="px-4 py-4"><button onclick="submitOrderHelp('${kind}')" class="press w-full h-12 bg-navy text-white rounded-xl text-[14px] font-bold">${cfg.cta}</button></div>`);
+    }
+    // Customer's raised requests (problems / returns / cancellations)
+    let MYISSUES = [
+      { id: 'REQ-2041', orderId: 'EC-1038', biz: 'Khaadi Flagship', color: '#7c4dff', type: 'report', reason: 'Item damaged', note: 'One piece arrived with a small snag near the hem.', date: 'Jul 27', status: 'in_progress' },
+      { id: 'REQ-2024', orderId: 'EC-1024', biz: 'Jalal Sons', color: '#1a2d6b', type: 'report', reason: 'Item missing from order', note: '', date: 'Jul 12', status: 'resolved' }
+    ];
+    const MYISSUE_TYPE = {
+      report: { label: 'Problem report', icon: 'alert-circle-outline', color: '#ff9800' },
+      return: { label: 'Return / Refund', icon: 'arrow-undo-outline', color: '#7c4dff' },
+      cancellation: { label: 'Cancellation', icon: 'close-circle-outline', color: '#eb445a' }
+    };
+    const MYISSUE_STATUS = {
+      open: { label: 'Submitted', cls: 'bg-brand-orange/10 text-brand-orange' },
+      in_progress: { label: 'In review', cls: 'bg-brand-blue/10 text-brand-blue' },
+      resolved: { label: 'Resolved', cls: 'bg-brand-green/10 text-brand-green' }
+    };
+    function addMyIssue(kind, reason, note) {
+      const o = ORDERS.find(x => x.id === helpOrderId);
+      MYISSUES.unshift({
+        id: 'REQ-' + (Math.floor(Math.random() * 9000) + 1000),
+        orderId: o ? o.id : '', biz: o ? o.biz : '', color: o ? o.color : '#1a2d6b',
+        type: kind, reason, note: note || '', date: 'Jul 28', status: 'open'
+      });
+    }
+    function submitOrderHelp(kind) {
+      const reason = document.getElementById('oh-reason').value;
+      if (!reason) { toast('Please select a reason'); return; }
+      const note = (document.getElementById('oh-note')?.value || '').trim();
+      addMyIssue(kind, reason, note);
+      closeSheet();
+      toast(kind === 'return' ? 'Return request sent — track it in My requests' : 'Problem reported — track it in My requests');
+    }
+
+    function cancelOrderFlow() {
+      const o = ORDERS.find(x => x.id === helpOrderId);
+      const reasons = ['Ordered by mistake', 'Found it cheaper elsewhere', 'Delivery taking too long', 'Changed my mind', 'Other'];
+      openSheet(`
+        <div class="sheet-handle"></div>
+        <div class="px-5 pt-1 pb-3">
+          <p class="text-[15px] font-extrabold text-navy-dark">Cancel order?</p>
+          <p class="text-[11px] text-gray-400 tnum">${o.id} · ${o.biz}</p>
+        </div>
+        <div class="px-4">
+          <div class="flex items-start gap-2.5 bg-brand-red/5 border border-brand-red/15 rounded-xl px-4 py-3 mb-3">
+            <ion-icon name="warning-outline" style="font-size:14px;color:#eb445a;flex-shrink:0;margin-top:1px;"></ion-icon>
+            <p class="text-[11px] text-gray-600 leading-relaxed">The store will be notified and any payment is refunded per its policy.</p>
+          </div>
+          <label class="slbl">Reason</label>
+          <select id="oh-reason" class="sinp">${['<option value="">Select a reason…</option>', ...reasons.map(r => `<option>${r}</option>`)].join('')}</select>
+        </div>
+        <div class="px-4 py-4 flex gap-2">
+          <button onclick="renderOrderHelp()" class="press flex-1 h-12 border border-border rounded-xl text-[13px] font-bold text-gray-600">Keep order</button>
+          <button onclick="confirmCancelOrder()" class="press flex-1 h-12 bg-brand-red text-white rounded-xl text-[13px] font-bold">Cancel order</button>
+        </div>`);
+    }
+    function confirmCancelOrder() {
+      const reason = document.getElementById('oh-reason').value;
+      if (!reason) { toast('Please select a reason'); return; }
+      const o = ORDERS.find(x => x.id === helpOrderId);
+      addMyIssue('cancellation', reason, '');
+      o.status = 'Cancelled';
+      closeSheet();
+      renderOrders();
+      renderTracker();
+      if (currentPage() === 'order-track') go('orders');
+      toast('Order ' + o.id + ' cancelled');
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       SETTINGS (stub content)
+    ══════════════════════════════════════════════════════════ */
+    /* ── Account state ── */
+    const USER = { name: 'Ayesha Khan', email: 'ayesha.k@gmail.com', phone: '+92 300 1234567', gender: 'Female', dob: '1996-04-12' };
+    let ADDRESSES = [
+      { id: 'a1', label: 'Home', name: 'Ayesha Khan', phone: '+92 300 1234567', line: 'House 176-Y, Block L, Gulberg III', city: 'Lahore', def: true },
+      { id: 'a2', label: 'Office', name: 'Ayesha Khan', phone: '+92 321 9876543', line: 'Arfa Software Tower, Ferozepur Rd', city: 'Lahore', def: false }
+    ];
+    let PAYMENTS = [
+      { id: 'p1', type: 'JazzCash', detail: 'Wallet · 0300•••4567', icon: 'phone-portrait-outline', color: '#eb445a' },
+      { id: 'p2', type: 'EasyPaisa', detail: 'Wallet · 0321•••6543', icon: 'phone-portrait-outline', color: '#2dd36f' },
+      { id: 'p3', type: 'Bank Transfer', detail: 'HBL ••••8842', icon: 'business-outline', color: '#3366cc' }
+    ];
+    const NOTIF = { orders: true, delivery: true, promos: true, priceDrops: false, newsletter: false };
+    const PREFS = { language: 'English', region: 'Pakistan', currency: 'PKR (Rs.)', theme: 'Light' };
+    const initials = n => n.split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase();
+
+    function syncProfileHeader() {
+      document.getElementById('set-avatar').textContent = initials(USER.name);
+      document.getElementById('set-name').textContent = USER.name;
+      document.getElementById('set-email').textContent = USER.email;
+    }
+
+    function renderSettings() {
+      syncProfileHeader();
+      const row = (icon, label, key, hint) => `
+        <button onclick="openSettings('${key}')" class="press w-full flex items-center gap-3 px-4 py-3.5 text-left border-t border-border first:border-0">
+          <div class="w-8 h-8 rounded-lg bg-page flex items-center justify-center shrink-0"><ion-icon name="${icon}" class="text-navy" style="font-size:17px"></ion-icon></div>
+          <span class="flex-1 text-[13px] font-semibold text-navy-dark">${label}</span>
+          ${hint ? `<span class="text-[11px] text-gray-400 truncate max-w-[110px]">${hint}</span>` : ''}
+          <ion-icon name="chevron-forward" class="text-gray-300 shrink-0" style="font-size:15px"></ion-icon>
+        </button>`;
+      const groups = [
+        { title: 'Account', rows: [
+          row('person-outline', 'Personal information', 'profile', ''),
+          row('location-outline', 'Delivery addresses', 'addresses', ADDRESSES.length + ' saved'),
+          row('card-outline', 'Payment methods', 'payments', PAYMENTS.length + ' saved'),
+          row('heart-outline', 'Wishlist', 'wishlist', wishlist.length + ' items')
+        ]},
+        { title: 'Support', rows: [
+          row('chatbox-ellipses-outline', 'My requests', 'myissues', MYISSUES.length + ' total'),
+          row('help-circle-outline', 'Help center', 'help', ''),
+          row('chatbubbles-outline', 'Contact us', 'contact', ''),
+          row('document-text-outline', 'Terms & privacy', 'terms', '')
+        ]}
+      ];
+      document.getElementById('settings-list').innerHTML = groups.map(g => `
+        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wide px-1 pt-2 pb-1">${g.title}</p>
+        <div class="bg-white rounded-2xl border border-border overflow-hidden">${g.rows.join('')}</div>`).join('') +
+        `<button onclick="logout()" class="press w-full mt-4 flex items-center justify-center gap-2 bg-brand-red/10 text-brand-red text-[13px] font-bold py-3.5 rounded-2xl">
+          <ion-icon name="log-out-outline" style="font-size:17px"></ion-icon>Log out</button>
+         <p class="text-center text-[10px] text-gray-300 mt-4">RetailOS Shop · v1.0.0</p>`;
+    }
+
+    function logout() {
+      cart = []; updateCartBadge();
+      toast('Logged out');
+      go('home');
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       SETTINGS DETAIL SUB-PAGES
+    ══════════════════════════════════════════════════════════ */
+    let sdKey = null, addrEditId = null;
+    const SD_TITLES = {
+      profile: ['Personal information', 'Your account details'],
+      myissues: ['My requests', 'Problems, returns & cancellations you raised'],
+      addresses: ['Delivery addresses', 'Where we ship your orders'],
+      'address-form': ['Address', ''],
+      payments: ['Payment methods', 'Saved wallets & accounts'],
+      'payment-form': ['Add payment method', ''],
+      wishlist: ['Wishlist', 'Products you saved'],
+      notifications: ['Notifications', 'Choose what we notify you about'],
+      language: ['Language & region', 'App language, region & currency'],
+      appearance: ['Appearance', 'Theme preference'],
+      help: ['Help center', 'Answers to common questions'],
+      contact: ['Contact us', 'We usually reply within a day'],
+      terms: ['Terms & privacy', 'Policies & agreements'],
+      about: ['About RetailOS', '']
+    };
+    function openSettings(key) {
+      sdKey = key;
+      go('settings-detail');
+      renderSettingsDetail();
+      document.querySelector('#page-settings-detail .screen').scrollTop = 0;
+    }
+    function renderSettingsDetail() {
+      const [title, sub] = SD_TITLES[sdKey] || ['Settings', ''];
+      document.getElementById('sd-title').textContent = title;
+      document.getElementById('sd-sub').textContent = sub;
+      const actionBtn = document.getElementById('sd-action');
+      actionBtn.classList.add('hidden');
+      const body = document.getElementById('settings-detail-body');
+      body.innerHTML = ({
+        profile: sdProfile, myissues: sdMyIssues, addresses: sdAddresses, 'address-form': sdAddressForm,
+        payments: sdPayments, 'payment-form': sdPaymentForm, wishlist: sdWishlist, notifications: sdNotifications,
+        language: sdLanguage, appearance: sdAppearance, help: sdHelp,
+        contact: sdContact, terms: sdTerms, about: sdAbout
+      }[sdKey] || (() => '<p class="text-gray-400 text-[13px]">Coming soon</p>'))();
+    }
+
+    /* Personal information (editable) */
+    function sdProfile() {
+      return `
+        <div class="flex flex-col items-center mb-5">
+          <div class="w-20 h-20 rounded-full bg-navy text-white flex items-center justify-center font-extrabold text-[24px]">${initials(USER.name)}</div>
+          <button onclick="toast('Photo upload — coming soon')" class="mt-2 text-[12px] font-semibold text-brand-blue press">Change photo</button>
+        </div>
+        <div class="bg-white rounded-2xl border border-border p-4 space-y-3.5">
+          <div><label class="slbl">Full name</label><input id="pf-name" class="sinp" value="${USER.name}"></div>
+          <div><label class="slbl">Email</label><input id="pf-email" type="email" class="sinp" value="${USER.email}"></div>
+          <div><label class="slbl">Phone</label><input id="pf-phone" class="sinp" value="${USER.phone}"></div>
+          <div class="grid grid-cols-2 gap-3">
+            <div><label class="slbl">Gender</label>
+              <select id="pf-gender" class="sinp">
+                ${['Female', 'Male', 'Prefer not to say'].map(g => `<option ${USER.gender === g ? 'selected' : ''}>${g}</option>`).join('')}
+              </select>
+            </div>
+            <div><label class="slbl">Date of birth</label><input id="pf-dob" type="date" class="sinp" value="${USER.dob}"></div>
+          </div>
+        </div>
+        <button onclick="saveProfile()" class="press w-full mt-4 h-12 bg-navy text-white rounded-xl text-[14px] font-bold flex items-center justify-center gap-2">
+          <ion-icon name="checkmark-outline" style="font-size:17px"></ion-icon>Save changes</button>`;
+    }
+    function saveProfile() {
+      USER.name = document.getElementById('pf-name').value.trim() || USER.name;
+      USER.email = document.getElementById('pf-email').value.trim() || USER.email;
+      USER.phone = document.getElementById('pf-phone').value.trim() || USER.phone;
+      USER.gender = document.getElementById('pf-gender').value;
+      USER.dob = document.getElementById('pf-dob').value;
+      syncProfileHeader();
+      toast('Profile updated');
+      back();
+    }
+
+    /* Delivery addresses */
+    function sdAddresses() {
+      const list = ADDRESSES.map(a => `
+        <div class="bg-white rounded-2xl border ${a.def ? 'border-navy' : 'border-border'} p-4 relative">
+          <div class="flex items-start gap-3">
+            <div class="w-9 h-9 rounded-lg bg-page flex items-center justify-center shrink-0">
+              <ion-icon name="${a.label === 'Office' ? 'business-outline' : 'home-outline'}" class="text-navy" style="font-size:18px"></ion-icon>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2">
+                <p class="text-[13px] font-bold text-navy-dark">${a.label}</p>
+                ${a.def ? '<span class="text-[9px] font-bold bg-navy text-white px-2 py-0.5 rounded-full">Default</span>' : ''}
+              </div>
+              <p class="text-[12px] text-gray-600 mt-0.5 leading-snug">${a.line}, ${a.city}</p>
+              <p class="text-[11px] text-gray-400 mt-0.5">${a.name} · ${a.phone}</p>
+              <div class="flex items-center gap-3 mt-2.5">
+                ${a.def ? '' : `<button onclick="setDefaultAddress('${a.id}')" class="text-[11.5px] font-semibold text-brand-blue press">Set default</button>`}
+                <button onclick="openAddressForm('${a.id}')" class="text-[11.5px] font-semibold text-gray-500 press">Edit</button>
+                <button onclick="deleteAddress('${a.id}')" class="text-[11.5px] font-semibold text-brand-red press">Delete</button>
+              </div>
+            </div>
+          </div>
+        </div>`).join('');
+      return `<div class="space-y-3">${list || emptyState('No addresses yet')}</div>
+        <button onclick="openAddressForm(null)" class="press w-full mt-4 h-12 border-2 border-dashed border-border rounded-xl text-[13px] font-bold text-navy flex items-center justify-center gap-2">
+          <ion-icon name="add-outline" style="font-size:18px"></ion-icon>Add new address</button>`;
+    }
+    function setDefaultAddress(id) { ADDRESSES.forEach(a => a.def = a.id === id); renderSettingsDetail(); toast('Default address updated'); }
+    function deleteAddress(id) {
+      const wasDef = ADDRESSES.find(a => a.id === id)?.def;
+      ADDRESSES = ADDRESSES.filter(a => a.id !== id);
+      if (wasDef && ADDRESSES[0]) ADDRESSES[0].def = true;
+      renderSettingsDetail(); toast('Address removed');
+    }
+    function openAddressForm(id) { addrEditId = id; sdKey = 'address-form'; renderSettingsDetail(); }
+    function sdAddressForm() {
+      const a = ADDRESSES.find(x => x.id === addrEditId) || { label: 'Home', name: USER.name, phone: USER.phone, line: '', city: 'Lahore' };
+      document.getElementById('sd-title').textContent = addrEditId ? 'Edit address' : 'Add address';
+      return `
+        <div class="bg-white rounded-2xl border border-border p-4 space-y-3.5">
+          <div><label class="slbl">Label</label>
+            <div class="flex gap-2" id="af-label">
+              ${['Home', 'Office', 'Other'].map(l => `<button onclick="afPickLabel('${l}',this)" class="af-lbl press flex-1 py-2 rounded-lg text-[12px] font-semibold border ${a.label === l ? 'bg-navy text-white border-navy' : 'bg-white text-gray-600 border-border'}">${l}</button>`).join('')}
+            </div>
+          </div>
+          <div><label class="slbl">Full name</label><input id="af-name" class="sinp" value="${a.name}"></div>
+          <div><label class="slbl">Phone</label><input id="af-phone" class="sinp" value="${a.phone}"></div>
+          <div><label class="slbl">Address</label><textarea id="af-line" rows="2" class="sinp resize-none" placeholder="House / street / area">${a.line}</textarea></div>
+          <div><label class="slbl">City</label><input id="af-city" class="sinp" value="${a.city}"></div>
+        </div>
+        <input type="hidden" id="af-picked-label" value="${a.label}">
+        <button onclick="saveAddress()" class="press w-full mt-4 h-12 bg-navy text-white rounded-xl text-[14px] font-bold flex items-center justify-center gap-2">
+          <ion-icon name="checkmark-outline" style="font-size:17px"></ion-icon>${addrEditId ? 'Save address' : 'Add address'}</button>`;
+    }
+    function afPickLabel(l, el) {
+      document.getElementById('af-picked-label').value = l;
+      el.parentElement.querySelectorAll('.af-lbl').forEach(b => b.className = 'af-lbl press flex-1 py-2 rounded-lg text-[12px] font-semibold border bg-white text-gray-600 border-border');
+      el.className = 'af-lbl press flex-1 py-2 rounded-lg text-[12px] font-semibold border bg-navy text-white border-navy';
+    }
+    function saveAddress() {
+      const line = document.getElementById('af-line').value.trim();
+      if (!line) { toast('Please enter an address'); return; }
+      const data = {
+        label: document.getElementById('af-picked-label').value,
+        name: document.getElementById('af-name').value.trim() || USER.name,
+        phone: document.getElementById('af-phone').value.trim() || USER.phone,
+        line, city: document.getElementById('af-city').value.trim() || 'Lahore'
+      };
+      if (addrEditId) {
+        Object.assign(ADDRESSES.find(a => a.id === addrEditId), data);
+      } else {
+        ADDRESSES.push({ id: 'a' + Date.now(), def: ADDRESSES.length === 0, ...data });
+      }
+      sdKey = 'addresses'; renderSettingsDetail(); toast(addrEditId ? 'Address saved' : 'Address added');
+    }
+
+    /* Payment methods */
+    function sdPayments() {
+      const list = PAYMENTS.map(m => `
+        <div class="bg-white rounded-2xl border border-border p-3.5 flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background:${m.color}18;">
+            <ion-icon name="${m.icon}" style="font-size:20px;color:${m.color}"></ion-icon>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-[13px] font-bold text-navy-dark">${m.type}</p>
+            <p class="text-[11px] text-gray-400">${m.detail}</p>
+          </div>
+          <button onclick="removePayment('${m.id}')" class="text-gray-300 hover:text-brand-red press"><ion-icon name="trash-outline" style="font-size:16px"></ion-icon></button>
+        </div>`).join('');
+      return `<div class="flex items-start gap-2.5 bg-brand-blue/5 border border-brand-blue/15 rounded-xl px-4 py-3 mb-3">
+          <ion-icon name="shield-checkmark-outline" style="font-size:15px;color:#3366cc;flex-shrink:0;margin-top:1px;"></ion-icon>
+          <p class="text-[11px] text-gray-600 leading-relaxed">Used to pay for online orders. Cash on Delivery is always available at checkout.</p>
+        </div>
+        <div class="space-y-2.5">${list || emptyState('No saved methods')}</div>
+        <button onclick="addPayment()" class="press w-full mt-4 h-12 border-2 border-dashed border-border rounded-xl text-[13px] font-bold text-navy flex items-center justify-center gap-2">
+          <ion-icon name="add-outline" style="font-size:18px"></ion-icon>Add payment method</button>`;
+    }
+    function removePayment(id) { PAYMENTS = PAYMENTS.filter(m => m.id !== id); renderSettingsDetail(); toast('Payment method removed'); }
+
+    const PM_TYPES = {
+      'JazzCash': { icon: 'phone-portrait-outline', color: '#eb445a', field: 'mobile' },
+      'EasyPaisa': { icon: 'phone-portrait-outline', color: '#2dd36f', field: 'mobile' },
+      'Bank Transfer': { icon: 'business-outline', color: '#3366cc', field: 'bank' }
+    };
+    let pmType = 'JazzCash';
+    function addPayment() { pmType = 'JazzCash'; sdKey = 'payment-form'; renderSettingsDetail(); }
+    function pmPickType(t) { pmType = t; renderSettingsDetail(); }
+    function sdPaymentForm() {
+      const cfg = PM_TYPES[pmType];
+      const typeCards = Object.keys(PM_TYPES).map(t => `
+        <button onclick="pmPickType('${esc(t)}')" class="press flex-1 rounded-xl border p-2.5 flex flex-col items-center gap-1.5 ${pmType === t ? 'border-navy bg-navy/5' : 'border-border bg-white'}">
+          <ion-icon name="${PM_TYPES[t].icon}" style="font-size:20px;color:${PM_TYPES[t].color}"></ion-icon>
+          <span class="text-[10.5px] font-semibold ${pmType === t ? 'text-navy-dark' : 'text-gray-500'}">${t}</span>
+        </button>`).join('');
+      let fields;
+      if (cfg.field === 'mobile') {
+        fields = `
+          <div><label class="slbl">Mobile number</label><input id="pm-mobile" class="sinp" inputmode="numeric" placeholder="03XX XXXXXXX"></div>
+          <div><label class="slbl">Account title <span class="text-gray-300 font-normal">(optional)</span></label><input id="pm-title" class="sinp" value="${USER.name}"></div>`;
+      } else {
+        fields = `
+          <div><label class="slbl">Bank</label>
+            <select id="pm-bank" class="sinp">${['HBL', 'UBL', 'Meezan Bank', 'Standard Chartered', 'MCB', 'Allied Bank', 'Bank Alfalah'].map(x => `<option>${x}</option>`).join('')}</select>
+          </div>
+          <div><label class="slbl">Account number / IBAN</label><input id="pm-acct" class="sinp" inputmode="numeric" placeholder="PK00 XXXX XXXX XXXX"></div>
+          <div><label class="slbl">Account title <span class="text-gray-300 font-normal">(optional)</span></label><input id="pm-title" class="sinp" value="${USER.name}"></div>`;
+      }
+      return `
+        <div class="mb-3"><label class="slbl">Payment type</label><div class="flex gap-2">${typeCards}</div></div>
+        <div class="bg-white rounded-2xl border border-border p-4 space-y-3.5">${fields}</div>
+        <div class="flex items-start gap-2 bg-brand-blue/5 border border-brand-blue/15 rounded-xl px-4 py-3 mt-3">
+          <ion-icon name="lock-closed-outline" style="font-size:13px;color:#3366cc;flex-shrink:0;margin-top:1px;"></ion-icon>
+          <p class="text-[11px] text-gray-600 leading-relaxed">Your details are stored securely and only used to pay for online orders.</p>
+        </div>
+        <button onclick="savePayment()" class="press w-full mt-4 h-12 bg-navy text-white rounded-xl text-[14px] font-bold flex items-center justify-center gap-2">
+          <ion-icon name="checkmark-outline" style="font-size:17px"></ion-icon>Add method</button>`;
+    }
+    function savePayment() {
+      const cfg = PM_TYPES[pmType];
+      let detail;
+      if (cfg.field === 'mobile') {
+        const m = (document.getElementById('pm-mobile').value || '').replace(/\D/g, '');
+        if (m.length < 11) { toast('Enter a valid 11-digit mobile number'); return; }
+        detail = 'Wallet · ' + m.slice(0, 4) + '•••' + m.slice(-4);
+      } else {
+        const bank = document.getElementById('pm-bank').value;
+        const acct = (document.getElementById('pm-acct').value || '').replace(/\s/g, '');
+        if (acct.replace(/\D/g, '').length < 4) { toast('Enter a valid account number'); return; }
+        detail = bank + ' ••••' + acct.slice(-4);
+      }
+      PAYMENTS.push({ id: 'p' + Date.now(), type: pmType, detail, icon: cfg.icon, color: cfg.color });
+      sdKey = 'payments'; renderSettingsDetail(); toast(pmType + ' added');
+    }
+
+    /* Wishlist */
+    function sdWishlist() {
+      if (!wishlist.length) return emptyState('Your wishlist is empty — tap the heart on any product');
+      const items = wishlist.map(pid => PID[pid]).filter(Boolean);
+      return `<div class="grid grid-cols-2 gap-3">${items.map(({ p, b }) => productCard(p, b)).join('')}</div>`;
+    }
+
+    /* Notifications (toggles) */
+    function sdNotifications() {
+      const rows = [
+        ['orders', 'Order updates', 'Confirmations, packing & shipping'],
+        ['delivery', 'Delivery alerts', 'Out for delivery & delivered'],
+        ['promos', 'Promotions & deals', 'Sales and discount campaigns'],
+        ['priceDrops', 'Price drops', 'When wishlist items get cheaper'],
+        ['newsletter', 'Newsletter', 'Weekly picks and new stores']
+      ];
+      return `<div class="bg-white rounded-2xl border border-border overflow-hidden">
+        ${rows.map((r, i) => `
+          <div class="flex items-center gap-3 px-4 py-3.5 ${i ? 'border-t border-border' : ''}">
+            <div class="flex-1 min-w-0">
+              <p class="text-[13px] font-semibold text-navy-dark">${r[1]}</p>
+              <p class="text-[11px] text-gray-400">${r[2]}</p>
+            </div>
+            <div class="sw ${NOTIF[r[0]] ? 'on' : ''}" onclick="toggleNotif('${r[0]}',this)"></div>
+          </div>`).join('')}
+      </div>`;
+    }
+    function toggleNotif(key, el) { NOTIF[key] = !NOTIF[key]; el.classList.toggle('on', NOTIF[key]); }
+
+    /* Language & region */
+    function sdLanguage() {
+      const group = (label, key, opts) => `
+        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wide px-1 pt-2 pb-1">${label}</p>
+        <div class="bg-white rounded-2xl border border-border overflow-hidden mb-3">
+          ${opts.map((o, i) => `
+            <button onclick="setPref('${key}','${o}')" class="press w-full flex items-center justify-between px-4 py-3.5 text-left ${i ? 'border-t border-border' : ''}">
+              <span class="text-[13px] font-semibold text-navy-dark">${o}</span>
+              ${PREFS[key] === o ? '<ion-icon name="checkmark-circle" class="text-navy" style="font-size:18px"></ion-icon>' : '<span class="w-[18px]"></span>'}
+            </button>`).join('')}
+        </div>`;
+      return group('Language', 'language', ['English', 'اردو (Urdu)']) +
+        group('Region', 'region', ['Pakistan', 'United Arab Emirates']) +
+        group('Currency', 'currency', ['PKR (Rs.)', 'AED (د.إ)']);
+    }
+    function setPref(key, val) { PREFS[key] = val; renderSettingsDetail(); toast('Preference saved'); }
+
+    /* Appearance */
+    function sdAppearance() {
+      const opts = [['Light', 'sunny-outline'], ['Dark', 'moon-outline'], ['System', 'phone-portrait-outline']];
+      return `<div class="bg-white rounded-2xl border border-border overflow-hidden">
+        ${opts.map((o, i) => `
+          <button onclick="setPref('theme','${o[0]}')" class="press w-full flex items-center gap-3 px-4 py-3.5 text-left ${i ? 'border-t border-border' : ''}">
+            <ion-icon name="${o[1]}" class="text-navy" style="font-size:18px"></ion-icon>
+            <span class="flex-1 text-[13px] font-semibold text-navy-dark">${o[0]}</span>
+            ${PREFS.theme === o[0] ? '<ion-icon name="checkmark-circle" class="text-navy" style="font-size:18px"></ion-icon>' : ''}
+          </button>`).join('')}
+      </div>
+      <p class="text-[11px] text-gray-400 mt-3 px-1">Dark mode is a preview — full theming rolls out soon.</p>`;
+    }
+
+    /* My requests — issues the customer raised */
+    function sdMyIssues() {
+      if (!MYISSUES.length) return emptyState('You haven’t raised any requests yet');
+      return `<div class="space-y-2.5">${MYISSUES.map(r => {
+        const t = MYISSUE_TYPE[r.type], s = MYISSUE_STATUS[r.status];
+        return `<div class="bg-white rounded-2xl border border-border p-4">
+          <div class="flex items-center justify-between gap-2 mb-1.5">
+            <span class="inline-flex items-center gap-1.5 text-[11px] font-bold" style="color:${t.color}"><ion-icon name="${t.icon}" style="font-size:14px"></ion-icon>${t.label}</span>
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${s.cls}">${s.label}</span>
+          </div>
+          <p class="text-[13px] font-bold text-navy-dark">${r.reason}</p>
+          ${r.note ? `<p class="text-[12px] text-gray-500 leading-relaxed mt-1">${r.note}</p>` : ''}
+          <div class="flex items-center gap-2 mt-2.5 pt-2.5 border-t border-border">
+            <span class="text-[10.5px] font-semibold text-gray-500 truncate">${r.biz}</span>
+            <span class="text-[10.5px] text-gray-300">·</span>
+            <span class="text-[10.5px] font-mono text-gray-400">${r.orderId}</span>
+            <span class="text-[10.5px] text-gray-300 ml-auto">${r.date}</span>
+          </div>
+        </div>`;
+      }).join('')}</div>`;
+    }
+
+    /* Help center (FAQ) */
+    let faqOpen = -1;
+    function sdHelp() {
+      const faqs = [
+        ['How do I track my order?', 'Open the Orders tab to see live status for every order, from confirmed through to delivered.'],
+        ['What payment methods can I use?', 'You can pay online via JazzCash, EasyPaisa or bank transfer, or choose Cash on Delivery at checkout.'],
+        ['How do returns work?', 'Contact the store from your order within 3 days of delivery to request a return or refund.'],
+        ['When is delivery free?', 'Delivery is free on orders over Rs.5,000. Otherwise a flat Rs.199 fee applies.'],
+        ['How do I change my delivery address?', 'Go to Settings → Delivery addresses to add, edit, or set a default address.']
+      ];
+      return `<div class="space-y-2.5">${faqs.map((f, i) => `
+        <div class="bg-white rounded-2xl border border-border overflow-hidden">
+          <button onclick="toggleFaq(${i})" class="press w-full flex items-center gap-3 px-4 py-3.5 text-left">
+            <span class="flex-1 text-[12.5px] font-semibold text-navy-dark">${f[0]}</span>
+            <ion-icon name="${faqOpen === i ? 'chevron-up' : 'chevron-down'}" class="text-gray-400 shrink-0" style="font-size:15px"></ion-icon>
+          </button>
+          ${faqOpen === i ? `<p class="px-4 pb-3.5 -mt-1 text-[12px] text-gray-500 leading-relaxed">${f[1]}</p>` : ''}
+        </div>`).join('')}</div>`;
+    }
+    function toggleFaq(i) { faqOpen = faqOpen === i ? -1 : i; renderSettingsDetail(); }
+
+    /* Contact us */
+    function sdContact() {
+      const rows = [
+        ['call-outline', 'Call us', '+92 42 111 000 111', 'tel'],
+        ['mail-outline', 'Email', 'support@retailos.io', 'mail'],
+        ['logo-whatsapp', 'WhatsApp', '+92 300 1110000', 'wa']
+      ];
+      return `<div class="bg-white rounded-2xl border border-border overflow-hidden mb-4">
+        ${rows.map((r, i) => `
+          <button onclick="toast('${r[1]} — ${r[2]}')" class="press w-full flex items-center gap-3 px-4 py-3.5 text-left ${i ? 'border-t border-border' : ''}">
+            <div class="w-9 h-9 rounded-lg bg-page flex items-center justify-center shrink-0"><ion-icon name="${r[0]}" class="text-navy" style="font-size:18px"></ion-icon></div>
+            <div class="flex-1 min-w-0"><p class="text-[13px] font-semibold text-navy-dark">${r[1]}</p><p class="text-[11px] text-gray-400">${r[2]}</p></div>
+            <ion-icon name="chevron-forward" class="text-gray-300" style="font-size:15px"></ion-icon>
+          </button>`).join('')}
+      </div>`;
+    }
+
+    /* Terms & privacy */
+    function sdTerms() {
+      const sec = (t, b) => `<div class="bg-white rounded-2xl border border-border p-4"><p class="text-[13px] font-bold text-navy-dark mb-1.5">${t}</p><p class="text-[12px] text-gray-500 leading-relaxed">${b}</p></div>`;
+      return `<div class="space-y-3">
+        ${sec('Terms of Service', 'By using RetailOS Shop you agree to purchase from independent stores listed on the platform. Each store is responsible for its own products, pricing and fulfilment.')}
+        ${sec('Privacy Policy', 'We collect only the information needed to process your orders and improve your experience. Your data is never sold to third parties.')}
+        ${sec('Refund Policy', 'Refunds for online orders are handled by the selling store and are typically processed within 5–7 business days of approval.')}
+      </div>
+      <p class="text-center text-[10px] text-gray-300 mt-4">Last updated: Jul 2026</p>`;
+    }
+
+    /* About */
+    function sdAbout() {
+      return `<div class="flex flex-col items-center text-center py-4">
+        <div class="w-20 h-20 rounded-3xl bg-navy flex items-center justify-center mb-3">
+          <ion-icon name="storefront" class="text-white" style="font-size:40px"></ion-icon>
+        </div>
+        <p class="text-[17px] font-extrabold text-navy-dark">RetailOS Shop</p>
+        <p class="text-[12px] text-gray-400 mt-0.5">Version 1.0.0</p>
+        <p class="text-[12.5px] text-gray-500 leading-relaxed mt-4 px-4">One app to shop every store near you — groceries, fashion, electronics and more, delivered from businesses you trust.</p>
+      </div>
+      <div class="bg-white rounded-2xl border border-border overflow-hidden mt-2">
+        ${[['star-outline', 'Rate the app'], ['share-social-outline', 'Share RetailOS'], ['globe-outline', 'Visit website']].map((r, i) => `
+          <button onclick="toast('${r[1]}')" class="press w-full flex items-center gap-3 px-4 py-3.5 text-left ${i ? 'border-t border-border' : ''}">
+            <ion-icon name="${r[0]}" class="text-navy" style="font-size:18px"></ion-icon>
+            <span class="flex-1 text-[13px] font-semibold text-navy-dark">${r[1]}</span>
+            <ion-icon name="chevron-forward" class="text-gray-300" style="font-size:15px"></ion-icon>
+          </button>`).join('')}
+      </div>`;
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       PRODUCT DETAIL + IMAGE SLIDER
+    ══════════════════════════════════════════════════════════ */
+    let pdpPid = null, pdpQty = 1, pdpAutoTimer = null, pdpVariant = {};
+    function openProduct(pid) {
+      const rec = PID[pid];
+      if (!rec) return;
+      pdpPid = pid; pdpQty = 1;
+      // default variant selection = first value of each option
+      pdpVariant = {};
+      productMeta(rec.p).options.forEach(o => { pdpVariant[o.name] = o.values[0]; });
+      go('product-detail');
+      renderPDP();
+      document.getElementById('pdp-screen').scrollTop = 0;
+    }
+    function pdpStep(d) {
+      pdpQty = Math.max(1, pdpQty + d);
+      document.getElementById('pdp-qty').textContent = pdpQty;
+      pdpUpdateTotal();
+    }
+    // surcharge for premium option tiers (RAM / storage / TV size); size/colour = 0
+    function optSurcharge(o, sel) {
+      const idx = o.values.indexOf(sel);
+      if (idx <= 0) return 0;
+      const n = o.name.toLowerCase();
+      if (n.includes('ram')) return idx * 15000;
+      if (n.includes('storage')) return idx * 20000;
+      if (n === 'size' && /["”]/.test(sel)) return idx * 20000;
+      return 0;
+    }
+    function pdpCurrentPrice() {
+      const { p } = PID[pdpPid];
+      let price = unitPrice(p);
+      productMeta(p).options.forEach(o => { price += optSurcharge(o, pdpVariant[o.name]); });
+      return price;
+    }
+    function pdpUpdateTotal() {
+      const price = pdpCurrentPrice();
+      const el = document.getElementById('pdp-price');
+      if (el) el.textContent = money(price);
+      document.getElementById('pdp-bar-total').textContent = money(price * pdpQty);
+    }
+    function pdpSelectVariant(name, val, el, idx) {
+      pdpVariant[name] = val;
+      [...el.parentElement.children].forEach(c => {
+        const on = c === el;
+        c.className = 'vchip press px-3.5 py-1.5 rounded-xl text-[12px] font-semibold border ' +
+          (on ? 'bg-navy text-white border-navy' : 'bg-white text-gray-600 border-border');
+      });
+      const lbl = document.getElementById('vsel-' + idx);
+      if (lbl) lbl.textContent = val;
+      pdpUpdateTotal();
+    }
+    function pdpAdd() {
+      const { p } = PID[pdpPid];
+      const variant = Object.values(pdpVariant).join(' / ');
+      addToCart(pdpPid, pdpQty);
+    }
+    function pdpScroll() {
+      const s = document.getElementById('pdp-slider');
+      if (!s) return;
+      const i = Math.round(s.scrollLeft / s.clientWidth);
+      document.querySelectorAll('#pdp-dots .dot').forEach((d, idx) => {
+        const on = idx === i;
+        d.style.width = on ? '20px' : '6px';
+        d.style.background = on ? '#fff' : 'rgba(255,255,255,0.55)';
+      });
+      document.querySelectorAll('#pdp-thumbs .thumb').forEach((t, idx) =>
+        t.style.borderColor = idx === i ? '#1a2d6b' : 'transparent');
+      const c = document.getElementById('pdp-counter');
+      if (c) c.textContent = (i + 1) + ' / ' + s.children.length;
+    }
+    function pdpGoto(i) {
+      const s = document.getElementById('pdp-slider');
+      if (s) s.scrollTo({ left: i * s.clientWidth, behavior: 'smooth' });
+    }
+    function pdpNav(dir) {
+      const s = document.getElementById('pdp-slider');
+      if (s) s.scrollBy({ left: dir * s.clientWidth, behavior: 'smooth' });
+    }
+    function renderPDP() {
+      const { p, b } = PID[pdpPid];
+      const imgs = productImages(p, 4);
+      const disc = DISCOUNTS[p.name];
+      const price = disc ? Math.round(p.price * (1 - disc / 100)) : p.price;
+      const unit = p.unit && p.unit !== 'each' ? ' <span class="text-[12px] font-medium text-gray-400">/ ' + p.unit + '</span>' : '';
+      const more = b.products.filter(x => x.pid !== p.pid).slice(0, 4);
+      const meta = productMeta(p);
+      const stock = stockOf(p);
+      const low = stock <= 15;
+      const stockBadge = low
+        ? `<span class="text-[11px] text-brand-orange font-semibold flex items-center gap-0.5 ml-1"><ion-icon name="alert-circle" style="font-size:12px"></ion-icon>Only ${stock} left</span>`
+        : `<span class="text-[11px] text-brand-green font-semibold flex items-center gap-0.5 ml-1"><ion-icon name="checkmark-circle" style="font-size:12px"></ion-icon>In stock</span>`;
+      const typeBadge = meta.type === 'variant'
+        ? `<span class="text-[9.5px] font-semibold text-brand-purple bg-brand-purple/10 px-2 py-0.5 rounded-full">Multiple options</span>`
+        : meta.type === 'bundle'
+          ? `<span class="text-[9.5px] font-semibold text-brand-orange bg-brand-orange/10 px-2 py-0.5 rounded-full">Bundle</span>` : '';
+
+      // variant selectors
+      const variantHtml = meta.options.map((o, idx) => `
+        <div class="mt-4">
+          <div class="flex items-center justify-between mb-2">
+            <p class="text-[12px] font-bold text-navy-dark">${o.name}</p>
+            <span class="text-[11px] text-gray-400">Selected: <span id="vsel-${idx}" class="font-semibold text-navy-dark">${pdpVariant[o.name] || o.values[0]}</span></span>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            ${o.values.map(v => `<button onclick="pdpSelectVariant('${esc(o.name)}','${esc(v)}',this,${idx})"
+              class="vchip press px-3.5 py-1.5 rounded-xl text-[12px] font-semibold border ${(pdpVariant[o.name] || o.values[0]) === v ? 'bg-navy text-white border-navy' : 'bg-white text-gray-600 border-border'}">${v}</button>`).join('')}
+          </div>
+        </div>`).join('');
+
+      // bundle contents
+      let bundleHtml = '';
+      if (meta.type === 'bundle' && meta.bundle.length) {
+        const items = meta.bundle.map(bi => {
+          const comp = b.products.find(x => x.name === bi.name);
+          return comp ? { comp, qty: bi.qty } : null;
+        }).filter(Boolean);
+        const indivTotal = items.reduce((s, it) => s + unitPrice(it.comp) * it.qty, 0);
+        const save = indivTotal - price;
+        bundleHtml = `
+          <div class="mt-4 bg-white border border-border rounded-2xl overflow-hidden">
+            <div class="flex items-center justify-between px-4 py-2.5 border-b border-border bg-page/60">
+              <p class="text-[12px] font-bold text-navy-dark">What's inside (${items.length})</p>
+              ${save > 0 ? `<span class="text-[10px] font-bold text-brand-green bg-brand-green/10 px-2 py-0.5 rounded-full">You save ${money(save)}</span>` : ''}
+            </div>
+            ${items.map(({ comp, qty }) => `
+              <div onclick="openProduct('${comp.pid}')" class="press cursor-pointer flex items-center gap-3 px-4 py-2.5 border-b border-border last:border-0">
+                <div class="w-11 h-11 rounded-lg overflow-hidden shrink-0">${imgCell(imgUrl(comp), comp.cat, b.color, '100%', 44)}</div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-[12px] font-semibold text-navy-dark truncate">${comp.name}</p>
+                  <p class="text-[10.5px] text-gray-400 tnum">${money(unitPrice(comp))} each</p>
+                </div>
+                <span class="text-[11px] font-bold text-navy-dark bg-page px-2 py-0.5 rounded-md tnum">× ${qty}</span>
+              </div>`).join('')}
+          </div>`;
+      }
+
+      // Product Details — mirrors the dashboard's "Product Details" attributes
+      // (Material, Warranty, Ingredients, etc.) plus the captured Unit of Measure.
+      const details = { 'Sold as': uomLabel(p), ...meta.specs };
+      const detailEntries = Object.entries(details);
+      const specHtml = `
+        <div class="px-5 mt-5">
+          <p class="text-[13px] font-bold text-navy-dark mb-2">Product Details</p>
+          <div class="bg-white border border-border rounded-2xl overflow-hidden">
+            ${detailEntries.map(([k, v], i) => `
+              <div class="flex items-start gap-3 px-4 py-2.5 ${i ? 'border-t border-border' : ''}">
+                <span class="text-[11.5px] text-gray-400 font-medium" style="width:42%;flex-shrink:0;">${k}</span>
+                <span class="text-[11.5px] font-semibold text-navy-dark flex-1">${v}</span>
+              </div>`).join('')}
+          </div>
+        </div>`;
+
+      const description = meta.desc || `Authentic ${p.name} available at ${b.name}. Quality-checked and ready for quick delivery within your area. Prices are inclusive of applicable taxes.`;
+
+      document.getElementById('pdp-screen').innerHTML = `
+        <!-- Image slider -->
+        <div class="relative bg-page">
+          <div id="pdp-slider" onscroll="pdpScroll()" class="flex overflow-x-auto snap-x snap-mandatory no-sb">
+            ${imgs.map(u => `
+              <div class="shrink-0 snap-center" style="width:100%;">
+                ${imgCell(u, p.cat, b.color, '100%', 340)}
+              </div>`).join('')}
+          </div>
+
+          <!-- top controls -->
+          <button onclick="back()" class="absolute top-11 left-4 w-9 h-9 rounded-xl bg-white/90 backdrop-blur flex items-center justify-center press shadow-sm">
+            <ion-icon name="chevron-back-outline" class="text-navy" style="font-size:18px"></ion-icon>
+          </button>
+          <div class="absolute top-11 right-4 flex gap-2">
+            <button onclick="toggleWishlist(pdpPid)" class="w-9 h-9 rounded-xl bg-white/90 backdrop-blur flex items-center justify-center press shadow-sm">
+              <ion-icon id="pdp-heart" name="${isWished(p.pid) ? 'heart' : 'heart-outline'}" class="text-brand-red" style="font-size:17px"></ion-icon>
+            </button>
+            <button onclick="toast('Shared ${p.name.replace(/'/g, "")}')" class="w-9 h-9 rounded-xl bg-white/90 backdrop-blur flex items-center justify-center press shadow-sm">
+              <ion-icon name="share-social-outline" class="text-navy" style="font-size:15px"></ion-icon>
+            </button>
+          </div>
+
+          <!-- counter -->
+          <div id="pdp-counter" class="absolute top-11 left-1/2 -translate-x-1/2 bg-black/40 text-white text-[10.5px] font-semibold px-2.5 py-1 rounded-full tnum">1 / ${imgs.length}</div>
+
+          ${disc ? `<span class="absolute bottom-3 left-4 bg-brand-red text-white text-[11px] font-bold px-2 py-1 rounded-lg shadow">-${disc}% OFF</span>` : ''}
+
+          <!-- arrows (desktop) -->
+          <button onclick="pdpNav(-1)" class="hidden sm:flex absolute top-1/2 left-3 -translate-y-1/2 w-8 h-8 rounded-full bg-white/85 items-center justify-center press shadow"><ion-icon name="chevron-back-outline" class="text-navy" style="font-size:16px"></ion-icon></button>
+          <button onclick="pdpNav(1)" class="hidden sm:flex absolute top-1/2 right-3 -translate-y-1/2 w-8 h-8 rounded-full bg-white/85 items-center justify-center press shadow"><ion-icon name="chevron-forward-outline" class="text-navy" style="font-size:16px"></ion-icon></button>
+
+          <!-- dots -->
+          <div id="pdp-dots" class="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5">
+            ${imgs.map((_, i) => `<span class="dot rounded-full transition-all" style="height:6px;width:${i === 0 ? '20px' : '6px'};background:${i === 0 ? '#fff' : 'rgba(255,255,255,0.55)'};box-shadow:0 1px 3px rgba(0,0,0,.3);"></span>`).join('')}
+          </div>
+        </div>
+
+        <!-- thumbnails -->
+        <div id="pdp-thumbs" class="flex gap-2 overflow-x-auto no-sb px-4 py-3 bg-white border-b border-border">
+          ${imgs.map((u, i) => `
+            <button onclick="pdpGoto(${i})" class="thumb shrink-0 w-14 h-14 rounded-xl overflow-hidden bg-page press" style="border:2px solid ${i === 0 ? '#1a2d6b' : 'transparent'};">
+              <img src="${u}" alt="" loading="lazy" class="w-full h-full object-cover" onerror="this.style.display='none'">
+            </button>`).join('')}
+        </div>
+
+        <!-- info -->
+        <div class="px-5 pt-4">
+          <button onclick="openStore('${b.id}')" class="press inline-flex items-center gap-2 mb-2">
+            ${storeLogo(b, 22)}
+            <span class="text-[11.5px] font-semibold text-brand-blue">${b.name}</span>
+            <ion-icon name="chevron-forward" class="text-brand-blue" style="font-size:12px"></ion-icon>
+          </button>
+          <div class="flex items-center gap-1.5 mb-1 flex-wrap">
+            <span class="text-[9.5px] font-semibold text-brand-blue bg-brand-blue/10 px-2 py-0.5 rounded-full">${p.cat}</span>
+            <span class="text-[9.5px] font-semibold text-gray-500 bg-page px-2 py-0.5 rounded-full">${p.sub}</span>
+            ${typeBadge}
+          </div>
+          <h1 class="text-[19px] font-extrabold text-navy-dark leading-tight">${p.name}</h1>
+
+          <div class="flex items-center gap-2 mt-2">
+            ${stockBadge}
+          </div>
+
+          <div class="flex items-baseline gap-2 mt-3">
+            <span id="pdp-price" class="text-[24px] font-extrabold text-navy-dark tnum">${money(price)}</span>${unit}
+            ${disc ? `<span class="text-[14px] text-gray-400 line-through tnum">${money(p.price)}</span><span class="text-[11px] font-bold text-brand-red bg-brand-red/10 px-1.5 py-0.5 rounded-md">-${disc}%</span>` : ''}
+          </div>
+
+          ${variantHtml}
+          ${bundleHtml}
+
+          <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wide mt-5 mb-1.5">Description</p>
+          <p class="text-[12.5px] text-gray-500 leading-relaxed">${description}</p>
+        </div>
+
+        ${specHtml}
+
+        <!-- more from store -->
+        ${more.length ? `
+        <div class="mt-6">
+          <div class="flex items-center justify-between px-5 mb-3">
+            <h3 class="text-[14px] font-bold text-navy-dark">More from ${b.name}</h3>
+            <button onclick="openStore('${b.id}')" class="text-[12px] text-brand-blue font-semibold press">Visit store</button>
+          </div>
+          <div class="px-5 grid grid-cols-2 gap-3">
+            ${more.map(x => productCard(x, b)).join('')}
+          </div>
+        </div>` : ''}
+        <div class="h-4"></div>`;
+
+      pdpQty = 1;
+      document.getElementById('pdp-qty').textContent = '1';
+      pdpUpdateTotal();
+      document.getElementById('pdp-bar').style.display = 'block';
+
+      // auto-advance the gallery
+      if (pdpAutoTimer) clearInterval(pdpAutoTimer);
+      pdpAutoTimer = setInterval(() => {
+        if (currentPage() !== 'product-detail') { clearInterval(pdpAutoTimer); pdpAutoTimer = null; return; }
+        const s = document.getElementById('pdp-slider');
+        if (!s) return;
+        const i = Math.round(s.scrollLeft / s.clientWidth);
+        s.scrollTo({ left: ((i + 1) % s.children.length) * s.clientWidth, behavior: 'smooth' });
+      }, 3500);
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       CART
+    ══════════════════════════════════════════════════════════ */
+    const DELIVERY_FEE = 199, FREE_DELIVERY_OVER = 5000;
+    let cart = []; // { pid, qty }
+    let wishlist = ['alfatah-0', 'khaadi-1', 'hyperstar-1']; // saved product ids
+
+    function isWished(pid) { return wishlist.includes(pid); }
+    function toggleWishlist(pid) {
+      const i = wishlist.indexOf(pid);
+      if (i < 0) { wishlist.push(pid); toast('Added to wishlist'); }
+      else { wishlist.splice(i, 1); toast('Removed from wishlist'); }
+      if (currentPage() === 'settings-detail' && sdKey === 'wishlist') renderSettingsDetail();
+      if (currentPage() === 'product-detail') { const b = document.getElementById('pdp-heart'); if (b) b.setAttribute('name', isWished(pdpPid) ? 'heart' : 'heart-outline'); }
+      const wc = document.getElementById('home-wishlist-count'); if (wc) wc.textContent = wishlist.length;
+    }
+
+    function cartCount() { return cart.reduce((s, i) => s + i.qty, 0); }
+    function updateCartBadge() {
+      const n = cartCount();
+      const el = document.getElementById('cart-badge');
+      if (!el) return;
+      el.textContent = n > 99 ? '99+' : n;
+      el.style.display = n ? 'flex' : 'none';
+    }
+    function addToCart(pid, qty) {
+      const item = cart.find(i => i.pid === pid);
+      if (item) item.qty += qty; else cart.push({ pid, qty });
+      updateCartBadge();
+      const { p } = PID[pid];
+      toast(`Added ${qty} × ${p.name} to cart`);
+      if (currentPage() === 'cart') renderCart();
+    }
+    function cartStep(pid, d) {
+      const item = cart.find(i => i.pid === pid);
+      if (!item) return;
+      item.qty += d;
+      if (item.qty <= 0) cart = cart.filter(i => i.pid !== pid);
+      updateCartBadge();
+      renderCart();
+    }
+    function removeCartItem(pid) {
+      cart = cart.filter(i => i.pid !== pid);
+      updateCartBadge();
+      renderCart();
+    }
+    function cartSubtotal() {
+      return cart.reduce((s, i) => s + unitPrice(PID[i.pid].p) * i.qty, 0);
+    }
+    /* ══════════════════════════════════════════════════════════
+       CHECKOUT FLOW  (Address → Payment → Review → Confirmation)
+    ══════════════════════════════════════════════════════════ */
+    let coStep = 1;            // 1 address · 2 payment · 3 review
+    let coView = 'main';       // 'main' | 'addr' (add address) | 'pay' (add method)
+    let coAddrId = null;       // selected delivery address id
+    let coPayId = 'cod';       // selected payment id, or 'cod'
+    let coAddrLabel = 'Home';  // inline add-address label picker
+    let coPayType = 'JazzCash';// inline add-payment type picker
+    let lastOrderIds = [];     // orders created by the last placement
+
+    function checkoutTotals() {
+      const subtotal = cartSubtotal();
+      const delivery = subtotal >= FREE_DELIVERY_OVER ? 0 : DELIVERY_FEE;
+      return { subtotal, delivery, total: subtotal + delivery };
+    }
+
+    function startCheckout() {
+      if (!cart.length) return;
+      coStep = 1; coView = 'main';
+      const d = ADDRESSES.find(a => a.def) || ADDRESSES[0];
+      coAddrId = d ? d.id : null;
+      coPayId = 'cod';
+      go('checkout');
+    }
+
+    function coBack() {
+      if (coView !== 'main') { coView = 'main'; renderCheckout(); return; }
+      if (coStep > 1) { coStep--; renderCheckout(); return; }
+      back();
+    }
+    function coGoStep(n) { coStep = n; coView = 'main'; renderCheckout(); }
+    function coPickAddr(id) { coAddrId = id; renderCheckout(); }
+    function coPickPay(id) { coPayId = id; renderCheckout(); }
+    function coNext() {
+      if (coStep === 1) { if (!coAddrId) { toast('Please select an address'); return; } coStep = 2; }
+      else if (coStep === 2) { coStep = 3; }
+      renderCheckout();
+    }
+
+    function coRadio(sel) {
+      return `<div class="w-5 h-5 rounded-full border-2 ${sel ? 'border-navy' : 'border-gray-300'} flex items-center justify-center shrink-0">${sel ? '<div class="w-2.5 h-2.5 rounded-full bg-navy"></div>' : ''}</div>`;
+    }
+
+    function coStepBar() {
+      const steps = ['Address', 'Payment', 'Review'];
+      return `<div class="flex items-center mb-5">${steps.map((label, i) => {
+        const n = i + 1, done = coStep > n, cur = coStep === n;
+        const dot = cur ? 'bg-navy text-white' : done ? 'bg-brand-green text-white' : 'bg-page text-gray-400 border border-border';
+        return `<div class="flex items-center ${i < 2 ? 'flex-1' : ''}">
+          <div class="flex items-center gap-1.5 shrink-0">
+            <div class="w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold ${dot}">${done ? '<ion-icon name="checkmark-outline" style="font-size:14px"></ion-icon>' : n}</div>
+            <span class="text-[11px] font-semibold ${cur || done ? 'text-navy-dark' : 'text-gray-400'}">${label}</span>
+          </div>
+          ${i < 2 ? `<div class="flex-1 h-0.5 mx-2 rounded-full ${done ? 'bg-brand-green' : 'bg-border'}"></div>` : ''}
+        </div>`;
+      }).join('')}</div>`;
+    }
+
+    function coPayLabel() {
+      if (coPayId === 'cod') return { title: 'Cash on Delivery', detail: 'Pay when it arrives', icon: 'cash-outline', color: '#2dd36f' };
+      const m = PAYMENTS.find(x => x.id === coPayId);
+      return m ? { title: m.type, detail: m.detail, icon: m.icon, color: m.color }
+               : { title: 'Cash on Delivery', detail: 'Pay when it arrives', icon: 'cash-outline', color: '#2dd36f' };
+    }
+
+    function renderCheckout() {
+      const body = document.getElementById('checkout-body');
+      if (!body) return;
+      if (!cart.length && coView === 'main' && coStep < 4) {
+        body.innerHTML = `<div class="flex flex-col items-center justify-center text-center px-8" style="height:60vh;">
+            <div class="w-20 h-20 rounded-3xl bg-brand-blue/10 flex items-center justify-center mb-4"><ion-icon name="cart-outline" class="text-brand-blue" style="font-size:38px;"></ion-icon></div>
+            <p class="text-[15px] font-bold text-navy-dark">Your cart is empty</p>
+            <button onclick="go('stores')" class="mt-5 bg-navy text-white text-[13px] font-semibold px-6 py-3 rounded-xl press">Start shopping</button>
+          </div>`;
+        return;
+      }
+      if (coView === 'addr') { body.innerHTML = coAddrFormView(); return; }
+      if (coView === 'pay') { body.innerHTML = coPayFormView(); return; }
+      let content = coStep === 1 ? coAddressStep() : coStep === 2 ? coPaymentStep() : coReviewStep();
+      body.innerHTML = coStepBar() + content;
+    }
+
+    function coAddressStep() {
+      const list = ADDRESSES.map(a => {
+        const sel = a.id === coAddrId;
+        return `<button onclick="coPickAddr('${a.id}')" class="press w-full text-left bg-white rounded-2xl border ${sel ? 'border-navy ring-2 ring-navy/15' : 'border-border'} p-4 flex items-start gap-3">
+          <div class="w-9 h-9 rounded-lg bg-page flex items-center justify-center shrink-0"><ion-icon name="${a.label === 'Office' ? 'business-outline' : 'home-outline'}" class="text-navy" style="font-size:18px"></ion-icon></div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2"><p class="text-[13px] font-bold text-navy-dark">${a.label}</p>${a.def ? '<span class="text-[9px] font-bold bg-navy text-white px-2 py-0.5 rounded-full">Default</span>' : ''}</div>
+            <p class="text-[12px] text-gray-600 mt-0.5 leading-snug">${a.line}, ${a.city}</p>
+            <p class="text-[11px] text-gray-400 mt-0.5">${a.name} · ${a.phone}</p>
+          </div>
+          ${coRadio(sel)}
+        </button>`;
+      }).join('');
+      return `<p class="text-[13px] font-bold text-navy-dark mb-2.5">Delivery address</p>
+        <div class="space-y-2.5">${list || emptyState('No addresses yet')}</div>
+        <button onclick="coOpenAddrForm()" class="press w-full mt-3 h-12 border-2 border-dashed border-border rounded-xl text-[13px] font-bold text-navy flex items-center justify-center gap-2"><ion-icon name="add-outline" style="font-size:18px"></ion-icon>Add new address</button>
+        <button onclick="coNext()" class="press w-full mt-5 h-12 ${coAddrId ? 'bg-navy text-white' : 'bg-gray-200 text-gray-400 pointer-events-none'} rounded-xl text-[14px] font-bold flex items-center justify-center gap-2">Continue to payment<ion-icon name="arrow-forward-outline" style="font-size:16px"></ion-icon></button>`;
+    }
+
+    function coPaymentStep() {
+      const cod = coPayId === 'cod';
+      const codCard = `<button onclick="coPickPay('cod')" class="press w-full text-left bg-white rounded-2xl border ${cod ? 'border-navy ring-2 ring-navy/15' : 'border-border'} p-4 flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background:#2dd36f18;"><ion-icon name="cash-outline" style="font-size:20px;color:#2dd36f"></ion-icon></div>
+        <div class="flex-1 min-w-0"><p class="text-[13px] font-bold text-navy-dark">Cash on Delivery</p><p class="text-[11px] text-gray-400">Pay with cash when your order arrives</p></div>
+        ${coRadio(cod)}</button>`;
+      const list = PAYMENTS.map(m => {
+        const sel = coPayId === m.id;
+        return `<button onclick="coPickPay('${m.id}')" class="press w-full text-left bg-white rounded-2xl border ${sel ? 'border-navy ring-2 ring-navy/15' : 'border-border'} p-4 flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background:${m.color}18;"><ion-icon name="${m.icon}" style="font-size:20px;color:${m.color}"></ion-icon></div>
+          <div class="flex-1 min-w-0"><p class="text-[13px] font-bold text-navy-dark">${m.type}</p><p class="text-[11px] text-gray-400">${m.detail}</p></div>
+          ${coRadio(sel)}</button>`;
+      }).join('');
+      return `<p class="text-[13px] font-bold text-navy-dark mb-2.5">Payment method</p>
+        <div class="space-y-2.5">${codCard}${list}</div>
+        <button onclick="coOpenPayForm()" class="press w-full mt-3 h-12 border-2 border-dashed border-border rounded-xl text-[13px] font-bold text-navy flex items-center justify-center gap-2"><ion-icon name="add-outline" style="font-size:18px"></ion-icon>Add payment method</button>
+        <button onclick="coNext()" class="press w-full mt-5 h-12 bg-navy text-white rounded-xl text-[14px] font-bold flex items-center justify-center gap-2">Review order<ion-icon name="arrow-forward-outline" style="font-size:16px"></ion-icon></button>`;
+    }
+
+    function coReviewStep() {
+      const a = ADDRESSES.find(x => x.id === coAddrId);
+      const pay = coPayLabel();
+      const { subtotal, delivery, total } = checkoutTotals();
+      const groups = {};
+      cart.forEach(i => { const { p, b } = PID[i.pid]; (groups[b.id] = groups[b.id] || { b, items: [] }).items.push({ p, qty: i.qty }); });
+      const itemsHtml = Object.values(groups).map(g => `
+        <div class="mb-3 last:mb-0">
+          <div class="flex items-center gap-2 mb-2">${storeLogo(g.b, 22)}<span class="text-[12px] font-bold text-navy-dark truncate">${g.b.name}</span></div>
+          <div class="space-y-2">${g.items.map(({ p, qty }) => `
+            <div class="flex items-center gap-3">
+              <div class="w-11 h-11 rounded-lg overflow-hidden shrink-0">${imgCell(imgUrl(p), p.cat, g.b.color, '100%', 44)}</div>
+              <div class="flex-1 min-w-0"><p class="text-[12px] font-semibold text-navy-dark truncate">${p.name}</p><p class="text-[10.5px] text-gray-400">${money(unitPrice(p))} × ${qty}</p></div>
+              <span class="text-[12px] font-bold text-navy-dark tnum shrink-0">${money(unitPrice(p) * qty)}</span>
+            </div>`).join('')}</div>
+        </div>`).join('');
+      return `
+        <div class="bg-white rounded-2xl border border-border p-4 mb-3">
+          <div class="flex items-center justify-between mb-1"><p class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Deliver to</p><button onclick="coGoStep(1)" class="text-[11.5px] font-semibold text-brand-blue press">Change</button></div>
+          ${a ? `<p class="text-[13px] font-bold text-navy-dark">${a.label} · ${a.name}</p><p class="text-[12px] text-gray-600 mt-0.5 leading-snug">${a.line}, ${a.city}</p><p class="text-[11px] text-gray-400 mt-0.5">${a.phone}</p>` : '<p class="text-[12px] text-brand-red">No address selected</p>'}
+        </div>
+        <div class="bg-white rounded-2xl border border-border p-4 mb-3">
+          <div class="flex items-center justify-between mb-1"><p class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Payment</p><button onclick="coGoStep(2)" class="text-[11.5px] font-semibold text-brand-blue press">Change</button></div>
+          <div class="flex items-center gap-2.5"><div class="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style="background:${pay.color}18;"><ion-icon name="${pay.icon}" style="font-size:18px;color:${pay.color}"></ion-icon></div><div><p class="text-[13px] font-bold text-navy-dark">${pay.title}</p>${pay.detail ? `<p class="text-[11px] text-gray-400">${pay.detail}</p>` : ''}</div></div>
+        </div>
+        <div class="bg-white rounded-2xl border border-border p-4 mb-3">
+          <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-3">Items (${cartCount()})</p>
+          ${itemsHtml}
+        </div>
+        <div class="bg-white rounded-2xl border border-border p-4">
+          <div class="flex items-center justify-between mb-2"><span class="text-[12.5px] text-gray-500">Subtotal</span><span class="text-[12.5px] font-semibold text-navy-dark tnum">${money(subtotal)}</span></div>
+          <div class="flex items-center justify-between mb-2"><span class="text-[12.5px] text-gray-500">Delivery</span><span class="text-[12.5px] font-semibold ${delivery === 0 ? 'text-brand-green' : 'text-navy-dark'} tnum">${delivery === 0 ? 'FREE' : money(delivery)}</span></div>
+          ${delivery > 0 ? `<p class="text-[10.5px] text-gray-400 mb-2">Add ${money(FREE_DELIVERY_OVER - subtotal)} more for free delivery</p>` : ''}
+          <div class="flex items-center justify-between pt-2.5 border-t border-border"><span class="text-[14px] font-bold text-navy-dark">Total</span><span class="text-[17px] font-extrabold text-navy-dark tnum">${money(total)}</span></div>
+        </div>
+        <button onclick="placeOrder()" class="press w-full mt-4 h-12 bg-navy text-white rounded-xl text-[14px] font-bold flex items-center justify-center gap-2"><ion-icon name="lock-closed" style="font-size:16px"></ion-icon>Place order · ${money(total)}</button>
+        <p class="text-center text-[10.5px] text-gray-400 mt-2.5 px-6 leading-relaxed">By placing this order you agree to our Terms & Refund policy.</p>`;
+    }
+
+    /* Inline add-address (kept inside the checkout flow) */
+    function coOpenAddrForm() { coView = 'addr'; coAddrLabel = 'Home'; renderCheckout(); }
+    function coCancelForm() { coView = 'main'; renderCheckout(); }
+    function coAddrFormView() {
+      return `<p class="text-[13px] font-bold text-navy-dark mb-3">Add address</p>
+        <div class="bg-white rounded-2xl border border-border p-4 space-y-3.5">
+          <div><label class="slbl">Label</label><div class="flex gap-2" id="co-af-label">${['Home', 'Office', 'Other'].map(l => `<button onclick="coAfLabel('${l}',this)" class="af-lbl press flex-1 py-2 rounded-lg text-[12px] font-semibold border ${coAddrLabel === l ? 'bg-navy text-white border-navy' : 'bg-white text-gray-600 border-border'}">${l}</button>`).join('')}</div></div>
+          <div><label class="slbl">Full name</label><input id="co-af-name" class="sinp" value="${USER.name}"></div>
+          <div><label class="slbl">Phone</label><input id="co-af-phone" class="sinp" value="${USER.phone}"></div>
+          <div><label class="slbl">Address</label><textarea id="co-af-line" rows="2" class="sinp resize-none" placeholder="House / street / area"></textarea></div>
+          <div><label class="slbl">City</label><input id="co-af-city" class="sinp" value="Lahore"></div>
+        </div>
+        <div class="flex gap-2.5 mt-4">
+          <button onclick="coCancelForm()" class="press flex-1 h-12 border border-border rounded-xl text-[13px] font-bold text-gray-600 bg-white">Cancel</button>
+          <button onclick="coSaveAddr()" class="press flex-1 h-12 bg-navy text-white rounded-xl text-[13px] font-bold flex items-center justify-center gap-1.5"><ion-icon name="checkmark-outline" style="font-size:16px"></ion-icon>Save address</button>
+        </div>`;
+    }
+    function coAfLabel(l, el) {
+      coAddrLabel = l;
+      el.parentElement.querySelectorAll('.af-lbl').forEach(b => b.className = 'af-lbl press flex-1 py-2 rounded-lg text-[12px] font-semibold border bg-white text-gray-600 border-border');
+      el.className = 'af-lbl press flex-1 py-2 rounded-lg text-[12px] font-semibold border bg-navy text-white border-navy';
+    }
+    function coSaveAddr() {
+      const line = document.getElementById('co-af-line').value.trim();
+      if (!line) { toast('Please enter an address'); return; }
+      const id = 'a' + Date.now();
+      ADDRESSES.push({ id, label: coAddrLabel, name: document.getElementById('co-af-name').value.trim() || USER.name, phone: document.getElementById('co-af-phone').value.trim() || USER.phone, line, city: document.getElementById('co-af-city').value.trim() || 'Lahore', def: ADDRESSES.length === 0 });
+      coAddrId = id; coView = 'main'; coStep = 1; renderCheckout(); toast('Address added');
+    }
+
+    /* Inline add-payment (kept inside the checkout flow) */
+    function coOpenPayForm() { coView = 'pay'; coPayType = 'JazzCash'; renderCheckout(); }
+    function coPayTypePick(t) { coPayType = t; renderCheckout(); }
+    function coPayFormView() {
+      const cfg = PM_TYPES[coPayType];
+      const typeCards = Object.keys(PM_TYPES).map(t => `<button onclick="coPayTypePick('${esc(t)}')" class="press flex-1 rounded-xl border p-2.5 flex flex-col items-center gap-1.5 ${coPayType === t ? 'border-navy bg-navy/5' : 'border-border bg-white'}"><ion-icon name="${PM_TYPES[t].icon}" style="font-size:20px;color:${PM_TYPES[t].color}"></ion-icon><span class="text-[10.5px] font-semibold ${coPayType === t ? 'text-navy-dark' : 'text-gray-500'}">${t}</span></button>`).join('');
+      let fields;
+      if (cfg.field === 'mobile') {
+        fields = `<div><label class="slbl">Mobile number</label><input id="co-pm-mobile" class="sinp" inputmode="numeric" placeholder="03XX XXXXXXX"></div><div><label class="slbl">Account title <span class="text-gray-300 font-normal">(optional)</span></label><input id="co-pm-title" class="sinp" value="${USER.name}"></div>`;
+      } else {
+        fields = `<div><label class="slbl">Bank</label><select id="co-pm-bank" class="sinp">${['HBL', 'UBL', 'Meezan Bank', 'Standard Chartered', 'MCB', 'Allied Bank', 'Bank Alfalah'].map(x => `<option>${x}</option>`).join('')}</select></div><div><label class="slbl">Account number / IBAN</label><input id="co-pm-acct" class="sinp" inputmode="numeric" placeholder="PK00 XXXX XXXX XXXX"></div>`;
+      }
+      return `<p class="text-[13px] font-bold text-navy-dark mb-3">Add payment method</p>
+        <div class="mb-3"><label class="slbl">Payment type</label><div class="flex gap-2">${typeCards}</div></div>
+        <div class="bg-white rounded-2xl border border-border p-4 space-y-3.5">${fields}</div>
+        <div class="flex gap-2.5 mt-4">
+          <button onclick="coCancelForm()" class="press flex-1 h-12 border border-border rounded-xl text-[13px] font-bold text-gray-600 bg-white">Cancel</button>
+          <button onclick="coSavePay()" class="press flex-1 h-12 bg-navy text-white rounded-xl text-[13px] font-bold flex items-center justify-center gap-1.5"><ion-icon name="checkmark-outline" style="font-size:16px"></ion-icon>Save method</button>
+        </div>`;
+    }
+    function coSavePay() {
+      const cfg = PM_TYPES[coPayType]; let detail;
+      if (cfg.field === 'mobile') {
+        const m = (document.getElementById('co-pm-mobile').value || '').replace(/\D/g, '');
+        if (m.length < 11) { toast('Enter a valid 11-digit mobile number'); return; }
+        detail = 'Wallet · ' + m.slice(0, 4) + '•••' + m.slice(-4);
+      } else {
+        const bank = document.getElementById('co-pm-bank').value;
+        const acct = (document.getElementById('co-pm-acct').value || '').replace(/\s/g, '');
+        if (acct.replace(/\D/g, '').length < 4) { toast('Enter a valid account number'); return; }
+        detail = bank + ' ••••' + acct.slice(-4);
+      }
+      const id = 'p' + Date.now();
+      PAYMENTS.push({ id, type: coPayType, detail, icon: cfg.icon, color: cfg.color });
+      coPayId = id; coView = 'main'; coStep = 2; renderCheckout(); toast(coPayType + ' added');
+    }
+
+    function nextOrderSeq() {
+      let max = 1000;
+      ORDERS.forEach(o => { const n = parseInt((o.id || '').replace(/\D/g, ''), 10); if (!isNaN(n) && n > max) max = n; });
+      return max + 1;
+    }
+    function placeOrder() {
+      if (!cart.length) { toast('Your cart is empty'); return; }
+      const groups = {};
+      cart.forEach(i => { const { b } = PID[i.pid]; (groups[b.id] = groups[b.id] || { bizId: b.id, lines: [] }).lines.push({ pid: i.pid, qty: i.qty }); });
+      const date = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      let seq = nextOrderSeq();
+      lastOrderIds = [];
+      Object.values(groups).forEach(g => {
+        const id = 'EC-' + (seq++);
+        const b = BUSINESSES.find(x => x.id === g.bizId);
+        const o = { id, bizId: g.bizId, status: 'Confirmed', date, lines: g.lines, biz: b ? b.name : g.bizId, color: b ? b.color : '#1a2d6b' };
+        o.items = o.lines.reduce((s, l) => s + l.qty, 0);
+        o.total = o.lines.reduce((s, l) => s + (PID[l.pid] ? unitPrice(PID[l.pid].p) * l.qty : 0), 0);
+        ORDERS.unshift(o); ordersOpen[id] = false; lastOrderIds.push(id);
+      });
+      cart = [];
+      updateCartBadge();
+      go('order-success');
+    }
+
+    function renderOrderSuccess() {
+      const body = document.getElementById('order-success-body');
+      if (!body || !lastOrderIds.length) return;
+      const many = lastOrderIds.length > 1;
+      const primary = lastOrderIds[0];
+      body.innerHTML = `
+        <div class="flex flex-col items-center text-center px-6" style="padding-top:15vh;">
+          <div class="w-24 h-24 rounded-full bg-brand-green/10 flex items-center justify-center mb-5"><ion-icon name="checkmark-circle" style="font-size:56px;color:#2dd36f"></ion-icon></div>
+          <h1 class="text-[22px] font-extrabold text-navy-dark">Order placed!</h1>
+          <p class="text-[13px] text-gray-500 mt-2 leading-relaxed max-w-[290px]">Thanks for your order. ${many ? `We've created <b class="text-navy-dark">${lastOrderIds.length} orders</b>, one per store.` : `Your order <b class="text-navy-dark">${primary}</b> is confirmed.`} You'll get live updates in the Orders tab.</p>
+          <div class="bg-white rounded-2xl border border-border w-full mt-6 divide-y divide-border overflow-hidden text-left">
+            ${lastOrderIds.map(id => { const o = ORDERS.find(x => x.id === id); return `<div class="flex items-center gap-3 px-4 py-3"><div class="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style="background:${o.color}18;"><ion-icon name="storefront-outline" style="font-size:17px;color:${o.color}"></ion-icon></div><div class="flex-1 min-w-0"><p class="text-[12.5px] font-bold text-navy-dark truncate">${o.biz}</p><p class="text-[10.5px] text-gray-400">${o.id} · ${o.items} item${o.items > 1 ? 's' : ''}</p></div><span class="text-[12.5px] font-extrabold text-navy-dark tnum shrink-0">${money(o.total)}</span></div>`; }).join('')}
+          </div>
+          <button onclick="go('orders')" class="press w-full mt-6 h-12 bg-navy text-white rounded-xl text-[14px] font-bold flex items-center justify-center gap-2"><ion-icon name="receipt-outline" style="font-size:17px"></ion-icon>View my orders</button>
+          <button onclick="go('home')" class="press w-full mt-2.5 h-12 border border-border bg-white text-navy rounded-xl text-[14px] font-bold">Continue shopping</button>
+        </div>`;
+    }
+    function renderCart() {
+      const body = document.getElementById('cart-body');
+      if (!cart.length) {
+        body.innerHTML = `
+          <div class="flex flex-col items-center justify-center text-center px-8" style="height:55vh;">
+            <div class="w-20 h-20 rounded-3xl bg-brand-blue/10 flex items-center justify-center mb-4">
+              <ion-icon name="cart-outline" class="text-brand-blue" style="font-size:38px;"></ion-icon>
+            </div>
+            <p class="text-[15px] font-bold text-navy-dark">Your cart is empty</p>
+            <p class="text-[12.5px] text-gray-400 mt-1 leading-relaxed">Add products from any store and they'll show up here, grouped by seller.</p>
+            <button onclick="go('stores')" class="mt-5 bg-navy text-white text-[13px] font-semibold px-6 py-3 rounded-xl press">Start shopping</button>
+          </div>`;
+        return;
+      }
+      // group by business
+      const groups = {};
+      cart.forEach(i => {
+        const { p, b } = PID[i.pid];
+        (groups[b.id] = groups[b.id] || { b, items: [] }).items.push({ p, qty: i.qty });
+      });
+      const subtotal = cartSubtotal();
+      const delivery = subtotal >= FREE_DELIVERY_OVER ? 0 : DELIVERY_FEE;
+      const total = subtotal + delivery;
+
+      body.innerHTML = Object.values(groups).map(g => `
+        <div class="bg-white rounded-2xl border border-border overflow-hidden mb-3">
+          <button onclick="openStore('${g.b.id}')" class="press w-full flex items-center gap-2.5 px-4 py-3 border-b border-border">
+            ${storeLogo(g.b, 30)}
+            <span class="text-[13px] font-bold text-navy-dark flex-1 text-left truncate">${g.b.name}</span>
+            <ion-icon name="chevron-forward" class="text-gray-300" style="font-size:15px"></ion-icon>
+          </button>
+          ${g.items.map(({ p, qty }) => {
+            const price = unitPrice(p);
+            return `<div class="flex items-center gap-3 px-4 py-3 ${'' }">
+              <div onclick="openProduct('${p.pid}')" class="w-16 h-16 rounded-xl overflow-hidden shrink-0 press cursor-pointer">
+                ${imgCell(imgUrl(p), p.cat, g.b.color, '100%', 64)}
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="text-[9px] font-semibold text-brand-blue uppercase tracking-wide truncate">${p.sub}</p>
+                <p class="text-[12.5px] font-bold text-navy-dark leading-tight truncate">${p.name}</p>
+                <p class="text-[13px] font-extrabold text-navy-dark tnum mt-0.5">${money(price)}<span class="text-[9px] font-medium text-gray-400">${p.unit !== 'each' ? ' / ' + p.unit : ''}</span></p>
+              </div>
+              <div class="flex flex-col items-end gap-1.5 shrink-0">
+                <button onclick="removeCartItem('${p.pid}')" class="text-gray-300 hover:text-brand-red press"><ion-icon name="trash-outline" style="font-size:15px"></ion-icon></button>
+                <div class="flex items-center bg-page border border-border rounded-lg">
+                  <button onclick="cartStep('${p.pid}',-1)" class="w-7 h-7 flex items-center justify-center text-navy press"><ion-icon name="remove-outline" style="font-size:15px"></ion-icon></button>
+                  <span class="w-6 text-center text-[12px] font-extrabold text-navy-dark tnum">${qty}</span>
+                  <button onclick="cartStep('${p.pid}',1)" class="w-7 h-7 flex items-center justify-center text-navy press"><ion-icon name="add-outline" style="font-size:15px"></ion-icon></button>
+                </div>
+              </div>
+            </div>`;
+          }).join('')}
+        </div>`).join('') + `
+        <!-- Summary -->
+        <div class="bg-white rounded-2xl border border-border p-4 mt-1">
+          <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-3">Order summary</p>
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[12.5px] text-gray-500">Subtotal (${cartCount()} items)</span>
+            <span class="text-[12.5px] font-semibold text-navy-dark tnum">${money(subtotal)}</span>
+          </div>
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[12.5px] text-gray-500">Delivery</span>
+            <span class="text-[12.5px] font-semibold ${delivery === 0 ? 'text-brand-green' : 'text-navy-dark'} tnum">${delivery === 0 ? 'FREE' : money(delivery)}</span>
+          </div>
+          ${delivery > 0 ? `<p class="text-[10.5px] text-gray-400 mb-2">Add ${money(FREE_DELIVERY_OVER - subtotal)} more for free delivery</p>` : ''}
+          <div class="flex items-center justify-between pt-2.5 border-t border-border">
+            <span class="text-[14px] font-bold text-navy-dark">Total</span>
+            <span class="text-[17px] font-extrabold text-navy-dark tnum">${money(total)}</span>
+          </div>
+        </div>
+        <button onclick="startCheckout()" class="w-full mt-3 h-12 bg-navy text-white rounded-xl text-[14px] font-bold flex items-center justify-center gap-2 press">
+          <ion-icon name="lock-closed" style="font-size:16px"></ion-icon>Checkout · ${money(total)}
+        </button>`;
+    }
+
+    function emptyState(msg, grid) {
+      return `<div class="${grid ? 'col-span-2 ' : ''}flex flex-col items-center justify-center py-16 text-center">
+        <div class="w-16 h-16 rounded-2xl bg-page flex items-center justify-center mb-3">
+          <ion-icon name="search-outline" class="text-gray-300" style="font-size:30px"></ion-icon>
+        </div>
+        <p class="text-[13px] font-semibold text-gray-400">${msg}</p>
+      </div>`;
+    }
+
+    /* ── init ── */
+    renderHome();
+    renderStores();
+    renderProducts();
+    renderCategories();
+    renderOrders();
+    renderSettings();
+    renderCart();
+    updateCartBadge();
+    setActive('home');
+  </script>
+</body>
+
+</html>

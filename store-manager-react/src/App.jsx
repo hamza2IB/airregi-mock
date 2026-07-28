@@ -7,6 +7,7 @@ import OnlineOrders from './pages/OnlineOrders'
 import Refunds from './pages/Refunds'
 import CashierShifts from './pages/CashierShifts'
 import StoreSales from './pages/StoreSales'
+import CustomerIssues from './pages/CustomerIssues'
 import Icon from './components/Icon'
 import { ToastProvider, useToast } from './components/Toast'
 import { PAGE_META } from './data/navMeta'
@@ -14,6 +15,7 @@ import { SM_INV } from './data/inventoryData'
 import { SM_ORDERS, seedOrderRefunds } from './data/dashboardData'
 import { SM_TRANSFERS, SM_INBOUND, SM_STORE_NAME, SM_MANAGER, nextTransferId } from './data/transferData'
 import { SM_SHIFTS } from './data/shiftData'
+import { SM_ISSUES } from './data/issuesData'
 
 // Placeholder for store pages not yet converted (built page-by-page).
 function ComingSoon({ page }) {
@@ -46,6 +48,10 @@ function Shell() {
   const [transfers, setTransfers] = useState(INITIAL_TRANSFERS)
   const [orders, setOrders] = useState(() => seedOrderRefunds(SM_ORDERS))
   const [shifts] = useState(SM_SHIFTS)
+  const [issues, setIssues] = useState(SM_ISSUES)
+
+  const patchIssue = (id, patch) => setIssues((prev) => prev.map((i) => (i.id === id ? { ...i, ...patch } : i)))
+  const openIssues = issues.filter((i) => i.status !== 'resolved').length
 
   const patchOrder = (id, patch) => setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, ...patch } : o)))
   const patchRefund = (orderId, idx, patch) => setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, refunds: (o.refunds || []).map((r, i) => (i === idx ? { ...r, ...patch } : r)) } : o)))
@@ -84,6 +90,7 @@ function Shell() {
       onLogout={() => showToast('Logged out', 'info')}
       onAlerts={() => showToast('No new alerts', 'info')}
       refundBadge={pendingRefunds}
+      issuesBadge={openIssues}
     >
       {activePage === 'dashboard' ? (
         <Dashboard onNavigate={handleNavigate} {...shared} />
@@ -99,6 +106,8 @@ function Shell() {
         <CashierShifts shifts={shifts} />
       ) : activePage === 'sales' ? (
         <StoreSales />
+      ) : activePage === 'issues' ? (
+        <CustomerIssues issues={issues} patchIssue={patchIssue} />
       ) : (
         <ComingSoon page={activePage} />
       )}

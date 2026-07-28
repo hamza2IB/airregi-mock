@@ -9,13 +9,14 @@ const NAV_GROUPS = [
     items: [
       { key: 'orders', icon: 'globe-outline', label: 'Online Orders' },
       { key: 'refunds', icon: 'arrow-undo-outline', label: 'Refunds' },
+      { key: 'issues', icon: 'chatbox-ellipses-outline', label: 'Customer Issues' },
     ],
   },
   { label: 'Team', items: [{ key: 'shifts', icon: 'time-outline', label: 'Cashier Shifts' }] },
   { label: 'Store', items: [{ key: 'sales', icon: 'receipt-outline', label: 'Store Sales' }] },
 ]
 
-export default function Sidebar({ activePage, onNavigate, mobileOpen, onCloseMobile, onLogout, refundBadge }) {
+export default function Sidebar({ activePage, onNavigate, mobileOpen, onCloseMobile, onLogout, refundBadge, issuesBadge }) {
   return (
     <>
       <div
@@ -59,6 +60,9 @@ export default function Sidebar({ activePage, onNavigate, mobileOpen, onCloseMob
                   <span>{item.label}</span>
                   {item.key === 'refunds' && refundBadge > 0 && (
                     <span className="ml-auto text-[9px] font-bold bg-brand-red text-white px-1.5 py-0.5 rounded-full">{refundBadge}</span>
+                  )}
+                  {item.key === 'issues' && issuesBadge > 0 && (
+                    <span className="ml-auto text-[9px] font-bold bg-brand-red text-white px-1.5 py-0.5 rounded-full">{issuesBadge}</span>
                   )}
 
                 </div>
