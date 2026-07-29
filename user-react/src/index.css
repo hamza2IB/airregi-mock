@@ -1,0 +1,279 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: #dfe4ec;
+  color: #0a1535;
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+*:focus-visible {
+  outline: none;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+}
+
+/* ── Phone shell (centered on desktop, full-bleed on mobile) ── */
+#device {
+  position: relative;
+  width: 100%;
+  max-width: 430px;
+  margin: 0 auto;
+  min-height: 100vh;
+  background: #f4f6f9;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(10, 21, 53, .18);
+}
+
+@media (min-width: 480px) {
+  #device {
+    min-height: 100dvh;
+  }
+}
+
+.screen {
+  height: 100dvh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 88px;
+  scrollbar-width: none;
+}
+
+.screen::-webkit-scrollbar {
+  display: none;
+}
+
+.press {
+  transition: transform .12s ease, opacity .12s ease;
+}
+
+.press:active {
+  transform: scale(.96);
+  opacity: .92;
+}
+
+.tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+.no-sb {
+  scrollbar-width: none;
+}
+
+.no-sb::-webkit-scrollbar {
+  display: none;
+}
+
+.card-hover {
+  transition: box-shadow .2s, transform .2s;
+}
+
+/* ── Bottom tab bar ── */
+#tabbar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 60;
+  background: #fff;
+  border-top: 1px solid #e8ecf1;
+  display: flex;
+  align-items: flex-end;
+  padding: 8px 6px calc(8px + env(safe-area-inset-bottom));
+  box-shadow: 0 -6px 24px rgba(10, 21, 53, .06);
+}
+
+.tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  color: #94a3b8;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: color .15s;
+  padding: 2px 0;
+}
+
+.tab svg {
+  font-size: 22px;
+  width: 22px;
+  height: 22px;
+}
+
+.tab.active {
+  color: #1a2d6b;
+}
+
+.tab-pay {
+  transform: translateY(-14px);
+}
+
+.tab-pay .pay-orb {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3366cc, #1a2d6b);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 20px rgba(26, 45, 107, .38);
+  border: 4px solid #fff;
+}
+
+.tab-pay .pay-orb svg {
+  font-size: 24px;
+  width: 24px;
+  height: 24px;
+  color: #fff;
+}
+
+/* ── Toast ── */
+#toast-wrap {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: 96px;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  background: #0a1535;
+  color: #fff;
+  padding: 11px 15px;
+  border-radius: 12px;
+  font-size: 12.5px;
+  font-weight: 600;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .25);
+  animation: tin .25s ease;
+}
+
+@keyframes tin {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Form input (settings + checkout) ── */
+.sinp {
+  width: 100%;
+  border: 1.5px solid #e8ecf1;
+  border-radius: 10px;
+  padding: 11px 13px;
+  font-size: 13px;
+  color: #0a1535;
+  background: #fff;
+  font-family: inherit;
+  box-sizing: border-box;
+  transition: border-color .15s;
+}
+
+.sinp:focus {
+  border-color: #1a2d6b;
+  outline: none;
+}
+
+.slbl {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748b;
+  margin-bottom: 5px;
+}
+
+/* ── Bottom sheet ── */
+#sheet-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 150;
+  background: rgba(10, 21, 53, .4);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .25s;
+}
+
+#sheet-backdrop.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+#sheet {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 160;
+  background: #fff;
+  border-radius: 20px 20px 0 0;
+  transform: translateY(101%);
+  transition: transform .32s cubic-bezier(.4, 0, .2, 1);
+  max-height: 88%;
+  overflow-y: auto;
+  box-shadow: 0 -12px 40px rgba(10, 21, 53, .2);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+#sheet.open {
+  transform: translateY(0);
+}
+
+.sheet-handle {
+  width: 36px;
+  height: 4px;
+  border-radius: 99px;
+  background: #e2e8f0;
+  margin: 10px auto 4px;
+}
+
+/* ── QR scanner viewfinder ── */
+@keyframes scanline {
+  0% { top: 6%; }
+  50% { top: 90%; }
+  100% { top: 6%; }
+}
+
+.scan-line {
+  position: absolute;
+  left: 6%;
+  right: 6%;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, transparent, #2dd36f, transparent);
+  box-shadow: 0 0 12px 2px rgba(45, 211, 111, .6);
+  animation: scanline 2s ease-in-out infinite;
+}
+
+@keyframes pulseCorner {
+  0%, 100% { opacity: .5; }
+  50% { opacity: 1; }
+}
