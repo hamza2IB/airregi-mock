@@ -172,7 +172,7 @@ function CashModal() {
         className="tap-btn w-full h-[54px] bg-brand-green text-white text-[16px] font-semibold rounded-xl flex items-center justify-center gap-2 disabled:bg-gray-200 disabled:text-gray-400">
         <ion-icon name="checkmark-outline" style={{ fontSize: '22px' }}></ion-icon> Confirm Payment
       </button>
-      <button onClick={() => { setTendered(String(total)); setTimeout(confirm, 0) }} className="tap-btn w-full mt-3 h-[44px] text-[14px] font-medium text-gray-600 border border-gray-200 rounded-xl hover:bg-gray-50 flex items-center justify-center gap-1.5">
+      <button onClick={() => { setModal(null); completePayment('cash', total) }} className="tap-btn w-full mt-3 h-[44px] text-[14px] font-medium text-gray-600 border border-gray-200 rounded-xl hover:bg-gray-50 flex items-center justify-center gap-1.5">
         <ion-icon name="wallet-outline" style={{ fontSize: '18px' }}></ion-icon> Exact Amount
       </button>
     </Overlay>
