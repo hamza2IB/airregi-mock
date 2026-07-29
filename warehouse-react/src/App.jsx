@@ -3,6 +3,7 @@ import WarehouseLayout from './components/layout/WarehouseLayout'
 import Dashboard from './pages/Dashboard'
 import Products from './pages/Products'
 import Inventory from './pages/Inventory'
+import StoreStock from './pages/StoreStock'
 import Transfers from './pages/Transfers'
 import Barcodes from './pages/Barcodes'
 import Orders from './pages/Orders'
@@ -61,6 +62,8 @@ function Shell() {
         <Products />
       ) : activePage === 'inventory' ? (
         <Inventory onNavigate={handleNavigate} />
+      ) : activePage === 'storestock' ? (
+        <StoreStock onNavigate={handleNavigate} />
       ) : activePage === 'transfers' ? (
         <Transfers />
       ) : activePage === 'barcodes' ? (
