@@ -669,6 +669,22 @@
       outline: none;
     }
 
+    .pd-thumb {
+      cursor: pointer;
+      opacity: 0.6;
+      transition: opacity 0.15s, box-shadow 0.15s, border-color 0.15s;
+    }
+
+    .pd-thumb:hover {
+      opacity: 1;
+    }
+
+    .pd-thumb-active {
+      opacity: 1;
+      border-color: #1a2d6b;
+      box-shadow: 0 0 0 2px rgba(26, 45, 107, 0.25);
+    }
+
     .overlay-backdrop {
       position: fixed;
       inset: 0;
@@ -1431,13 +1447,14 @@
           </div>
           <div
             class="grid text-[10px] font-semibold text-gray-400 uppercase tracking-[0.08em] px-5 py-2.5 border-b border-border bg-gray-50/60"
-            style="grid-template-columns:52px 2fr 1fr 1fr 0.7fr 0.9fr 0.9fr 0.9fr 1fr;">
+            style="grid-template-columns:52px 2fr 1fr 1fr 0.9fr 0.7fr 0.9fr 0.9fr 0.9fr 1fr;">
             <div></div>
             <div>Product</div>
             <div>SKU</div>
             <div>Category</div>
+            <div>Type</div>
             <div class="text-center">Variants</div>
-            <div class="text-right">Stock On Hand</div>
+            <div class="text-right">Physical Stock</div>
             <div class="text-right">Reorder at</div>
             <div class="text-center">Status</div>
             <div class="text-center">Action</div>
@@ -1551,11 +1568,13 @@
           </div>
           <div
             class="grid text-[10px] font-semibold text-gray-400 uppercase tracking-[0.08em] px-5 py-2.5 border-b border-border bg-gray-50/60"
-            style="grid-template-columns:1.8fr 0.9fr 0.9fr 1fr 0.75fr 0.8fr 0.9fr 1.1fr;">
+            style="grid-template-columns:52px 2fr 1fr 1fr 0.7fr 0.9fr 0.8fr 0.8fr 0.9fr 1.1fr;">
+            <div></div>
             <div>Product</div>
             <div>SKU</div>
             <div>Category</div>
-            <div class="text-right whitespace-nowrap">Physical Stock</div>
+            <div class="text-center">Variants</div>
+            <div class="text-right whitespace-nowrap">Stock On Hand</div>
             <div class="text-right">Reserved</div>
             <div class="text-right">Available</div>
             <div class="text-center">Status</div>
@@ -3280,6 +3299,22 @@
       { name: 'Nescafe Classic', variant: '200g Jar', sku: 'NC-200-RED', cat: 'Beverages', price: 1200, onHand: 48, reserved: 8, reorder: 40, batch: true },
       { name: 'Shan Masala', variant: 'Mixed 100g', sku: 'SM-MX-100', cat: 'Snacks', price: 70, onHand: 0, reserved: 0, reorder: 200, batch: false },
       { name: 'Head & Shoulders', variant: '200ml', sku: 'HS-200-BLU', cat: 'Hair Care', price: 310, onHand: 130, reserved: 10, reorder: 80, batch: false },
+      // ── Variant product: one product, several sizes — each its own SKU/stock ──
+      { name: 'Pepsi', variant: '350ml Can', sku: 'PEP-350-CAN', cat: 'Beverages', price: 70, onHand: 320, reserved: 30, reorder: 150, batch: false, type: 'variant', status: 'active' },
+      { name: 'Pepsi', variant: '1L Bottle', sku: 'PEP-1L-BTL', cat: 'Beverages', price: 130, onHand: 90, reserved: 12, reorder: 100, batch: false, type: 'variant', status: 'active' },
+      { name: 'Pepsi', variant: '1.5L Bottle', sku: 'PEP-15L-BTL', cat: 'Beverages', price: 180, onHand: 0, reserved: 0, reorder: 80, batch: false, type: 'variant', status: 'active' },
+      { name: 'Pepsi', variant: '2.25L Bottle', sku: 'PEP-225-BTL', cat: 'Beverages', price: 250, onHand: 60, reserved: 8, reorder: 60, batch: false, type: 'variant', status: 'active' },
+      // ── Bundle product: sold as one SKU, made up of existing products ──
+      {
+        name: 'Breakfast Combo Pack', variant: 'Bundle · 3 items', sku: 'BND-BFAST-01', cat: 'Beverages',
+        price: 850, onHand: 45, reserved: 6, reorder: 15, batch: false, type: 'bundle', status: 'active',
+        bundleRule: 'bundle',
+        bundleItems: [
+          { sku: 'ML-400-GRN', name: 'Milo', variant: '400g', price: 310, qty: 1 },
+          { sku: 'MK-1L-WHT', name: 'Nestle Milkpak', variant: '1L Tetra', price: 180, qty: 2 },
+          { sku: 'LY-28-MGM', name: 'Lays Chips', variant: 'Magic Masala 28g', price: 30, qty: 3 },
+        ],
+      },
     ];
 
     function invStatus(item) {
@@ -3444,13 +3479,20 @@
       invBuildCatFilter();
       const search = (document.getElementById('inv-search')?.value || '').toLowerCase();
       const cat = document.getElementById('inv-cat-filter')?.value || '';
-      let data = INV_DATA.filter(i => {
-        const matchS = !search || i.name.toLowerCase().includes(search) || i.sku.toLowerCase().includes(search) || i.variant.toLowerCase().includes(search);
-        const matchC = !cat || i.cat === cat;
+
+      // Group into products (same shape as Product Master) and roll up stock figures.
+      const groups = pmGroups().map(g => {
+        const reserved = g.rows.reduce((s, r) => s + (r.reserved || 0), 0);
+        return { ...g, reserved, available: g.stock - reserved };
+      });
+
+      let data = groups.filter(g => {
+        const matchS = !search || g.name.toLowerCase().includes(search) || g.rows.some(r => r.sku.toLowerCase().includes(search) || (r.variant || '').toLowerCase().includes(search));
+        const matchC = !cat || g.cat === cat;
         let matchF = true;
-        if (invFilter === 'low') matchF = i.onHand > 0 && i.onHand <= i.reorder;
-        else if (invFilter === 'out') matchF = i.onHand === 0;
-        else if (invFilter === 'ok') matchF = i.onHand > i.reorder;
+        if (invFilter === 'low') matchF = g.stock > 0 && g.stock <= g.reorder;
+        else if (invFilter === 'out') matchF = g.stock === 0;
+        else if (invFilter === 'ok') matchF = g.stock > g.reorder;
         return matchS && matchC && matchF;
       });
       const { items, total, pages } = paginate(data, invPage_, INV_PAGE);
@@ -3458,30 +3500,53 @@
       if (!items.length) {
         body.innerHTML = `<div class="py-16 text-center"><ion-icon name="cube-outline" style="font-size:30px;color:#cbd5e1;"></ion-icon><p class="text-[13px] text-gray-400 mt-2">No stock items found</p></div>`;
       } else {
-        body.innerHTML = items.map(i => {
-          const st = invStatus(i); const avail = i.onHand - i.reserved;
-          const skuEsc = i.sku.replace(/'/g, "\\'");
-          return `<div class="grid items-center px-5 py-3 hover:bg-gray-50/50 transition" style="grid-template-columns:1.8fr 0.9fr 0.9fr 1fr 0.75fr 0.8fr 0.9fr 1.1fr;">
-      <div class="flex items-center gap-3 min-w-0">
-        <div class="w-9 h-9 rounded-lg bg-navy/8 flex items-center justify-center shrink-0"><ion-icon name="cube-outline" class="text-navy" style="font-size:16px;"></ion-icon></div>
-        <div class="min-w-0"><p class="text-[12.5px] font-semibold text-navy-dark truncate">${i.name}</p><p class="text-[10px] text-gray-400 truncate">${i.variant}</p></div>
-      </div>
-      <p class="text-[11px] text-gray-500 font-mono truncate pr-2">${i.sku}</p>
-      <p class="text-[11px] text-gray-500 truncate pr-2">${i.cat}</p>
-      <p class="text-[13px] font-bold text-navy-dark text-right">${i.onHand}</p>
-      <p class="text-[12px] text-gray-500 text-right">${i.reserved}</p>
-      <p class="text-[13px] font-semibold ${avail <= 0 ? 'text-brand-red' : 'text-navy-dark'} text-right">${avail}</p>
-      <div class="text-center"><span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${st.cls}">${st.label}</span></div>
-      <div class="flex items-center justify-center gap-1">
-        <button onclick="rcOpenForSku('${skuEsc}')" title="Add stock" class="w-7 h-7 rounded-lg border border-border flex items-center justify-center text-gray-400 hover:text-brand-green hover:border-brand-green/40 transition"><ion-icon name="add-outline" style="font-size:15px;"></ion-icon></button>
-        <button onclick="adjOpenForSku('${skuEsc}')" title="Adjust stock" class="w-7 h-7 rounded-lg border border-border flex items-center justify-center text-gray-400 hover:text-brand-orange hover:border-brand-orange/40 transition"><ion-icon name="create-outline" style="font-size:14px;"></ion-icon></button>
-        <button onclick="shOpen('${skuEsc}')" title="Stock history" class="w-7 h-7 rounded-lg border border-border flex items-center justify-center text-gray-400 hover:text-brand-blue hover:border-brand-blue/40 transition"><ion-icon name="time-outline" style="font-size:14px;"></ion-icon></button>
-      </div>
-    </div>`;
+        body.innerHTML = items.map(g => {
+          // ── Shared cells: identical to Product Master ──
+          const variantCell = g.type === 'variant'
+            ? `<span class="text-[11px] font-bold text-brand-purple bg-brand-purple/10 px-2 py-0.5 rounded-full">${g.rows.length}</span>`
+            : `<span class="text-[11px] text-gray-300">—</span>`;
+          const subtitle = g.type === 'variant' ? `${g.rows.length} variants` : '';
+          const skuCell = g.type === 'variant'
+            ? `<span class="text-[10px] font-semibold text-gray-400">${g.rows.length} SKUs</span>`
+            : `<span class="text-[11px] text-gray-500 font-mono truncate">${g.rows[0]?.sku || '—'}</span>`;
+          const lowStock = g.stock === 0 || (g.reorder > 0 && g.stock <= g.reorder);
+          const stockCell = `<p class="text-[13px] font-bold ${lowStock ? 'text-brand-orange' : 'text-navy-dark'} text-right">${g.stock.toLocaleString()}</p>`;
+
+          // ── Inventory-specific cells ──
+          const st = invGroupStatus(g.stock, g.reorder);
+          const avail = g.available;
+          const repSku = (g.rows[0]?.sku || '').replace(/'/g, "\\'");
+          const nameEsc = g.name.replace(/'/g, "\\'");
+          return `<div class="grid items-center px-5 py-3 hover:bg-gray-50/50 transition" style="grid-template-columns:52px 2fr 1fr 1fr 0.7fr 0.9fr 0.8fr 0.8fr 0.9fr 1.1fr;">
+        ${pmThumb(g.name, g.type)}
+        <div class="min-w-0 pr-2">
+          <p class="text-[12.5px] font-semibold text-navy-dark truncate">${g.name}</p>
+          <p class="text-[10px] text-gray-400 truncate">${subtitle}</p>
+        </div>
+        <div class="min-w-0 pr-2">${skuCell}</div>
+        <p class="text-[11px] text-gray-500 truncate pr-2">${g.cat}</p>
+        <div class="text-center">${variantCell}</div>
+        ${stockCell}
+        <p class="text-[12px] text-gray-500 text-right">${g.reserved}</p>
+        <p class="text-[13px] font-semibold ${avail <= 0 ? 'text-brand-red' : 'text-navy-dark'} text-right">${avail}</p>
+        <div class="text-center"><span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${st.cls}">${st.label}</span></div>
+        <div class="flex items-center justify-center gap-1">
+          <button onclick="rcOpenForSku('${repSku}')" title="Add stock" class="w-7 h-7 rounded-lg border border-border flex items-center justify-center text-gray-400 hover:text-brand-green hover:border-brand-green/40 transition"><ion-icon name="add-outline" style="font-size:15px;"></ion-icon></button>
+          <button onclick="adjOpenForSku('${repSku}')" title="Adjust stock" class="w-7 h-7 rounded-lg border border-border flex items-center justify-center text-gray-400 hover:text-brand-orange hover:border-brand-orange/40 transition"><ion-icon name="create-outline" style="font-size:14px;"></ion-icon></button>
+          <button onclick="shOpen('${repSku}')" title="Stock history" class="w-7 h-7 rounded-lg border border-border flex items-center justify-center text-gray-400 hover:text-brand-blue hover:border-brand-blue/40 transition"><ion-icon name="time-outline" style="font-size:14px;"></ion-icon></button>
+        </div>
+      </div>`;
         }).join('');
       }
       document.getElementById('inv-info').textContent = total ? `Showing ${Math.min((invPage_ - 1) * INV_PAGE + 1, total)}–${Math.min(invPage_ * INV_PAGE, total)} of ${total}` : 'Showing 0 of 0';
       renderPills('inv-pills', invPage_, pages, p => { invPage_ = p; renderInv(); });
+    }
+
+    // Group-level stock status (mirrors invStatus but for a rolled-up product)
+    function invGroupStatus(onHand, reorder) {
+      if (onHand === 0) return { label: 'Out of Stock', cls: 'text-brand-red bg-brand-red/10' };
+      if (reorder > 0 && onHand <= reorder) return { label: 'Low Stock', cls: 'text-brand-orange bg-brand-orange/10' };
+      return { label: 'In Stock', cls: 'text-brand-green bg-brand-green/10' };
     }
 
     // ─── STOCK MOVEMENTS / HISTORY ─────────────────────────────
@@ -3697,7 +3762,7 @@
           const skuCell = g.type === 'variant'
             ? `<span class="text-[10px] font-semibold text-gray-400">${g.rows.length} SKUs</span>`
             : `<span class="text-[11px] text-gray-500 font-mono truncate">${g.rows[0]?.sku || '—'}</span>`;
-          return `<div class="grid items-center px-5 py-3 hover:bg-gray-50/50 transition" style="grid-template-columns:52px 2fr 1fr 1fr 0.7fr 0.9fr 0.9fr 0.9fr 1fr;">
+          return `<div class="grid items-center px-5 py-3 hover:bg-gray-50/50 transition" style="grid-template-columns:52px 2fr 1fr 1fr 0.9fr 0.7fr 0.9fr 0.9fr 0.9fr 1fr;">
         ${pmThumb(g.name, g.type)}
         <div class="min-w-0 pr-2">
           <p class="text-[12.5px] font-semibold text-navy-dark truncate">${g.name}</p>
@@ -3705,6 +3770,7 @@
         </div>
         <div class="min-w-0 pr-2">${skuCell}</div>
         <p class="text-[11px] text-gray-500 truncate pr-2">${g.cat}</p>
+        <div>${pmTypeBadge(g.type)}</div>
         <div class="text-center">${variantCell}</div>
         ${stockCell}
         ${reorderCell}
@@ -3725,6 +3791,33 @@
     function pmColorPair(name) {
       let h = 0; for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
       return PM_THUMBS[h % PM_THUMBS.length];
+    }
+
+    // Deterministic sample images for a product (mock — seeded so they stay stable).
+    // A real system would store uploaded image URLs on the product master.
+    function pmImages(g) {
+      const seed = encodeURIComponent((g.name || 'product').toLowerCase().replace(/\s+/g, '-'));
+      return [1, 2, 3, 4].map(n => `https://picsum.photos/seed/${seed}-${n}/600/600`);
+    }
+
+    // Believable product description (mock). A real system stores this on the master.
+    function pmDescription(g) {
+      const typeLine = {
+        simple: 'a single-SKU product',
+        variant: `a variant product with ${g.rows.length} variations`,
+        bundle: `a bundle made up of ${(g.rows[0]?.bundleItems || []).length || 'multiple'} products`,
+      }[g.type] || 'a catalog product';
+      return `${g.name} is ${typeLine} in the ${g.cat} category, stocked and fulfilled from the Central Warehouse. `
+        + `It is distributed to Al Fatah branches through replenishment transfers and is available for online orders. `
+        + `Stock, pricing and barcode details are maintained per variant so every unit can be tracked, scanned and reordered accurately.`;
+    }
+
+    // Swap the main gallery image when a thumbnail is clicked.
+    function pdSetMainImage(url, el) {
+      const main = document.getElementById('pd-main-img');
+      if (main) main.src = url;
+      document.querySelectorAll('.pd-thumb').forEach(t => t.classList.remove('pd-thumb-active'));
+      if (el) el.classList.add('pd-thumb-active');
     }
 
     // ── Product row actions ──
@@ -3813,25 +3906,52 @@
         field('Reorder At', r0.reorder ? r0.reorder + ' units' : '—')
       );
 
+      // Image thumbnails — the main image now lives in the hero; clicking a
+      // thumbnail swaps the hero image via pdSetMainImage().
+      const imgs = pmImages(g);
+      const thumbStrip = `<div class="px-5 py-3 border-b border-border shrink-0 flex gap-2 overflow-x-auto thin-scroll">
+          ${imgs.map((u, i) => `<button onclick="pdSetMainImage('${u}',this)" class="pd-thumb ${i === 0 ? 'pd-thumb-active' : ''} rounded-lg overflow-hidden border border-border shrink-0" style="width:56px;height:56px;">
+            <img src="${u}" alt="" class="w-full h-full object-cover" onerror="this.parentElement.style.display='none'">
+          </button>`).join('')}
+        </div>`;
+
+      // Description
+      const descBlock = `<div class="mb-5">
+        <div class="flex items-center gap-2 mb-2.5">
+          <div class="w-5 h-5 rounded-md flex items-center justify-center shrink-0" style="background:rgba(45,211,111,0.14);"><ion-icon name="document-text-outline" style="font-size:11px;color:#16a34a;"></ion-icon></div>
+          <p class="text-[11px] font-bold text-navy-dark uppercase tracking-[0.06em]">Description</p>
+        </div>
+        <div class="bg-white border border-border rounded-xl px-4 py-3">
+          <p class="text-[12.5px] text-gray-600 leading-relaxed">${pmDescription(g)}</p>
+        </div>
+      </div>`;
+
       document.getElementById('pd-body').innerHTML = `
-        <!-- Hero -->
-        <div class="relative shrink-0">
-          <div class="h-24 w-full relative overflow-hidden" style="background:linear-gradient(135deg,${c0} 0%,${c1} 100%);">
-            <div style="position:absolute;top:-24px;right:-24px;width:110px;height:110px;border-radius:50%;background:rgba(255,255,255,0.13);"></div>
-            <div style="position:absolute;bottom:-36px;left:24px;width:130px;height:130px;border-radius:50%;background:rgba(0,0,0,0.10);"></div>
-            <div style="position:absolute;bottom:10px;right:14px;display:flex;align-items:center;gap:5px;">
-              <ion-icon name="${typeIcon}" style="font-size:11px;color:rgba(255,255,255,0.7);"></ion-icon>
-              <span style="font-size:10.5px;font-weight:600;color:rgba(255,255,255,0.85);">${g.type.charAt(0).toUpperCase() + g.type.slice(1)} Product</span>
-            </div>
+        <!-- Hero (real product image) -->
+        <div class="relative shrink-0 bg-gray-100" style="height:240px;">
+          <div class="w-full h-full overflow-hidden">
+            <img id="pd-main-img" src="${imgs[0]}" alt="${g.name}" class="w-full h-full object-cover"
+              onerror="this.parentElement.innerHTML='<div class=\\'w-full h-full flex items-center justify-center\\' style=\\'background:linear-gradient(135deg,${c0},${c1})\\'><span style=\\'font-size:52px;font-weight:800;color:#fff;\\'>${initial}</span></div>'">
           </div>
-          <div class="absolute left-5 bottom-0 translate-y-1/2 w-16 h-16 rounded-2xl border-4 border-white shadow-lg flex items-center justify-center text-[22px] font-extrabold text-white" style="background:linear-gradient(135deg,${c0},${c1});">${initial}</div>
-          <button onclick="closeAllSlideOvers()" class="absolute top-3 right-3 w-8 h-8 rounded-xl flex items-center justify-center text-white transition" style="background:rgba(0,0,0,0.22);" onmouseover="this.style.background='rgba(0,0,0,0.35)'" onmouseout="this.style.background='rgba(0,0,0,0.22)'">
+          <!-- gradient scrim so overlays stay readable over any photo -->
+          <div class="absolute inset-x-0 bottom-0 pointer-events-none" style="height:96px;background:linear-gradient(to top,rgba(10,21,53,0.78),rgba(10,21,53,0));"></div>
+          <div class="absolute inset-x-0 top-0 pointer-events-none" style="height:64px;background:linear-gradient(to bottom,rgba(10,21,53,0.35),rgba(10,21,53,0));"></div>
+          <!-- type label -->
+          <div class="absolute bottom-3.5 left-5 flex items-center gap-1.5">
+            <ion-icon name="${typeIcon}" style="font-size:13px;color:rgba(255,255,255,0.92);"></ion-icon>
+            <span style="font-size:11px;font-weight:700;color:#fff;letter-spacing:.2px;">${g.type.charAt(0).toUpperCase() + g.type.slice(1)} Product</span>
+          </div>
+          <!-- close -->
+          <button onclick="closeAllSlideOvers()" class="absolute top-3 right-3 w-8 h-8 rounded-xl flex items-center justify-center text-white transition" style="background:rgba(0,0,0,0.35);" onmouseover="this.style.background='rgba(0,0,0,0.5)'" onmouseout="this.style.background='rgba(0,0,0,0.35)'">
             <ion-icon name="close-outline" style="font-size:18px;"></ion-icon>
           </button>
         </div>
 
+        <!-- Thumbnail strip -->
+        ${thumbStrip}
+
         <!-- Identity -->
-        <div class="px-5 pt-11 pb-4 border-b border-border shrink-0">
+        <div class="px-5 pt-4 pb-4 border-b border-border shrink-0">
           <div class="flex items-center gap-1.5 flex-wrap mb-2">
             <span class="text-[9.5px] font-bold px-2 py-0.5 rounded-full ${typeColors[g.type] || 'text-gray-500 bg-gray-100'}">${g.type.charAt(0).toUpperCase() + g.type.slice(1)}</span>
             <span class="text-[9.5px] font-bold px-2 py-0.5 rounded-full ${statusCls}">${status.charAt(0).toUpperCase() + status.slice(1)}</span>
@@ -3860,6 +3980,7 @@
 
         <!-- Scrollable body -->
         <div class="px-5 py-5">
+          ${descBlock}
           ${overview}
           ${variantsBlock}
           ${bundleBlock}
