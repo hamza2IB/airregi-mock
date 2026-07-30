@@ -1431,14 +1431,14 @@
           </div>
           <div
             class="grid text-[10px] font-semibold text-gray-400 uppercase tracking-[0.08em] px-5 py-2.5 border-b border-border bg-gray-50/60"
-            style="grid-template-columns:52px 2fr 1fr 1fr 0.9fr 0.7fr 0.8fr 0.9fr 1fr;">
+            style="grid-template-columns:52px 2fr 1fr 1fr 0.7fr 0.9fr 0.9fr 0.9fr 1fr;">
             <div></div>
             <div>Product</div>
             <div>SKU</div>
             <div>Category</div>
-            <div>Type</div>
             <div class="text-center">Variants</div>
-            <div class="text-right">Stock</div>
+            <div class="text-right">Stock On Hand</div>
+            <div class="text-right">Reorder at</div>
             <div class="text-center">Status</div>
             <div class="text-center">Action</div>
           </div>
@@ -3634,10 +3634,11 @@
     function pmGroups() {
       const map = new Map();
       INV_DATA.forEach(i => {
-        if (!map.has(i.name)) map.set(i.name, { name: i.name, cat: i.cat, type: pmType(i), status: pmStatus(i), rows: [], stock: 0 });
+        if (!map.has(i.name)) map.set(i.name, { name: i.name, cat: i.cat, type: pmType(i), status: pmStatus(i), rows: [], stock: 0, reorder: 0 });
         const g = map.get(i.name);
         g.rows.push(i);
         g.stock += (i.onHand || 0);
+        g.reorder += (i.reorder || 0);
         const t = pmType(i);
         if (t === 'variant') g.type = 'variant';
         else if (t === 'bundle' && g.type !== 'variant') g.type = 'bundle';
@@ -3688,14 +3689,15 @@
           const variantCell = g.type === 'variant'
             ? `<span class="text-[11px] font-bold text-brand-purple bg-brand-purple/10 px-2 py-0.5 rounded-full">${g.rows.length}</span>`
             : `<span class="text-[11px] text-gray-300">—</span>`;
-          const lowStock = g.stock === 0;
-          const stockCell = `<p class="text-[13px] font-bold ${lowStock ? 'text-brand-red' : 'text-navy-dark'} text-right">${g.stock.toLocaleString()}</p>`;
+          const lowStock = g.stock === 0 || (g.reorder > 0 && g.stock <= g.reorder);
+          const stockCell = `<p class="text-[13px] font-bold ${lowStock ? 'text-brand-orange' : 'text-navy-dark'} text-right">${g.stock.toLocaleString()}</p>`;
+          const reorderCell = `<p class="text-[12px] font-semibold text-gray-400 text-right">${g.reorder ? g.reorder.toLocaleString() : '—'}</p>`;
           const nameEsc = g.name.replace(/'/g, "\\'");
           const subtitle = g.type === 'variant' ? `${g.rows.length} variants` : '';
           const skuCell = g.type === 'variant'
             ? `<span class="text-[10px] font-semibold text-gray-400">${g.rows.length} SKUs</span>`
             : `<span class="text-[11px] text-gray-500 font-mono truncate">${g.rows[0]?.sku || '—'}</span>`;
-          return `<div class="grid items-center px-5 py-3 hover:bg-gray-50/50 transition" style="grid-template-columns:52px 2fr 1fr 1fr 0.9fr 0.7fr 0.8fr 0.9fr 1fr;">
+          return `<div class="grid items-center px-5 py-3 hover:bg-gray-50/50 transition" style="grid-template-columns:52px 2fr 1fr 1fr 0.7fr 0.9fr 0.9fr 0.9fr 1fr;">
         ${pmThumb(g.name, g.type)}
         <div class="min-w-0 pr-2">
           <p class="text-[12.5px] font-semibold text-navy-dark truncate">${g.name}</p>
@@ -3703,9 +3705,9 @@
         </div>
         <div class="min-w-0 pr-2">${skuCell}</div>
         <p class="text-[11px] text-gray-500 truncate pr-2">${g.cat}</p>
-        <div>${pmTypeBadge(g.type)}</div>
         <div class="text-center">${variantCell}</div>
         ${stockCell}
+        ${reorderCell}
         <div class="text-center">${pmStatusBadge(g.status)}</div>
         <div class="flex items-center justify-center gap-1">
           <button onclick="pmView('${nameEsc}')" title="View" class="w-7 h-7 rounded-lg border border-border flex items-center justify-center text-gray-400 hover:text-brand-blue hover:border-brand-blue/40 transition"><ion-icon name="eye-outline" style="font-size:14px;"></ion-icon></button>
