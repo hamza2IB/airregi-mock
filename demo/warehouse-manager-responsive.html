@@ -27,6 +27,7 @@
   <script src="https://unpkg.com/ionicons@7.1.0/dist/ionicons.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
   <style>
     html,
     body {
@@ -1109,6 +1110,9 @@
         <div class="sidebar-link" id="nav-barcodes" onclick="wmNav('barcodes',this)">
           <ion-icon name="barcode-outline"></ion-icon><span>Barcodes</span>
         </div>
+        <div class="sidebar-link" id="nav-scanstock" onclick="wmNav('scanstock',this)">
+          <ion-icon name="scan-outline"></ion-icon><span>Scan to Check</span>
+        </div>
         <p class="text-[10px] text-white/30 uppercase tracking-[0.15em] font-semibold px-4 mt-5 mb-2">Orders</p>
         <div class="sidebar-link" id="nav-orders" onclick="wmNav('orders',this)">
           <ion-icon name="globe-outline"></ion-icon><span>Online Orders</span>
@@ -1183,6 +1187,11 @@
               style="letter-spacing:-.4px;">Dashboard</h1>
           </div>
           <div class="flex items-center gap-3 shrink-0">
+            <!-- Scan to check stock -->
+            <button onclick="wmNav('scanstock',document.getElementById('nav-scanstock'))" title="Scan to check stock"
+              class="w-9 h-9 rounded-xl bg-page border border-border flex items-center justify-center hover:bg-white transition">
+              <ion-icon name="scan-outline" class="text-navy" style="font-size:18px;"></ion-icon>
+            </button>
             <!-- Alerts bell -->
             <button
               class="relative w-9 h-9 rounded-xl bg-page border border-border flex items-center justify-center hover:bg-white transition"
@@ -1662,6 +1671,10 @@
               <button onclick="setSsFilter('low',this)" class="ss-tab px-3 py-1.5 text-[11px] font-medium text-gray-500 hover:bg-white/60 transition">Low</button>
               <button onclick="setSsFilter('out',this)" class="ss-tab px-3 py-1.5 text-[11px] font-medium text-gray-500 hover:bg-white/60 transition">Out</button>
             </div>
+            <button onclick="wmNav('scanstock',document.getElementById('nav-scanstock'))"
+              class="ml-auto flex items-center gap-1.5 text-[12px] font-semibold text-white bg-navy px-4 py-2.5 rounded-xl hover:bg-navy-light transition shrink-0">
+              <ion-icon name="scan-outline" style="font-size:16px;"></ion-icon> Scan to Check
+            </button>
           </div>
 
           <!-- Header + body are rendered dynamically because columns depend on the selected view -->
@@ -1886,6 +1899,84 @@
         </div>
       </div>
       <!-- ════ END BARCODES ════ -->
+
+      <!-- ════════════════════════════════
+         PAGE: SCAN TO CHECK STOCK
+    ════════════════════════════════════ -->
+      <div id="wm-scanstock" class="wm-page p-8">
+        <div class="flex items-start gap-2.5 bg-brand-blue/5 border border-brand-blue/15 rounded-xl px-4 py-3 mb-6">
+          <ion-icon name="information-circle-outline" style="font-size:15px;color:#3366cc;flex-shrink:0;margin-top:1px;"></ion-icon>
+          <p class="text-[11px] text-gray-600 leading-relaxed"><strong class="text-navy-dark">Scan any product to instantly see its stock everywhere.</strong> Use a USB/Bluetooth scanner (it types here automatically), your device camera, or just type a SKU/barcode. You'll get the warehouse count and the live stock in every branch.</p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-5 items-start">
+          <!-- Scanner card -->
+          <div class="bg-white rounded-xl border border-border overflow-hidden">
+            <div class="px-5 py-4 border-b border-border flex items-center gap-3">
+              <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style="background:linear-gradient(135deg,#1a2d6b,#3366cc);">
+                <ion-icon name="scan-outline" style="font-size:18px;color:#fff;"></ion-icon>
+              </div>
+              <div>
+                <p class="text-[13px] font-semibold text-navy-dark">Scanner</p>
+                <p class="text-[11px] text-gray-400 mt-0.5">Scan, or type a SKU / barcode</p>
+              </div>
+            </div>
+            <div class="p-5">
+              <div class="flex items-center gap-2 bg-white border-[1.5px] border-navy/30 rounded-xl px-3 py-3 focus-within:border-navy transition">
+                <ion-icon name="barcode-outline" style="font-size:20px;color:#1a2d6b;flex-shrink:0;"></ion-icon>
+                <input id="scan-input" type="text" autocomplete="off" placeholder="Scan barcode / QR or type SKU, then Enter…"
+                  onkeydown="if(event.key==='Enter'){event.preventDefault();scanResolve();}"
+                  class="flex-1 text-[13px] text-navy-dark placeholder-gray-400 border-none outline-none bg-transparent">
+                <button onclick="scanResolve()" class="text-[12px] font-semibold text-white bg-navy px-3 py-1.5 rounded-lg hover:bg-navy-light transition shrink-0">Check</button>
+              </div>
+              <div class="flex items-center justify-between mt-2">
+                <p class="text-[10.5px] text-gray-400">Point a USB/Bluetooth scanner here.</p>
+                <button id="scan-cam-btn" onclick="scanToggleCamera()" class="text-[11px] font-semibold text-brand-blue hover:underline flex items-center gap-1">
+                  <ion-icon name="camera-outline" style="font-size:13px;"></ion-icon> Use camera
+                </button>
+              </div>
+
+              <!-- Camera view -->
+              <div id="scan-cam" class="hidden mt-3 rounded-xl overflow-hidden border border-border bg-black">
+                <div id="scan-cam-view" style="width:100%;"></div>
+              </div>
+
+              <!-- Sample chips -->
+              <div class="mt-4">
+                <p class="text-[10px] text-gray-400 font-semibold uppercase tracking-[0.06em] mb-1.5">Try a sample</p>
+                <div id="scan-samples" class="flex flex-wrap gap-1.5"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Result card -->
+          <div class="bg-white rounded-xl border border-border overflow-hidden min-h-[200px]">
+            <div class="px-5 py-4 border-b border-border">
+              <p class="text-[13px] font-semibold text-navy-dark">Stock Result</p>
+              <p class="text-[11px] text-gray-400 mt-0.5">Warehouse &amp; branch stock for the scanned product</p>
+            </div>
+            <div class="p-5">
+              <!-- Result -->
+              <div id="scan-result" class="hidden"></div>
+              <!-- Not found -->
+              <div id="scan-notfound" class="hidden flex flex-col items-center justify-center py-10 text-center">
+                <ion-icon name="alert-circle-outline" style="font-size:30px;color:#eb445a;"></ion-icon>
+                <p class="text-[13px] font-semibold text-navy-dark mt-2">No product matched</p>
+                <p id="scan-notfound-sub" class="text-[11px] text-gray-400 mt-0.5"></p>
+              </div>
+              <!-- Idle -->
+              <div id="scan-idle" class="flex flex-col items-center justify-center py-10 text-center">
+                <div class="w-14 h-14 rounded-2xl bg-page flex items-center justify-center mb-3">
+                  <ion-icon name="scan-outline" style="font-size:28px;color:#cbd5e1;"></ion-icon>
+                </div>
+                <p class="text-[13px] font-semibold text-gray-500">Waiting for a scan</p>
+                <p class="text-[11px] text-gray-400 mt-0.5 max-w-[260px]">Scan or enter a product to see its warehouse and branch stock here.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- ════ END SCAN TO CHECK STOCK ════ -->
 
       <!-- ════════════════════════════════
          PAGE: ONLINE ORDERS
@@ -2820,7 +2911,7 @@
         </div>
         <div>
           <h2 class="text-[16px] font-extrabold text-navy-dark leading-tight">Receive Stock</h2>
-          <p class="text-[11px] text-gray-400 mt-0.5">Add incoming supplier stock to inventory</p>
+          <p class="text-[11px] text-gray-400 mt-0.5">Record an incoming delivery — quantities are added to inventory instantly</p>
         </div>
       </div>
       <button onclick="closeAllSlideOvers()"
@@ -2851,29 +2942,47 @@
       <!-- Variant / receive table -->
       <div id="rc-table-wrap" class="hidden mt-5">
         <div class="flex items-center justify-between mb-2">
-          <p class="text-[11px] font-bold text-gray-500 uppercase tracking-[0.08em]">Received Quantities</p>
+          <p class="text-[11px] font-bold text-gray-500 uppercase tracking-[0.08em]">Quantity received</p>
           <button onclick="rcFillZero()" class="text-[11px] font-semibold text-brand-blue hover:underline">Clear all</button>
         </div>
+
+        <!-- Batch/expiry explainer — shown only for batch-tracked products -->
+        <div id="rc-batch-note" class="hidden items-start gap-2.5 bg-brand-purple/5 border border-brand-purple/20 rounded-xl px-4 py-3 mb-3">
+          <ion-icon name="flask-outline" style="font-size:14px;color:#7c4dff;flex-shrink:0;margin-top:1px;"></ion-icon>
+          <p class="text-[11px] text-gray-600 leading-relaxed"><strong class="text-navy-dark">This product is batch-tracked.</strong> Record the <strong>batch / lot number</strong> and <strong>expiry date</strong> for each incoming lot. This drives first-expiry-first-out picking, expiry alerts and recall tracing. Leave blank if the supplier didn't provide them.</p>
+        </div>
+
         <div class="border border-border rounded-xl overflow-hidden">
-          <div class="grid text-[10px] font-semibold text-gray-400 uppercase tracking-[0.06em] px-3 py-2 bg-gray-50/60 border-b border-border"
-            style="grid-template-columns:1.6fr 0.8fr 1fr 1.1fr;">
-            <div>Variant</div>
-            <div class="text-center">Qty</div>
-            <div>Batch</div>
-            <div>Expiry</div>
-          </div>
+          <div id="rc-table-head"></div>
           <div id="rc-rows" class="divide-y divide-gray-100"></div>
         </div>
+
         <!-- Summary -->
-        <div class="flex items-center justify-between mt-3 px-4 py-3 rounded-xl bg-brand-blue/5 border border-brand-blue/15">
+        <div class="flex items-center justify-between mt-3 px-4 py-3 rounded-xl bg-brand-green/5 border border-brand-green/20">
           <div class="flex items-center gap-2">
-            <ion-icon name="cube-outline" class="text-brand-blue" style="font-size:16px;"></ion-icon>
+            <ion-icon name="cube-outline" class="text-brand-green" style="font-size:16px;"></ion-icon>
             <span class="text-[12px] font-semibold text-navy-dark">Total to receive</span>
           </div>
           <div class="text-right">
             <span id="rc-total-units" class="text-[15px] font-extrabold text-navy-dark">0</span>
-            <span class="text-[11px] text-gray-400 ml-1">units · <span id="rc-total-lines">0</span> variants</span>
+            <span class="text-[11px] text-gray-400 ml-1">units · <span id="rc-total-lines">0</span> line(s)</span>
           </div>
+        </div>
+
+        <!-- Optional supplier reference details -->
+        <div class="grid grid-cols-2 gap-4 mt-4">
+          <div>
+            <label class="pc-label">Reference No. <span class="text-gray-400 font-normal">(optional)</span></label>
+            <input id="rc-ref" type="text" class="inp" placeholder="e.g. GRN-1042 / Invoice #">
+          </div>
+          <div>
+            <label class="pc-label">Supplier <span class="text-gray-400 font-normal">(optional)</span></label>
+            <input id="rc-supplier" type="text" class="inp" placeholder="e.g. Nestlé Distributor">
+          </div>
+        </div>
+        <div class="mt-3">
+          <label class="pc-label">Notes <span class="text-gray-400 font-normal">(optional)</span></label>
+          <textarea id="rc-note" rows="2" class="inp resize-none" placeholder="e.g. New shipment · partial delivery…"></textarea>
         </div>
       </div>
 
@@ -2925,10 +3034,9 @@
       </button>
     </div>
     <div class="p-6 space-y-5">
-      <div class="flex items-start gap-2.5 bg-brand-orange/5 border border-brand-orange/20 rounded-xl px-4 py-3">
-        <ion-icon name="warning-outline" style="font-size:14px;color:#ff9800;flex-shrink:0;margin-top:1px;"></ion-icon>
-        <p class="text-[11px] text-gray-600">Adjustments are permanent and logged with your identity. Negative
-          adjustments require confirmation.</p>
+      <div class="flex items-start gap-2.5 bg-brand-blue/5 border border-brand-blue/15 rounded-xl px-4 py-3">
+        <ion-icon name="information-circle-outline" style="font-size:14px;color:#3366cc;flex-shrink:0;margin-top:1px;"></ion-icon>
+        <p class="text-[11px] text-gray-600 leading-relaxed">Use this after a <strong class="text-navy-dark">physical count</strong>. Enter the quantity you actually counted on the shelf — the system works out the difference automatically and logs it against your name. Use <strong class="text-navy-dark">Receive Stock</strong> for supplier deliveries instead.</p>
       </div>
 
       <!-- Searchable product picker (matches Receive Stock) -->
@@ -2949,24 +3057,29 @@
         <div id="adj-prod-chip" class="hidden"></div>
       </div>
 
-      <div class="grid grid-cols-2 gap-4">
+      <div class="grid grid-cols-3 gap-3">
         <div>
-          <label class="block text-[11px] font-semibold text-gray-600 mb-1.5">Current Stock</label>
-          <div id="adj-current-stock" class="inp bg-gray-50 text-gray-400 cursor-not-allowed select-none">—</div>
+          <label class="block text-[11px] font-semibold text-gray-600 mb-1.5">Current <span class="text-gray-400 font-normal">(system)</span></label>
+          <div id="adj-current-stock" class="inp bg-gray-50 text-gray-400 cursor-not-allowed select-none text-right">—</div>
         </div>
         <div>
-          <label class="block text-[11px] font-semibold text-gray-600 mb-1.5">Adjusted Quantity</label>
-          <input type="number" placeholder="Enter new qty" class="inp" id="adj-new-qty">
+          <label class="block text-[11px] font-semibold text-gray-600 mb-1.5">Actual counted</label>
+          <input type="number" min="0" placeholder="0" class="inp text-right" id="adj-new-qty" oninput="adjUpdateDiff()">
+        </div>
+        <div>
+          <label class="block text-[11px] font-semibold text-gray-600 mb-1.5">Adjustment</label>
+          <div id="adj-diff" class="inp bg-gray-50 font-extrabold text-gray-400 select-none text-right">—</div>
         </div>
       </div>
       <div>
         <label class="block text-[11px] font-semibold text-gray-600 mb-1.5">Reason</label>
         <select class="inp select-inp" id="adj-reason-select">
           <option value="">Select reason…</option>
+          <option>Physical Count Correction</option>
           <option>Damage</option>
-          <option>Theft</option>
-          <option>Count Correction</option>
+          <option>Theft / Loss</option>
           <option>Expiry Write-off</option>
+          <option>Found / Extra Stock</option>
           <option>Other</option>
         </select>
       </div>
@@ -3210,6 +3323,7 @@
       storestock: { section: 'Stores', title: 'Store Stock', heading: 'Store Stock — All Branches' },
       transfers: { section: 'Transfers', title: 'Stock Transfers', heading: 'Stock Transfers' },
       barcodes: { section: 'Tools', title: 'Barcodes', heading: 'Barcode Management' },
+      scanstock: { section: 'Tools', title: 'Scan to Check', heading: 'Scan to Check Stock' },
       orders: { section: 'Orders', title: 'Online Orders', heading: 'Online Orders' },
       refunds: { section: 'Orders', title: 'Refunds', heading: 'Refunds & Payment Adjustments' },
       issues: { section: 'Orders', title: 'Customer Issues', heading: 'Customer Issues' },
@@ -3234,6 +3348,8 @@
       if (page === 'products') renderProducts();
       if (page === 'inventory') renderInv();
       if (page === 'storestock') renderStoreStock();
+      if (page === 'scanstock') scanPageInit();
+      if (page !== 'scanstock' && typeof scanStopCamera === 'function') scanStopCamera();
       // ── mobile: close the drawer and sync the bottom tab bar ──
       closeMobileSidebar();
       document.querySelectorAll('.mobile-bottom-nav .mb-item').forEach(b => b.classList.remove('active'));
@@ -3812,12 +3928,34 @@
         + `Stock, pricing and barcode details are maintained per variant so every unit can be tracked, scanned and reordered accurately.`;
     }
 
+    // Stable EAN-13-style barcode for display (mock). Prefers a stored barcode;
+    // otherwise derives a consistent number from the SKU so the UI looks complete.
+    function pmBarcode(row) {
+      if (row && row.barcode) return row.barcode;
+      const sku = (row && row.sku) || '';
+      if (!sku) return '';
+      let h = 0; for (let i = 0; i < sku.length; i++) h = (h * 31 + sku.charCodeAt(i)) >>> 0;
+      return '890' + String(1000000000 + (h % 9000000000)); // 13 digits, PK prefix
+    }
+
     // Swap the main gallery image when a thumbnail is clicked.
     function pdSetMainImage(url, el) {
       const main = document.getElementById('pd-main-img');
       if (main) main.src = url;
       document.querySelectorAll('.pd-thumb').forEach(t => t.classList.remove('pd-thumb-active'));
       if (el) el.classList.add('pd-thumb-active');
+    }
+
+    // Stock action bar on the product detail — closes the detail then launches
+    // the matching business operation (never edits stock directly).
+    function pdStockAction(action, sku) {
+      closeAllSlideOvers();
+      setTimeout(() => {
+        if (action === 'in') rcOpenForSku(sku);
+        else if (action === 'adjust') adjOpenForSku(sku);
+        else if (action === 'history') shOpen(sku);
+        else if (action === 'transfer') { if (typeof wmReqOpen === 'function') wmReqOpen(sku); else wmNav('transfers', document.getElementById('nav-transfers')); }
+      }, 60);
     }
 
     // ── Product row actions ──
@@ -3827,6 +3965,7 @@
       const initial = (g.name.trim()[0] || '?').toUpperCase();
       const typeIcon = g.type === 'bundle' ? 'albums-outline' : g.type === 'variant' ? 'grid-outline' : 'cube-outline';
       const r0 = g.rows[0] || {};
+      const repSku = (r0.sku || '').replace(/'/g, "\\'"); // representative SKU for stock actions
       const money = v => v ? 'Rs. ' + (+v).toLocaleString() : '—';
       const status = g.status;
       const statusColors = { active: 'text-brand-green bg-brand-green/10', draft: 'text-brand-orange bg-brand-orange/10', inactive: 'text-gray-500 bg-gray-100' };
@@ -3864,7 +4003,7 @@
         field('Status', `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${statusCls}">${status.charAt(0).toUpperCase() + status.slice(1)}</span>`)
       );
 
-      // Variants list
+      // Variants table — Variant · SKU · Barcode · Stock (spec §9)
       let variantsBlock = '';
       if (g.type === 'variant') {
         variantsBlock = `<div class="mb-5">
@@ -3872,11 +4011,18 @@
             <div class="w-5 h-5 rounded-md flex items-center justify-center shrink-0" style="background:rgba(124,77,255,0.12);"><ion-icon name="grid-outline" style="font-size:11px;color:#7c4dff;"></ion-icon></div>
             <p class="text-[11px] font-bold text-navy-dark uppercase tracking-[0.06em]">Variants · ${g.rows.length}</p>
           </div>
-          <div class="border border-border rounded-xl overflow-hidden divide-y divide-gray-100">
-            ${g.rows.map(v => `<div class="flex items-center justify-between gap-3 px-3.5 py-2.5">
-              <div class="flex items-center gap-2 min-w-0"><span class="w-1.5 h-1.5 rounded-full bg-brand-purple shrink-0"></span><span class="text-[12px] font-semibold text-navy-dark truncate">${v.variant || '—'}</span></div>
-              <div class="flex items-center gap-3 shrink-0"><span class="text-[10.5px] font-mono text-gray-400">${v.sku}</span><span class="text-[11.5px] font-bold text-navy-dark">${money(v.price)}</span><span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${v.onHand ? 'bg-navy/8 text-navy' : 'bg-brand-red/10 text-brand-red'}">${v.onHand || 0} pcs</span></div>
-            </div>`).join('')}
+          <div class="border border-border rounded-xl overflow-hidden">
+            <div class="grid text-[9.5px] font-bold text-gray-400 uppercase tracking-[0.05em] px-3.5 py-2 bg-gray-50/70 border-b border-border" style="grid-template-columns:1.3fr 1.1fr 1.2fr 0.6fr;">
+              <div>Variant</div><div>SKU</div><div>Barcode</div><div class="text-right">Stock</div>
+            </div>
+            <div class="divide-y divide-gray-100">
+              ${g.rows.map(v => `<div class="grid items-center gap-2 px-3.5 py-2.5" style="grid-template-columns:1.3fr 1.1fr 1.2fr 0.6fr;">
+                <div class="flex items-center gap-2 min-w-0"><span class="w-1.5 h-1.5 rounded-full bg-brand-purple shrink-0"></span><span class="text-[12px] font-semibold text-navy-dark truncate">${v.variant || '—'}</span></div>
+                <span class="text-[10.5px] font-mono text-gray-500 truncate">${v.sku}</span>
+                <span class="text-[10.5px] font-mono text-gray-500 truncate">${pmBarcode(v)}</span>
+                <span class="text-[11px] font-bold text-right ${v.onHand ? 'text-navy-dark' : 'text-brand-red'}">${v.onHand || 0}</span>
+              </div>`).join('')}
+            </div>
           </div>
         </div>`;
       }
@@ -3902,7 +4048,7 @@
       const pricingInv = section('Pricing & Inventory', 'pricetag-outline',
         field(g.type === 'bundle' ? 'Bundle Price' : g.type === 'variant' ? 'Price Range' : 'Selling Price', priceDisplay) +
         field('Total Stock', `${g.stock.toLocaleString()} units`) +
-        (g.type !== 'variant' ? field('Barcode', r0.barcode ? `<span class="font-mono">${r0.barcode}</span>` : '—') : '') +
+        (g.type !== 'variant' ? field('Barcode', `<span class="font-mono">${pmBarcode(r0)}</span>`) : '') +
         field('Reorder At', r0.reorder ? r0.reorder + ' units' : '—')
       );
 
@@ -3975,6 +4121,28 @@
               <ion-icon name="pricetag-outline" style="font-size:13px;color:#94a3b8;"></ion-icon>
               <span class="text-[11.5px] font-bold text-navy-dark truncate">${priceDisplay}</span>
             </div>
+          </div>
+        </div>
+
+        <!-- Stock action bar (spec §1) — users act via business operations, never edit stock directly -->
+        <div class="px-5 pt-4">
+          <div class="grid grid-cols-4 gap-2">
+            <button onclick="pdStockAction('in','${repSku}')" class="flex flex-col items-center gap-1 py-2.5 rounded-xl border border-border hover:border-brand-green/50 hover:bg-brand-green/5 transition">
+              <ion-icon name="arrow-down-circle-outline" style="font-size:19px;color:#2dd36f;"></ion-icon>
+              <span class="text-[10.5px] font-semibold text-navy-dark">Stock In</span>
+            </button>
+            <button onclick="pdStockAction('transfer','${repSku}')" class="flex flex-col items-center gap-1 py-2.5 rounded-xl border border-border hover:border-brand-purple/50 hover:bg-brand-purple/5 transition">
+              <ion-icon name="swap-horizontal-outline" style="font-size:19px;color:#7c4dff;"></ion-icon>
+              <span class="text-[10.5px] font-semibold text-navy-dark">Transfer</span>
+            </button>
+            <button onclick="pdStockAction('adjust','${repSku}')" class="flex flex-col items-center gap-1 py-2.5 rounded-xl border border-border hover:border-brand-orange/50 hover:bg-brand-orange/5 transition">
+              <ion-icon name="create-outline" style="font-size:19px;color:#ff9800;"></ion-icon>
+              <span class="text-[10.5px] font-semibold text-navy-dark">Adjust Stock</span>
+            </button>
+            <button onclick="pdStockAction('history','${repSku}')" class="flex flex-col items-center gap-1 py-2.5 rounded-xl border border-border hover:border-brand-blue/50 hover:bg-brand-blue/5 transition">
+              <ion-icon name="time-outline" style="font-size:19px;color:#3366cc;"></ion-icon>
+              <span class="text-[10.5px] font-semibold text-navy-dark">Stock History</span>
+            </button>
           </div>
         </div>
 
@@ -4083,6 +4251,8 @@
       document.getElementById('rc-table-wrap').classList.add('hidden');
       document.getElementById('rc-empty').classList.remove('hidden');
       document.getElementById('rc-receive-btn').disabled = true;
+      // reset optional reference fields
+      ['rc-ref', 'rc-supplier', 'rc-note'].forEach(id => { const e = document.getElementById(id); if (e) e.value = ''; });
       openSlideOver('receive-slideover');
     }
 
@@ -4147,29 +4317,61 @@
       document.getElementById('rc-receive-btn').disabled = true;
     }
 
+    // Whether the currently selected product tracks batches / expiry.
+    function rcIsBatchTracked() { return !!(rcGroup && rcGroup.rows.some(r => r.batch)); }
+
     function rcRenderRows() {
+      const head = document.getElementById('rc-table-head');
       const body = document.getElementById('rc-rows'); if (!body) return;
-      body.innerHTML = rcRows.map((r, i) => `
-        <div class="grid items-center gap-2 px-3 py-2.5 ${r.qty > 0 ? 'bg-brand-green/5' : ''}" style="grid-template-columns:1.6fr 0.8fr 1fr 1.1fr;">
+      const batchTracked = rcIsBatchTracked();
+      // Show/hide the batch explainer
+      const note = document.getElementById('rc-batch-note');
+      if (note) note.classList.toggle('hidden', !batchTracked);
+
+      const cols = batchTracked ? '1.5fr 0.7fr 0.8fr 1fr 1fr' : '1.9fr 0.7fr 0.8fr 0.8fr';
+      head.className = 'grid text-[10px] font-semibold text-gray-400 uppercase tracking-[0.06em] px-3 py-2 bg-gray-50/60 border-b border-border';
+      head.style.gridTemplateColumns = cols;
+      head.innerHTML = batchTracked
+        ? `<div>Variant</div><div class="text-right">In stock</div><div class="text-center">Receiving</div><div>Batch / Lot #</div><div>Expiry date</div>`
+        : `<div>Variant</div><div class="text-right">In stock</div><div class="text-center">Receiving</div><div class="text-right">New total</div>`;
+
+      body.innerHTML = rcRows.map((r, i) => {
+        const newTotal = (r.current || 0) + (r.qty || 0);
+        const lead = `
           <div class="min-w-0">
             <p class="text-[12px] font-semibold text-navy-dark truncate">${r.label}</p>
-            <p class="text-[10px] text-gray-400 font-mono truncate">${r.sku} · ${r.current} in stock</p>
+            <p class="text-[10px] text-gray-400 font-mono truncate">${r.sku}</p>
           </div>
-          <input type="number" min="0" value="${r.qty || ''}" placeholder="0" class="pc-mini-inp text-right"
-            oninput="rcSetQty(${i}, this.value)">
-          <input type="text" value="${r.batch}" placeholder="e.g. B2401" class="pc-mini-inp font-mono"
-            oninput="rcRows[${i}].batch=this.value">
-          <input type="date" value="${r.expiry}" class="pc-mini-inp"
-            oninput="rcRows[${i}].expiry=this.value">
-        </div>`).join('');
+          <p class="text-[12px] text-gray-500 text-right self-center">${r.current || 0}</p>
+          <input type="number" min="0" value="${r.qty || ''}" placeholder="0" class="pc-mini-inp text-center" oninput="rcSetQty(${i}, this.value)">`;
+        if (batchTracked) {
+          return `<div class="grid items-center gap-2 px-3 py-2.5 ${r.qty > 0 ? 'bg-brand-green/5' : ''}" style="grid-template-columns:${cols};">
+            ${lead}
+            <input type="text" value="${r.batch}" placeholder="e.g. B2401" class="pc-mini-inp font-mono" oninput="rcRows[${i}].batch=this.value">
+            <input type="date" value="${r.expiry}" class="pc-mini-inp" oninput="rcRows[${i}].expiry=this.value">
+          </div>`;
+        }
+        return `<div class="grid items-center gap-2 px-3 py-2.5 ${r.qty > 0 ? 'bg-brand-green/5' : ''}" style="grid-template-columns:${cols};">
+          ${lead}
+          <p class="text-[12px] font-bold text-right self-center ${r.qty > 0 ? 'text-brand-green' : 'text-navy-dark'}" data-newtotal>${newTotal}</p>
+        </div>`;
+      }).join('');
       rcUpdateTotal();
     }
 
     function rcSetQty(i, val) {
       rcRows[i].qty = Math.max(0, parseInt(val, 10) || 0);
-      // toggle row highlight without full re-render (preserve focus)
+      // update row highlight + live "new total" without a full re-render (preserve focus)
       const rowEl = document.getElementById('rc-rows').children[i];
-      if (rowEl) rowEl.classList.toggle('bg-brand-green/5', rcRows[i].qty > 0);
+      if (rowEl) {
+        rowEl.classList.toggle('bg-brand-green/5', rcRows[i].qty > 0);
+        const nt = rowEl.querySelector('[data-newtotal]');
+        if (nt) {
+          nt.textContent = (rcRows[i].current || 0) + (rcRows[i].qty || 0);
+          nt.classList.toggle('text-brand-green', rcRows[i].qty > 0);
+          nt.classList.toggle('text-navy-dark', rcRows[i].qty === 0);
+        }
+      }
       rcUpdateTotal();
     }
 
@@ -4189,6 +4391,9 @@
     function rcReceive() {
       const received = rcRows.filter(r => r.qty > 0);
       if (!received.length) { showToast('Enter a quantity for at least one variant.', 'warning'); return; }
+      const ref = (document.getElementById('rc-ref')?.value || '').trim();
+      const supplier = (document.getElementById('rc-supplier')?.value || '').trim();
+      const userNote = (document.getElementById('rc-note')?.value || '').trim();
       let totalUnits = 0;
       received.forEach(r => {
         const inv = INV_DATA.find(x => x.sku === r.sku);
@@ -4196,8 +4401,11 @@
           inv.onHand = (inv.onHand || 0) + r.qty;
           totalUnits += r.qty;
           const parts = [];
+          if (supplier) parts.push(supplier);
+          if (ref) parts.push('Ref ' + ref);
           if (r.batch) parts.push('Batch ' + r.batch);
           if (r.expiry) parts.push('Exp ' + r.expiry);
+          if (userNote) parts.push(userNote);
           logMovement(r.sku, 'received', r.qty, 'Supplier stock received' + (parts.length ? ' · ' + parts.join(' · ') : ''));
         }
       });
@@ -4457,6 +4665,141 @@
       if (count === 0) { empty.classList.remove('hidden'); body.innerHTML = ''; }
       else empty.classList.add('hidden');
       if (info) info.textContent = `Showing ${count} of ${STORE_STOCK.length}`;
+    }
+  </script>
+
+  <script>
+    // ─── SCAN TO CHECK STOCK ───────────────────────────────────
+    // Quick lookup: scan a barcode/QR (or type a SKU) and instantly see the
+    // product's stock in the warehouse AND across every store branch.
+    let scanCam = null;
+
+    // Initialise the Scan page each time it's opened.
+    function scanPageInit() {
+      scanReset();
+      scanRenderSamples();
+      const inp = document.getElementById('scan-input');
+      if (inp) { inp.value = ''; setTimeout(() => inp.focus(), 200); }
+    }
+
+    // Reset to the idle state.
+    function scanReset() {
+      document.getElementById('scan-result')?.classList.add('hidden');
+      document.getElementById('scan-notfound')?.classList.add('hidden');
+      document.getElementById('scan-idle')?.classList.remove('hidden');
+      const inp = document.getElementById('scan-input');
+      if (inp) inp.value = '';
+      inp?.focus();
+    }
+
+    // A few real barcodes/SKUs from the catalog so it can be tried without hardware.
+    function scanRenderSamples() {
+      const wrap = document.getElementById('scan-samples'); if (!wrap) return;
+      const picks = [INV_DATA[0], INV_DATA.find(p => p.type === 'variant'), INV_DATA.find(p => p.onHand === 0)].filter(Boolean);
+      const seen = new Set();
+      wrap.innerHTML = picks.filter(p => !seen.has(p.sku) && seen.add(p.sku)).map(p => {
+        const code = pmBarcode(p);
+        return `<button onclick="scanSample('${code}')" class="pc-preset-chip flex items-center gap-1">
+          <ion-icon name="barcode-outline" style="font-size:12px;"></ion-icon>${p.name}</button>`;
+      }).join('');
+    }
+    function scanSample(code) {
+      document.getElementById('scan-input').value = code;
+      scanResolve(code);
+    }
+
+    // Resolve a scanned/typed value → product row (match barcode, SKU, or name).
+    function scanResolve(raw) {
+      const v = ((raw != null && typeof raw === 'string') ? raw : document.getElementById('scan-input').value).trim();
+      if (!v) return;
+      const lv = v.toLowerCase();
+      const row = INV_DATA.find(r => pmBarcode(r) === v)
+        || INV_DATA.find(r => (r.sku || '').toLowerCase() === lv)
+        || INV_DATA.find(r => (r.name || '').toLowerCase().includes(lv) || (r.variant || '').toLowerCase().includes(lv));
+      if (!row) {
+        document.getElementById('scan-result').classList.add('hidden');
+        document.getElementById('scan-idle')?.classList.add('hidden');
+        document.getElementById('scan-notfound').classList.remove('hidden');
+        document.getElementById('scan-notfound-sub').textContent = `Nothing in the catalog matches “${v}”.`;
+        return;
+      }
+      scanRenderResult(row);
+    }
+
+    function scanRenderResult(row) {
+      document.getElementById('scan-notfound').classList.add('hidden');
+      document.getElementById('scan-idle')?.classList.add('hidden');
+      const res = document.getElementById('scan-result');
+      const avail = (row.onHand || 0) - (row.reserved || 0);
+      const nameEsc = row.name.replace(/'/g, "\\'");
+
+      // Per-store stock for this exact SKU
+      const ss = (typeof STORE_STOCK !== 'undefined') ? STORE_STOCK.find(s => s.sku === row.sku) : null;
+      let storeRows = '';
+      if (ss) {
+        storeRows = SS_STORES.map(st => {
+          const q = ss.byStore[st]; const s = ssStatus(q, ss.reorder); const m = storeMeta(st);
+          return `<div class="flex items-center gap-3 px-3 py-2 border-b border-gray-100 last:border-0">
+            <span class="w-7 h-7 rounded-lg flex items-center justify-center text-[10px] font-extrabold text-white shrink-0" style="background:${m.color};">${storeInitial(st)}</span>
+            <div class="flex-1 min-w-0"><p class="text-[12px] font-semibold text-navy-dark truncate leading-tight">${st}</p><p class="text-[10px] text-gray-400 font-mono">${m.code}</p></div>
+            <p class="text-[14px] font-extrabold shrink-0" style="color:${ssQtyColor(q, ss.reorder)};">${q}</p>
+            <span class="text-[9.5px] font-bold px-2 py-0.5 rounded-full ${s.cls} shrink-0">${s.label}</span>
+          </div>`;
+        }).join('');
+      } else {
+        storeRows = `<p class="text-[11px] text-gray-400 px-3 py-3 text-center">No branch stock recorded for this SKU.</p>`;
+      }
+
+      const whStatus = row.onHand === 0 ? { l: 'Out of Stock', c: 'text-brand-red bg-brand-red/10' }
+        : (row.reorder && row.onHand <= row.reorder) ? { l: 'Low Stock', c: 'text-brand-orange bg-brand-orange/10' }
+          : { l: 'In Stock', c: 'text-brand-green bg-brand-green/10' };
+
+      res.innerHTML = `
+        <!-- Product header -->
+        <div class="flex items-center gap-3 p-3 rounded-xl border border-border bg-gray-50 mb-3">
+          <div class="w-11 h-11 rounded-xl flex items-center justify-center text-[16px] font-extrabold text-white shrink-0" style="background:linear-gradient(135deg,#1a2d6b,#3366cc);">${(row.name.trim()[0] || '?').toUpperCase()}</div>
+          <div class="flex-1 min-w-0">
+            <p class="text-[13.5px] font-extrabold text-navy-dark truncate">${row.name}</p>
+            <p class="text-[11px] text-gray-500 truncate">${row.variant || ''}</p>
+            <p class="text-[10px] text-gray-400 font-mono mt-0.5">SKU ${row.sku} · ${pmBarcode(row)}</p>
+          </div>
+          <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${whStatus.c} shrink-0">${whStatus.l}</span>
+        </div>
+
+        <!-- Warehouse stock -->
+        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.06em] mb-1.5">Central Warehouse</p>
+        <div class="grid grid-cols-3 gap-2 mb-4">
+          <div class="rounded-xl border border-border px-3 py-2.5 text-center"><p class="text-[17px] font-extrabold text-navy-dark leading-none">${row.onHand || 0}</p><p class="text-[9.5px] text-gray-400 mt-1">On hand</p></div>
+          <div class="rounded-xl border border-border px-3 py-2.5 text-center"><p class="text-[17px] font-extrabold text-gray-500 leading-none">${row.reserved || 0}</p><p class="text-[9.5px] text-gray-400 mt-1">Reserved</p></div>
+          <div class="rounded-xl border border-border px-3 py-2.5 text-center"><p class="text-[17px] font-extrabold ${avail <= 0 ? 'text-brand-red' : 'text-brand-green'} leading-none">${avail}</p><p class="text-[9.5px] text-gray-400 mt-1">Available</p></div>
+        </div>
+
+        <!-- Per-store stock -->
+        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.06em] mb-1.5">Across Branches</p>
+        <div class="border border-border rounded-xl overflow-hidden mb-4">${storeRows}</div>
+
+        <!-- Actions -->
+        <button onclick="scanStopCamera();pmView('${nameEsc}')" class="w-full h-9 text-[12px] font-semibold text-white bg-navy rounded-xl hover:bg-navy-light transition flex items-center justify-center gap-1.5"><ion-icon name="eye-outline" style="font-size:15px;"></ion-icon>View product</button>
+        <button onclick="scanReset()" class="w-full mt-2 h-8 text-[11px] font-semibold text-brand-blue hover:underline">↺ Scan another</button>`;
+      res.classList.remove('hidden');
+    }
+
+    // ── Optional camera QR/barcode scan ──
+    function scanToggleCamera() {
+      const box = document.getElementById('scan-cam');
+      if (scanCam) { scanStopCamera(); return; }
+      if (typeof Html5Qrcode === 'undefined') { showToast('Camera scanner is still loading — try again in a moment.', 'info'); return; }
+      box.classList.remove('hidden');
+      scanCam = new Html5Qrcode('scan-cam-view');
+      scanCam.start({ facingMode: 'environment' }, { fps: 10, qrbox: 220 },
+        (text) => { scanStopCamera(); document.getElementById('scan-input').value = text; scanResolve(text); },
+        () => { }
+      ).catch(err => { showToast('Camera unavailable: ' + err, 'error'); scanCam = null; box.classList.add('hidden'); });
+    }
+    function scanStopCamera() {
+      const box = document.getElementById('scan-cam');
+      if (scanCam) { try { scanCam.stop().then(() => scanCam.clear()).catch(() => { }); } catch (e) { } scanCam = null; }
+      if (box) box.classList.add('hidden');
     }
   </script>
 
@@ -6036,12 +6379,22 @@
           <p class="text-[13px] font-extrabold text-navy-dark">${p.onHand}</p>
         </div>
         <button onclick="adjProdClear()" class="w-7 h-7 rounded-lg border border-border flex items-center justify-center text-gray-400 hover:text-brand-red hover:border-brand-red/40 transition shrink-0"><ion-icon name="close-outline" style="font-size:14px;"></ion-icon></button>`;
-      // Update current stock field & pre-fill adjusted qty
+      // Show current system stock; leave "actual counted" empty for the user to fill
       document.getElementById('adj-current-stock').textContent = p.onHand;
       document.getElementById('adj-current-stock').style.color = '#0a1535';
-      document.getElementById('adj-new-qty').value = p.onHand;
+      document.getElementById('adj-new-qty').value = '';
+      adjUpdateDiff();
       document.getElementById('adj-new-qty').focus();
-      document.getElementById('adj-new-qty').select();
+    }
+
+    // Live difference between counted qty and system stock (never ask the user for "-3").
+    function adjUpdateDiff() {
+      const el = document.getElementById('adj-diff'); if (!el) return;
+      const raw = document.getElementById('adj-new-qty')?.value;
+      if (!adjSelectedProd || raw === '' || raw == null) { el.textContent = '—'; el.style.color = '#94a3b8'; return; }
+      const d = Math.max(0, parseInt(raw, 10) || 0) - adjSelectedProd.onHand;
+      el.textContent = (d > 0 ? '+' : '') + d;
+      el.style.color = d > 0 ? '#16a34a' : d < 0 ? '#eb445a' : '#64748b';
     }
 
     function adjProdClear() {
@@ -6057,6 +6410,7 @@
       if (qty) qty.value = '';
       const notes = document.getElementById('adj-notes');
       if (notes) notes.value = '';
+      adjUpdateDiff();
     }
 
     // Apply the adjustment: update on-hand, log the movement, re-render.
