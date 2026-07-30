@@ -1,6 +1,6 @@
 import Icon from '../Icon'
 
-export default function Header({ meta, alerts = 7, onOpenMobileSidebar, onAlerts }) {
+export default function Header({ meta, alerts = 7, onOpenMobileSidebar, onAlerts, onScan }) {
   return (
     <header
       className="bg-white border-b border-border sticky top-0 z-40"
@@ -26,6 +26,13 @@ export default function Header({ meta, alerts = 7, onOpenMobileSidebar, onAlerts
         </div>
 
         <div className="flex items-center gap-3 shrink-0">
+          <button
+            onClick={onScan}
+            title="Scan to check stock"
+            className="w-9 h-9 rounded-xl bg-page border border-border flex items-center justify-center hover:bg-white transition"
+          >
+            <Icon name="scan-outline" className="text-navy" style={{ fontSize: '18px' }} />
+          </button>
           <button
             onClick={onAlerts}
             className="relative w-9 h-9 rounded-xl bg-page border border-border flex items-center justify-center hover:bg-white transition"

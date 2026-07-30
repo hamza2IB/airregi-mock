@@ -16,7 +16,7 @@ import {
 } from '../data/productData'
 
 const PM_PAGE = 8
-const COLS = '52px 2fr 1fr 1fr 0.9fr 0.7fr 0.8fr 0.9fr 1fr'
+const COLS = '52px 2fr 1fr 1fr 0.9fr 0.7fr 0.9fr 0.9fr 0.9fr 1fr'
 
 function KpiCard({ icon, iconBg, iconColor, value, valueCls, label }) {
   return (
@@ -60,7 +60,7 @@ function StatusBadge({ status }) {
 
 const TABS = ['all', 'active', 'draft', 'inactive']
 
-export default function Products() {
+export default function Products({ onStockAction }) {
   const showToast = useToast()
   const [products, setProducts] = useState(INV_DATA)
   const [search, setSearch] = useState('')
@@ -202,7 +202,8 @@ export default function Products() {
           <div>Category</div>
           <div>Type</div>
           <div className="text-center">Variants</div>
-          <div className="text-right">Stock</div>
+          <div className="text-right">Physical Stock</div>
+          <div className="text-right">Reorder at</div>
           <div className="text-center">Status</div>
           <div className="text-center">Action</div>
         </div>
@@ -216,7 +217,7 @@ export default function Products() {
             </div>
           ) : (
             items.map((g) => {
-              const lowStock = g.stock === 0
+              const lowStock = g.stock === 0 || (g.reorder > 0 && g.stock <= g.reorder)
               return (
                 <div key={g.name} className="grid items-center px-5 py-3 hover:bg-gray-50/50 transition max-md:grid-cols-[52px_1fr_auto] max-md:gap-2" style={{ gridTemplateColumns: COLS }}>
                   <Thumb name={g.name} type={g.type} />
@@ -240,7 +241,8 @@ export default function Products() {
                       <span className="text-[11px] text-gray-300">—</span>
                     )}
                   </div>
-                  <p className={`text-[13px] font-bold text-right max-md:hidden ${lowStock ? 'text-brand-red' : 'text-navy-dark'}`}>{g.stock.toLocaleString()}</p>
+                  <p className={`text-[13px] font-bold text-right max-md:hidden ${lowStock ? 'text-brand-orange' : 'text-navy-dark'}`}>{g.stock.toLocaleString()}</p>
+                  <p className="text-[12px] font-semibold text-gray-400 text-right max-md:hidden">{g.reorder ? g.reorder.toLocaleString() : '—'}</p>
                   <div className="text-center max-md:hidden"><StatusBadge status={g.status} /></div>
                   <div className="flex items-center justify-center gap-1">
                     <button onClick={() => openView(g)} title="View" className="w-7 h-7 rounded-lg border border-border flex items-center justify-center text-gray-400 hover:text-brand-blue hover:border-brand-blue/40 transition">
@@ -284,7 +286,7 @@ export default function Products() {
         </div>
       </div>
 
-      <ProductDetailSlideover item={detail} onClose={() => setDetail(null)} onEdit={openEdit} />
+      <ProductDetailSlideover item={detail} onClose={() => setDetail(null)} onEdit={openEdit} onStockAction={(action, sku) => { setDetail(null); onStockAction?.(action, sku) }} />
       <ProductWizard session={wizard} onClose={() => setWizard(null)} onSave={handleSave} />
       <ConfirmModal state={confirm} onClose={() => setConfirm(null)} />
     </div>

@@ -84,10 +84,11 @@ export function pmGroups(products) {
   const map = new Map()
   products.forEach((i) => {
     if (!map.has(i.name))
-      map.set(i.name, { name: i.name, cat: i.cat, type: pmType(i), status: pmStatus(i), rows: [], stock: 0 })
+      map.set(i.name, { name: i.name, cat: i.cat, type: pmType(i), status: pmStatus(i), rows: [], stock: 0, reorder: 0 })
     const g = map.get(i.name)
     g.rows.push(i)
     g.stock += i.onHand || 0
+    g.reorder += i.reorder || 0
     const t = pmType(i)
     if (t === 'variant') g.type = 'variant'
     else if (t === 'bundle' && g.type !== 'variant') g.type = 'bundle'
@@ -96,3 +97,36 @@ export function pmGroups(products) {
 }
 
 export const money = (v) => (v ? 'Rs. ' + (+v).toLocaleString() : '—')
+
+// Deterministic sample images for a product (mock — seeded so they stay stable).
+// A real system would store uploaded image URLs on the product master.
+export function pmImages(g) {
+  const seed = encodeURIComponent((g.name || 'product').toLowerCase().replace(/\s+/g, '-'))
+  return [1, 2, 3, 4].map((n) => `https://picsum.photos/seed/${seed}-${n}/600/600`)
+}
+
+// Believable product description (mock). A real system stores this on the master.
+export function pmDescription(g) {
+  const typeLine =
+    {
+      simple: 'a single-SKU product',
+      variant: `a variant product with ${g.rows.length} variations`,
+      bundle: `a bundle made up of ${(g.rows[0]?.bundleItems || []).length || 'multiple'} products`,
+    }[g.type] || 'a catalog product'
+  return (
+    `${g.name} is ${typeLine} in the ${g.cat} category, stocked and fulfilled from the Central Warehouse. ` +
+    `It is distributed to Al Fatah branches through replenishment transfers and is available for online orders. ` +
+    `Stock, pricing and barcode details are maintained per variant so every unit can be tracked, scanned and reordered accurately.`
+  )
+}
+
+// Stable EAN-13-style barcode for display (mock). Prefers a stored barcode;
+// otherwise derives a consistent number from the SKU so the UI looks complete.
+export function pmBarcode(row) {
+  if (row && row.barcode) return row.barcode
+  const sku = (row && row.sku) || ''
+  if (!sku) return ''
+  let h = 0
+  for (let i = 0; i < sku.length; i++) h = (h * 31 + sku.charCodeAt(i)) >>> 0
+  return '890' + String(1000000000 + (h % 9000000000)) // 13 digits, PK prefix
+}

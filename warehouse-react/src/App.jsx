@@ -6,6 +6,7 @@ import Inventory from './pages/Inventory'
 import StoreStock from './pages/StoreStock'
 import Transfers from './pages/Transfers'
 import Barcodes from './pages/Barcodes'
+import ScanStock from './pages/ScanStock'
 import Orders from './pages/Orders'
 import Refunds from './pages/Refunds'
 import CustomerIssues from './pages/CustomerIssues'
@@ -39,6 +40,8 @@ function Shell() {
   // Customer issues raised from the shopping app against orders this warehouse fulfils.
   const [issues, setIssues] = useState(WM_ISSUES)
   const openIssues = issues.filter((i) => i.status !== 'resolved').length
+  // Pending stock operation requested from a product detail's action bar.
+  const [invAction, setInvAction] = useState(null)
 
   const patchIssue = (id, changes) =>
     setIssues((prev) => prev.map((i) => (i.id === id ? { ...i, ...changes } : i)))
@@ -48,26 +51,36 @@ function Shell() {
     window.scrollTo(0, 0)
   }
 
+  // From a product detail's Stock In / Transfer / Adjust / History buttons.
+  const handleStockAction = (action, sku) => {
+    if (action === 'transfer') { handleNavigate('transfers'); return }
+    setInvAction({ action, sku })
+    handleNavigate('inventory')
+  }
+
   return (
     <WarehouseLayout
       activePage={activePage}
       onNavigate={handleNavigate}
       onLogout={() => showToast('Logged out', 'info')}
       onAlerts={() => handleNavigate('products')}
+      onScan={() => handleNavigate('scanstock')}
       issuesBadge={openIssues}
     >
       {activePage === 'dashboard' ? (
         <Dashboard onNavigate={handleNavigate} />
       ) : activePage === 'products' ? (
-        <Products />
+        <Products onStockAction={handleStockAction} />
       ) : activePage === 'inventory' ? (
-        <Inventory onNavigate={handleNavigate} />
+        <Inventory onNavigate={handleNavigate} initialAction={invAction} onConsumeAction={() => setInvAction(null)} />
       ) : activePage === 'storestock' ? (
         <StoreStock onNavigate={handleNavigate} />
       ) : activePage === 'transfers' ? (
         <Transfers />
       ) : activePage === 'barcodes' ? (
         <Barcodes />
+      ) : activePage === 'scanstock' ? (
+        <ScanStock onNavigate={handleNavigate} />
       ) : activePage === 'orders' ? (
         <Orders orders={orders} setOrders={setOrders} />
       ) : activePage === 'refunds' ? (

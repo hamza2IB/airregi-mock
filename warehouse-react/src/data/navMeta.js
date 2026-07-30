@@ -6,6 +6,7 @@ export const PAGE_META = {
   storestock: { section: 'Stores', page: 'Store Stock', heading: 'Store Stock — All Branches' },
   transfers: { section: 'Transfers', page: 'Stock Transfers', heading: 'Stock Transfers' },
   barcodes: { section: 'Tools', page: 'Barcodes', heading: 'Barcodes' },
+  scanstock: { section: 'Tools', page: 'Scan to Check', heading: 'Scan to Check Stock' },
   orders: { section: 'Orders', page: 'Online Orders', heading: 'Online Orders' },
   refunds: { section: 'Orders', page: 'Refunds', heading: 'Refunds' },
   issues: { section: 'Orders', page: 'Customer Issues', heading: 'Customer Issues' },

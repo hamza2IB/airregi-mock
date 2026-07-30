@@ -98,6 +98,22 @@ export const INV_DATA = [
   { name: 'Nescafe Classic', variant: '200g Jar', sku: 'NC-200-RED', cat: 'Beverages', price: 1200, onHand: 48, reserved: 8, reorder: 40, batch: true },
   { name: 'Shan Masala', variant: 'Mixed 100g', sku: 'SM-MX-100', cat: 'Snacks', price: 70, onHand: 0, reserved: 0, reorder: 200, batch: false },
   { name: 'Head & Shoulders', variant: '200ml', sku: 'HS-200-BLU', cat: 'Hair Care', price: 310, onHand: 130, reserved: 10, reorder: 80, batch: false },
+  // ── Variant product: one product, several sizes — each its own SKU/stock ──
+  { name: 'Pepsi', variant: '350ml Can', sku: 'PEP-350-CAN', cat: 'Beverages', price: 70, onHand: 320, reserved: 30, reorder: 150, batch: false, type: 'variant', status: 'active' },
+  { name: 'Pepsi', variant: '1L Bottle', sku: 'PEP-1L-BTL', cat: 'Beverages', price: 130, onHand: 90, reserved: 12, reorder: 100, batch: false, type: 'variant', status: 'active' },
+  { name: 'Pepsi', variant: '1.5L Bottle', sku: 'PEP-15L-BTL', cat: 'Beverages', price: 180, onHand: 0, reserved: 0, reorder: 80, batch: false, type: 'variant', status: 'active' },
+  { name: 'Pepsi', variant: '2.25L Bottle', sku: 'PEP-225-BTL', cat: 'Beverages', price: 250, onHand: 60, reserved: 8, reorder: 60, batch: false, type: 'variant', status: 'active' },
+  // ── Bundle product: sold as one SKU, made up of existing products ──
+  {
+    name: 'Breakfast Combo Pack', variant: 'Bundle · 3 items', sku: 'BND-BFAST-01', cat: 'Beverages',
+    price: 850, onHand: 45, reserved: 6, reorder: 15, batch: false, type: 'bundle', status: 'active',
+    bundleRule: 'bundle',
+    bundleItems: [
+      { sku: 'ML-400-GRN', name: 'Milo', variant: '400g', price: 310, qty: 1 },
+      { sku: 'MK-1L-WHT', name: 'Nestle Milkpak', variant: '1L Tetra', price: 180, qty: 2 },
+      { sku: 'LY-28-MGM', name: 'Lays Chips', variant: 'Magic Masala 28g', price: 30, qty: 3 },
+    ],
+  },
 ]
 
 // Synthesize deterministic line items for a transfer that has no explicit `lines`.
@@ -138,10 +154,10 @@ export function checkOrderStock(o) {
 export const WH_FULFILLERS = ['Al Fatah Main Branch', 'Al Fatah DHA Branch', 'Al Fatah Johar Town', 'Al Fatah Model Town']
 
 export const STORE_INVENTORY = {
-  'Al Fatah Main Branch': { 'SS-400-BLU': 12, 'SE-1KG-WHT': 0, 'ML-400-GRN': 48, 'MK-1L-WHT': 80, 'LY-28-MGM': 200, 'AR-2KG-BLU': 8, 'SG-A15-BLU': 3, 'OB-SP-WHT': 0, 'DT-75-RED': 60, 'NC-200-RED': 5, 'SM-MX-100': 0, 'HS-200-BLU': 18 },
-  'Al Fatah DHA Branch': { 'SS-400-BLU': 0, 'SE-1KG-WHT': 24, 'ML-400-GRN': 5, 'MK-1L-WHT': 12, 'LY-28-MGM': 80, 'AR-2KG-BLU': 0, 'SG-A15-BLU': 0, 'OB-SP-WHT': 10, 'DT-75-RED': 20, 'NC-200-RED': 10, 'SM-MX-100': 24, 'HS-200-BLU': 0 },
-  'Al Fatah Johar Town': { 'SS-400-BLU': 30, 'SE-1KG-WHT': 10, 'ML-400-GRN': 0, 'MK-1L-WHT': 40, 'LY-28-MGM': 150, 'AR-2KG-BLU': 5, 'SG-A15-BLU': 2, 'OB-SP-WHT': 0, 'DT-75-RED': 0, 'NC-200-RED': 8, 'SM-MX-100': 15, 'HS-200-BLU': 22 },
-  'Al Fatah Model Town': { 'SS-400-BLU': 8, 'SE-1KG-WHT': 0, 'ML-400-GRN': 15, 'MK-1L-WHT': 6, 'LY-28-MGM': 40, 'AR-2KG-BLU': 12, 'SG-A15-BLU': 1, 'OB-SP-WHT': 5, 'DT-75-RED': 35, 'NC-200-RED': 0, 'SM-MX-100': 8, 'HS-200-BLU': 10 },
+  'Al Fatah Main Branch': { 'SS-400-BLU': 12, 'SE-1KG-WHT': 0, 'ML-400-GRN': 48, 'MK-1L-WHT': 80, 'LY-28-MGM': 200, 'AR-2KG-BLU': 8, 'SG-A15-BLU': 3, 'OB-SP-WHT': 0, 'DT-75-RED': 60, 'NC-200-RED': 5, 'SM-MX-100': 0, 'HS-200-BLU': 18, 'PEP-350-CAN': 120, 'PEP-1L-BTL': 30, 'PEP-15L-BTL': 0, 'PEP-225-BTL': 18, 'BND-BFAST-01': 10 },
+  'Al Fatah DHA Branch': { 'SS-400-BLU': 0, 'SE-1KG-WHT': 24, 'ML-400-GRN': 5, 'MK-1L-WHT': 12, 'LY-28-MGM': 80, 'AR-2KG-BLU': 0, 'SG-A15-BLU': 0, 'OB-SP-WHT': 10, 'DT-75-RED': 20, 'NC-200-RED': 10, 'SM-MX-100': 24, 'HS-200-BLU': 0, 'PEP-350-CAN': 60, 'PEP-1L-BTL': 8, 'PEP-15L-BTL': 12, 'PEP-225-BTL': 0, 'BND-BFAST-01': 4 },
+  'Al Fatah Johar Town': { 'SS-400-BLU': 30, 'SE-1KG-WHT': 10, 'ML-400-GRN': 0, 'MK-1L-WHT': 40, 'LY-28-MGM': 150, 'AR-2KG-BLU': 5, 'SG-A15-BLU': 2, 'OB-SP-WHT': 0, 'DT-75-RED': 0, 'NC-200-RED': 8, 'SM-MX-100': 15, 'HS-200-BLU': 22, 'PEP-350-CAN': 90, 'PEP-1L-BTL': 0, 'PEP-15L-BTL': 20, 'PEP-225-BTL': 14, 'BND-BFAST-01': 0 },
+  'Al Fatah Model Town': { 'SS-400-BLU': 8, 'SE-1KG-WHT': 0, 'ML-400-GRN': 15, 'MK-1L-WHT': 6, 'LY-28-MGM': 40, 'AR-2KG-BLU': 12, 'SG-A15-BLU': 1, 'OB-SP-WHT': 5, 'DT-75-RED': 35, 'NC-200-RED': 0, 'SM-MX-100': 8, 'HS-200-BLU': 10, 'PEP-350-CAN': 40, 'PEP-1L-BTL': 12, 'PEP-15L-BTL': 6, 'PEP-225-BTL': 8, 'BND-BFAST-01': 6 },
 }
 
 export const wmSourceStock = (source, sku) => (STORE_INVENTORY[source] || {})[sku] || 0

@@ -25,4 +25,11 @@ export function shSeed(item) {
   ]
 }
 
-export const ADJ_REASONS = ['Damage', 'Theft', 'Count Correction', 'Expiry Write-off', 'Other']
+export const ADJ_REASONS = ['Physical Count Correction', 'Damage', 'Theft / Loss', 'Expiry Write-off', 'Found / Extra Stock', 'Other']
+
+// Group-level stock status (mirrors invStatus but for a rolled-up product).
+export function invGroupStatus(onHand, reorder) {
+  if (onHand === 0) return { label: 'Out of Stock', cls: 'text-brand-red bg-brand-red/10' }
+  if (reorder > 0 && onHand <= reorder) return { label: 'Low Stock', cls: 'text-brand-orange bg-brand-orange/10' }
+  return { label: 'In Stock', cls: 'text-brand-green bg-brand-green/10' }
+}

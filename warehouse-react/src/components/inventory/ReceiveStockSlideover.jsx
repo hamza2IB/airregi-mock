@@ -11,6 +11,12 @@ function Body({ session, inv, onClose, onReceive }) {
   const [rows, setRows] = useState([])
   const [query, setQuery] = useState('')
   const [dropOpen, setDropOpen] = useState(false)
+  const [refNo, setRefNo] = useState('')
+  const [supplier, setSupplier] = useState('')
+  const [note, setNote] = useState('')
+
+  const batchTracked = !!(group && group.rows.some((r) => r.batch))
+  const rcCols = batchTracked ? '1.5fr 0.7fr 0.8fr 1fr 1fr' : '1.9fr 0.7fr 0.8fr 0.8fr'
 
   const selectProduct = (g) => {
     setGroup(g)
@@ -34,6 +40,9 @@ function Body({ session, inv, onClose, onReceive }) {
     setRows([])
     setQuery('')
     setDropOpen(false)
+    setRefNo('')
+    setSupplier('')
+    setNote('')
     if (session?.sku) {
       const item = inv.find((x) => x.sku === session.sku)
       if (item) {
@@ -63,7 +72,7 @@ function Body({ session, inv, onClose, onReceive }) {
 
   const submit = () => {
     if (units === 0) return showToast('Enter a quantity for at least one variant.', 'warning')
-    onReceive({ name: group?.name || 'Product', rows: rows.filter((r) => r.qty > 0) })
+    onReceive({ name: group?.name || 'Product', rows: rows.filter((r) => r.qty > 0), ref: refNo.trim(), supplier: supplier.trim(), note: note.trim() })
   }
 
   return (
@@ -76,7 +85,7 @@ function Body({ session, inv, onClose, onReceive }) {
           </div>
           <div>
             <h2 className="text-[16px] font-extrabold text-navy-dark leading-tight">Receive Stock</h2>
-            <p className="text-[11px] text-gray-400 mt-0.5">Add incoming supplier stock to inventory</p>
+            <p className="text-[11px] text-gray-400 mt-0.5">Record an incoming delivery — quantities are added to inventory instantly</p>
           </div>
         </div>
         <button onClick={onClose} className="w-8 h-8 rounded-lg border border-border flex items-center justify-center hover:bg-gray-50 transition">
@@ -139,39 +148,81 @@ function Body({ session, inv, onClose, onReceive }) {
         {group ? (
           <div className="mt-5">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-[11px] font-bold text-gray-500 uppercase tracking-[0.08em]">Received Quantities</p>
+              <p className="text-[11px] font-bold text-gray-500 uppercase tracking-[0.08em]">Quantity received</p>
               <button onClick={clearAll} className="text-[11px] font-semibold text-brand-blue hover:underline">Clear all</button>
             </div>
+
+            {/* Batch/expiry explainer — shown only for batch-tracked products */}
+            {batchTracked && (
+              <div className="flex items-start gap-2.5 bg-brand-purple/5 border border-brand-purple/20 rounded-xl px-4 py-3 mb-3">
+                <Icon name="flask-outline" size={14} style={{ color: '#7c4dff', flexShrink: 0, marginTop: 1 }} />
+                <p className="text-[11px] text-gray-600 leading-relaxed">
+                  <strong className="text-navy-dark">This product is batch-tracked.</strong> Record the <strong>batch / lot number</strong> and <strong>expiry date</strong> for each incoming lot. This drives first-expiry-first-out picking, expiry alerts and recall tracing. Leave blank if the supplier didn't provide them.
+                </p>
+              </div>
+            )}
+
             <div className="border border-border rounded-xl overflow-hidden">
-              <div className="grid text-[10px] font-semibold text-gray-400 uppercase tracking-[0.06em] px-3 py-2 bg-gray-50/60 border-b border-border" style={{ gridTemplateColumns: '1.6fr 0.8fr 1fr 1.1fr' }}>
+              <div className="grid text-[10px] font-semibold text-gray-400 uppercase tracking-[0.06em] px-3 py-2 bg-gray-50/60 border-b border-border" style={{ gridTemplateColumns: rcCols }}>
                 <div>Variant</div>
-                <div className="text-center">Qty</div>
-                <div>Batch</div>
-                <div>Expiry</div>
+                <div className="text-right">In stock</div>
+                <div className="text-center">Receiving</div>
+                {batchTracked ? (
+                  <>
+                    <div>Batch / Lot #</div>
+                    <div>Expiry date</div>
+                  </>
+                ) : (
+                  <div className="text-right">New total</div>
+                )}
               </div>
               <div className="divide-y divide-gray-100">
                 {rows.map((r, i) => (
-                  <div key={r.sku} className={`grid items-center gap-2 px-3 py-2.5 ${r.qty > 0 ? 'bg-brand-green/5' : ''}`} style={{ gridTemplateColumns: '1.6fr 0.8fr 1fr 1.1fr' }}>
+                  <div key={r.sku} className={`grid items-center gap-2 px-3 py-2.5 ${r.qty > 0 ? 'bg-brand-green/5' : ''}`} style={{ gridTemplateColumns: rcCols }}>
                     <div className="min-w-0">
                       <p className="text-[12px] font-semibold text-navy-dark truncate">{r.label}</p>
-                      <p className="text-[10px] text-gray-400 font-mono truncate">{r.sku} · {r.current} in stock</p>
+                      <p className="text-[10px] text-gray-400 font-mono truncate">{r.sku}</p>
                     </div>
-                    <input type="number" min="0" value={r.qty || ''} placeholder="0" className="pc-mini-inp text-right" onChange={(e) => setQty(i, e.target.value)} />
-                    <input type="text" value={r.batch} placeholder="e.g. B2401" className="pc-mini-inp font-mono" onChange={(e) => setBatch(i, e.target.value)} />
-                    <input type="date" value={r.expiry} className="pc-mini-inp" onChange={(e) => setExpiry(i, e.target.value)} />
+                    <p className="text-[12px] text-gray-500 text-right self-center">{r.current || 0}</p>
+                    <input type="number" min="0" value={r.qty || ''} placeholder="0" className="pc-mini-inp text-center" onChange={(e) => setQty(i, e.target.value)} />
+                    {batchTracked ? (
+                      <>
+                        <input type="text" value={r.batch} placeholder="e.g. B2401" className="pc-mini-inp font-mono" onChange={(e) => setBatch(i, e.target.value)} />
+                        <input type="date" value={r.expiry} className="pc-mini-inp" onChange={(e) => setExpiry(i, e.target.value)} />
+                      </>
+                    ) : (
+                      <p className={`text-[12px] font-bold text-right self-center ${r.qty > 0 ? 'text-brand-green' : 'text-navy-dark'}`}>{(r.current || 0) + (r.qty || 0)}</p>
+                    )}
                   </div>
                 ))}
               </div>
             </div>
-            <div className="flex items-center justify-between mt-3 px-4 py-3 rounded-xl bg-brand-blue/5 border border-brand-blue/15">
+
+            <div className="flex items-center justify-between mt-3 px-4 py-3 rounded-xl bg-brand-green/5 border border-brand-green/20">
               <div className="flex items-center gap-2">
-                <Icon name="cube-outline" className="text-brand-blue" size={16} />
+                <Icon name="cube-outline" className="text-brand-green" size={16} />
                 <span className="text-[12px] font-semibold text-navy-dark">Total to receive</span>
               </div>
               <div className="text-right">
                 <span className="text-[15px] font-extrabold text-navy-dark">{units.toLocaleString()}</span>
-                <span className="text-[11px] text-gray-400 ml-1">units · {lines} variants</span>
+                <span className="text-[11px] text-gray-400 ml-1">units · {lines} line(s)</span>
               </div>
+            </div>
+
+            {/* Optional supplier reference details */}
+            <div className="grid grid-cols-2 gap-4 mt-4">
+              <div>
+                <label className="pc-label">Reference No. <span className="text-gray-400 font-normal">(optional)</span></label>
+                <input type="text" className="inp" placeholder="e.g. GRN-1042 / Invoice #" value={refNo} onChange={(e) => setRefNo(e.target.value)} />
+              </div>
+              <div>
+                <label className="pc-label">Supplier <span className="text-gray-400 font-normal">(optional)</span></label>
+                <input type="text" className="inp" placeholder="e.g. Nestlé Distributor" value={supplier} onChange={(e) => setSupplier(e.target.value)} />
+              </div>
+            </div>
+            <div className="mt-3">
+              <label className="pc-label">Notes <span className="text-gray-400 font-normal">(optional)</span></label>
+              <textarea rows={2} className="inp resize-none" placeholder="e.g. New shipment · partial delivery…" value={note} onChange={(e) => setNote(e.target.value)} />
             </div>
           </div>
         ) : (

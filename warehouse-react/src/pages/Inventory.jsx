@@ -1,14 +1,29 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Icon from '../components/Icon'
 import { useToast } from '../components/Toast'
 import ReceiveStockSlideover from '../components/inventory/ReceiveStockSlideover'
 import AdjustStockSlideover from '../components/inventory/AdjustStockSlideover'
 import StockHistorySlideover from '../components/inventory/StockHistorySlideover'
 import { INV_DATA } from '../data/warehouseData'
-import { invStatus } from '../data/inventoryData'
+import { invGroupStatus } from '../data/inventoryData'
+import { pmGroups, pmColorPair, pmTypeIcon } from '../data/productData'
 
 const INV_PAGE = 10
-const COLS = '1.8fr 0.9fr 0.9fr 1fr 0.75fr 0.8fr 0.9fr 1.1fr'
+const COLS = '52px 2fr 1fr 1fr 0.7fr 0.9fr 0.8fr 0.8fr 0.9fr 1.1fr'
+
+// Product thumbnail (matches Product Master).
+function Thumb({ name, type }) {
+  const [c0, c1] = pmColorPair(name)
+  const initial = (name.trim()[0] || '?').toUpperCase()
+  return (
+    <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 relative" style={{ background: `linear-gradient(135deg,${c0},${c1})` }}>
+      <span className="text-white font-extrabold text-[15px]">{initial}</span>
+      <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-md bg-white flex items-center justify-center shadow-sm">
+        <Icon name={pmTypeIcon(type)} size={9} style={{ color: c0 }} />
+      </div>
+    </div>
+  )
+}
 
 function KpiCard({ icon, iconBg, iconColor, value, valueCls, label, onClick }) {
   return (
@@ -31,7 +46,7 @@ const TABS = [
   { k: 'ok', label: 'In Stock' },
 ]
 
-export default function Inventory({ onNavigate }) {
+export default function Inventory({ onNavigate, initialAction, onConsumeAction }) {
   const showToast = useToast()
   const [inv, setInv] = useState(INV_DATA)
   const [movements, setMovements] = useState([])
@@ -44,6 +59,17 @@ export default function Inventory({ onNavigate }) {
   const [adjustSession, setAdjustSession] = useState(null)
   const [historyItem, setHistoryItem] = useState(null)
 
+  // Open the matching slideover when arriving from a product detail's stock action bar.
+  useEffect(() => {
+    if (!initialAction) return
+    const { action, sku } = initialAction
+    if (action === 'in') setReceiveSession({ sku })
+    else if (action === 'adjust') setAdjustSession({ sku })
+    else if (action === 'history') { const it = INV_DATA.find((x) => x.sku === sku); if (it) setHistoryItem(it) }
+    onConsumeAction?.()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialAction])
+
   const categories = useMemo(() => [...new Set(inv.map((i) => i.cat))].sort(), [inv])
 
   const kpis = {
@@ -53,18 +79,28 @@ export default function Inventory({ onNavigate }) {
     out: inv.filter((i) => i.onHand === 0).length,
   }
 
+  // Group into products (same shape as Product Master) and roll up stock figures.
+  const groups = useMemo(
+    () =>
+      pmGroups(inv).map((g) => {
+        const reserved = g.rows.reduce((s, r) => s + (r.reserved || 0), 0)
+        return { ...g, reserved, available: g.stock - reserved }
+      }),
+    [inv],
+  )
+
   const data = useMemo(() => {
     const q = search.toLowerCase()
-    return inv.filter((i) => {
-      const matchS = !q || i.name.toLowerCase().includes(q) || i.sku.toLowerCase().includes(q) || i.variant.toLowerCase().includes(q)
-      const matchC = !cat || i.cat === cat
+    return groups.filter((g) => {
+      const matchS = !q || g.name.toLowerCase().includes(q) || g.rows.some((r) => r.sku.toLowerCase().includes(q) || (r.variant || '').toLowerCase().includes(q))
+      const matchC = !cat || g.cat === cat
       let matchF = true
-      if (filter === 'low') matchF = i.onHand > 0 && i.onHand <= i.reorder
-      else if (filter === 'out') matchF = i.onHand === 0
-      else if (filter === 'ok') matchF = i.onHand > i.reorder
+      if (filter === 'low') matchF = g.stock > 0 && g.stock <= g.reorder
+      else if (filter === 'out') matchF = g.stock === 0
+      else if (filter === 'ok') matchF = g.stock > g.reorder
       return matchS && matchC && matchF
     })
-  }, [inv, search, cat, filter])
+  }, [groups, search, cat, filter])
 
   const total = data.length
   const pages = Math.ceil(total / INV_PAGE) || 1
@@ -89,7 +125,7 @@ export default function Inventory({ onNavigate }) {
     setMovements((prev) => [{ sku, type, qty, note: note || '', by: 'Zain Khan', date: 'Jul 21, 2026', balance }, ...prev])
 
   // ── Receive stock ──
-  const handleReceive = ({ name, rows }) => {
+  const handleReceive = ({ name, rows, ref, supplier, note }) => {
     let totalUnits = 0
     const moves = []
     setInv((prev) =>
@@ -99,8 +135,11 @@ export default function Inventory({ onNavigate }) {
         const nextOnHand = (it.onHand || 0) + r.qty
         totalUnits += r.qty
         const parts = []
+        if (supplier) parts.push(supplier)
+        if (ref) parts.push('Ref ' + ref)
         if (r.batch) parts.push('Batch ' + r.batch)
         if (r.expiry) parts.push('Exp ' + r.expiry)
+        if (note) parts.push(note)
         moves.push({ sku: r.sku, type: 'received', qty: r.qty, note: 'Supplier stock received' + (parts.length ? ' · ' + parts.join(' · ') : ''), balance: nextOnHand })
         return { ...it, onHand: nextOnHand }
       }),
@@ -187,10 +226,12 @@ export default function Inventory({ onNavigate }) {
 
         {/* Header */}
         <div className="grid text-[10px] font-semibold text-gray-400 uppercase tracking-[0.08em] px-5 py-2.5 border-b border-border bg-gray-50/60 max-md:hidden" style={{ gridTemplateColumns: COLS }}>
+          <div></div>
           <div>Product</div>
           <div>SKU</div>
           <div>Category</div>
-          <div className="text-right whitespace-nowrap">Physical Stock</div>
+          <div className="text-center">Variants</div>
+          <div className="text-right whitespace-nowrap">Stock On Hand</div>
           <div className="text-right">Reserved</div>
           <div className="text-right">Available</div>
           <div className="text-center">Status</div>
@@ -205,32 +246,45 @@ export default function Inventory({ onNavigate }) {
               <p className="text-[13px] text-gray-400 mt-2">No stock items found</p>
             </div>
           ) : (
-            items.map((i) => {
-              const st = invStatus(i)
-              const avail = i.onHand - i.reserved
+            items.map((g) => {
+              const st = invGroupStatus(g.stock, g.reorder)
+              const avail = g.available
+              const repRow = g.rows[0] || {}
+              const lowStock = g.stock === 0 || (g.reorder > 0 && g.stock <= g.reorder)
               return (
-                <div key={i.sku} className="grid items-center px-5 py-3 hover:bg-gray-50/50 transition max-md:grid-cols-[1fr_auto] max-md:gap-2" style={{ gridTemplateColumns: COLS }}>
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-9 h-9 rounded-lg bg-navy/8 flex items-center justify-center shrink-0"><Icon name="cube-outline" className="text-navy" size={16} /></div>
-                    <div className="min-w-0">
-                      <p className="text-[12.5px] font-semibold text-navy-dark truncate">{i.name}</p>
-                      <p className="text-[10px] text-gray-400 truncate">{i.variant}</p>
-                    </div>
+                <div key={g.name} className="grid items-center px-5 py-3 hover:bg-gray-50/50 transition max-md:grid-cols-[52px_1fr_auto] max-md:gap-2" style={{ gridTemplateColumns: COLS }}>
+                  <Thumb name={g.name} type={g.type} />
+                  <div className="min-w-0 pr-2">
+                    <p className="text-[12.5px] font-semibold text-navy-dark truncate">{g.name}</p>
+                    <p className="text-[10px] text-gray-400 truncate">{g.type === 'variant' ? `${g.rows.length} variants` : ''}</p>
                   </div>
-                  <p className="text-[11px] text-gray-500 font-mono truncate pr-2 max-md:hidden">{i.sku}</p>
-                  <p className="text-[11px] text-gray-500 truncate pr-2 max-md:hidden">{i.cat}</p>
-                  <p className="text-[13px] font-bold text-navy-dark text-right max-md:hidden">{i.onHand}</p>
-                  <p className="text-[12px] text-gray-500 text-right max-md:hidden">{i.reserved}</p>
+                  <div className="min-w-0 pr-2 max-md:hidden">
+                    {g.type === 'variant' ? (
+                      <span className="text-[10px] font-semibold text-gray-400">{g.rows.length} SKUs</span>
+                    ) : (
+                      <span className="text-[11px] text-gray-500 font-mono truncate">{repRow.sku || '—'}</span>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-gray-500 truncate pr-2 max-md:hidden">{g.cat}</p>
+                  <div className="text-center max-md:hidden">
+                    {g.type === 'variant' ? (
+                      <span className="text-[11px] font-bold text-brand-purple bg-brand-purple/10 px-2 py-0.5 rounded-full">{g.rows.length}</span>
+                    ) : (
+                      <span className="text-[11px] text-gray-300">—</span>
+                    )}
+                  </div>
+                  <p className={`text-[13px] font-bold text-right max-md:hidden ${lowStock ? 'text-brand-orange' : 'text-navy-dark'}`}>{g.stock.toLocaleString()}</p>
+                  <p className="text-[12px] text-gray-500 text-right max-md:hidden">{g.reserved}</p>
                   <p className={`text-[13px] font-semibold text-right max-md:hidden ${avail <= 0 ? 'text-brand-red' : 'text-navy-dark'}`}>{avail}</p>
                   <div className="text-center max-md:hidden"><span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${st.cls}`}>{st.label}</span></div>
                   <div className="flex items-center justify-center gap-1">
-                    <button onClick={() => setReceiveSession({ sku: i.sku })} title="Add stock" className="w-7 h-7 rounded-lg border border-border flex items-center justify-center text-gray-400 hover:text-brand-green hover:border-brand-green/40 transition">
+                    <button onClick={() => setReceiveSession({ sku: repRow.sku })} title="Add stock" className="w-7 h-7 rounded-lg border border-border flex items-center justify-center text-gray-400 hover:text-brand-green hover:border-brand-green/40 transition">
                       <Icon name="add-outline" size={15} />
                     </button>
-                    <button onClick={() => setAdjustSession({ sku: i.sku })} title="Adjust stock" className="w-7 h-7 rounded-lg border border-border flex items-center justify-center text-gray-400 hover:text-brand-orange hover:border-brand-orange/40 transition">
+                    <button onClick={() => setAdjustSession({ sku: repRow.sku })} title="Adjust stock" className="w-7 h-7 rounded-lg border border-border flex items-center justify-center text-gray-400 hover:text-brand-orange hover:border-brand-orange/40 transition">
                       <Icon name="create-outline" size={14} />
                     </button>
-                    <button onClick={() => setHistoryItem(i)} title="Stock history" className="w-7 h-7 rounded-lg border border-border flex items-center justify-center text-gray-400 hover:text-brand-blue hover:border-brand-blue/40 transition">
+                    <button onClick={() => setHistoryItem(repRow)} title="Stock history" className="w-7 h-7 rounded-lg border border-border flex items-center justify-center text-gray-400 hover:text-brand-blue hover:border-brand-blue/40 transition">
                       <Icon name="time-outline" size={14} />
                     </button>
                   </div>

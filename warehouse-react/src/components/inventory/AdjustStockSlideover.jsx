@@ -16,11 +16,15 @@ function Body({ session, inv, onClose, onAdjust }) {
   const selectProd = (p) => {
     setProd(p)
     setQuery(`${p.name} — ${p.variant}`)
-    setNewQty(String(p.onHand))
+    setNewQty('') // leave "actual counted" empty for the user to fill
     setReason('')
     setNote('')
     setDropOpen(false)
   }
+
+  // Live difference between counted qty and system stock (never ask the user for "-3").
+  const diff = prod && newQty !== '' ? Math.max(0, parseInt(newQty, 10) || 0) - prod.onHand : null
+  const diffColor = diff == null ? '#94a3b8' : diff > 0 ? '#16a34a' : diff < 0 ? '#eb445a' : '#64748b'
 
   useEffect(() => {
     setProd(null)
@@ -78,9 +82,11 @@ function Body({ session, inv, onClose, onAdjust }) {
 
       {/* Body */}
       <div className="p-6 space-y-5 flex-1">
-        <div className="flex items-start gap-2.5 bg-brand-orange/5 border border-brand-orange/20 rounded-xl px-4 py-3">
-          <Icon name="warning-outline" size={14} style={{ color: '#ff9800', flexShrink: 0, marginTop: 1 }} />
-          <p className="text-[11px] text-gray-600">Adjustments are permanent and logged with your identity. Negative adjustments require confirmation.</p>
+        <div className="flex items-start gap-2.5 bg-brand-blue/5 border border-brand-blue/15 rounded-xl px-4 py-3">
+          <Icon name="information-circle-outline" size={14} style={{ color: '#3366cc', flexShrink: 0, marginTop: 1 }} />
+          <p className="text-[11px] text-gray-600 leading-relaxed">
+            Use this after a <strong className="text-navy-dark">physical count</strong>. Enter the quantity you actually counted on the shelf — the system works out the difference automatically and logs it against your name. Use <strong className="text-navy-dark">Receive Stock</strong> for supplier deliveries instead.
+          </p>
         </div>
 
         <div>
@@ -134,14 +140,18 @@ function Body({ session, inv, onClose, onAdjust }) {
           )}
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-3 gap-3">
           <div>
-            <label className="block text-[11px] font-semibold text-gray-600 mb-1.5">Current Stock</label>
-            <div className="inp bg-gray-50 text-gray-400 cursor-not-allowed select-none" style={prod ? { color: '#0a1535' } : {}}>{prod ? prod.onHand : '—'}</div>
+            <label className="block text-[11px] font-semibold text-gray-600 mb-1.5">Current <span className="text-gray-400 font-normal">(system)</span></label>
+            <div className="inp bg-gray-50 text-gray-400 cursor-not-allowed select-none text-right" style={prod ? { color: '#0a1535' } : {}}>{prod ? prod.onHand : '—'}</div>
           </div>
           <div>
-            <label className="block text-[11px] font-semibold text-gray-600 mb-1.5">Adjusted Quantity</label>
-            <input type="number" placeholder="Enter new qty" className="inp" value={newQty} onChange={(e) => setNewQty(e.target.value)} />
+            <label className="block text-[11px] font-semibold text-gray-600 mb-1.5">Actual counted</label>
+            <input type="number" min="0" placeholder="0" className="inp text-right" value={newQty} onChange={(e) => setNewQty(e.target.value)} />
+          </div>
+          <div>
+            <label className="block text-[11px] font-semibold text-gray-600 mb-1.5">Adjustment</label>
+            <div className="inp bg-gray-50 font-extrabold select-none text-right" style={{ color: diffColor }}>{diff == null ? '—' : (diff > 0 ? '+' : '') + diff}</div>
           </div>
         </div>
         <div>

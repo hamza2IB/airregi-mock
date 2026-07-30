@@ -6,7 +6,13 @@ const NAV_GROUPS = [
   { label: 'Inventory', items: [{ key: 'inventory', icon: 'cube-outline', label: 'Stock Levels' }] },
   { label: 'Stores', items: [{ key: 'storestock', icon: 'storefront-outline', label: 'Store Stock' }] },
   { label: 'Transfers', items: [{ key: 'transfers', icon: 'swap-horizontal-outline', label: 'Stock Transfers' }] },
-  { label: 'Tools', items: [{ key: 'barcodes', icon: 'barcode-outline', label: 'Barcodes' }] },
+  {
+    label: 'Tools',
+    items: [
+      { key: 'barcodes', icon: 'barcode-outline', label: 'Barcodes' },
+      { key: 'scanstock', icon: 'scan-outline', label: 'Scan to Check' },
+    ],
+  },
   {
     label: 'Orders',
     items: [

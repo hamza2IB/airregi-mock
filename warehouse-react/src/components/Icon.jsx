@@ -59,6 +59,9 @@ import {
   IoPrintOutline,
   IoChatboxEllipsesOutline,
   IoPlayOutline,
+  IoScanOutline,
+  IoCameraOutline,
+  IoFlaskOutline,
 } from 'react-icons/io5'
 
 const ICONS = {
@@ -122,6 +125,9 @@ const ICONS = {
   'print-outline': IoPrintOutline,
   'chatbox-ellipses-outline': IoChatboxEllipsesOutline,
   'play-outline': IoPlayOutline,
+  'scan-outline': IoScanOutline,
+  'camera-outline': IoCameraOutline,
+  'flask-outline': IoFlaskOutline,
 }
 
 export default function Icon({ name, size, className = '', style = {}, ...rest }) {
