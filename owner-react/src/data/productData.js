@@ -98,6 +98,38 @@ export function pmGroups(products) {
 
 export const money = (v) => (v ? 'Rs. ' + (+v).toLocaleString() : '—')
 
+// Deterministic sample images for a product (mock — seeded so they stay stable).
+// A real system would store uploaded image URLs on the product master.
+export function pmImages(g) {
+  const seed = encodeURIComponent((g.name || 'product').toLowerCase().replace(/\s+/g, '-'))
+  return [1, 2, 3, 4].map((n) => `https://picsum.photos/seed/${seed}-${n}/600/600`)
+}
+
+// Believable product description (mock). A real system stores this on the master.
+export function pmDescription(g) {
+  const typeLine =
+    {
+      simple: 'a single-SKU product',
+      variant: `a variant product with ${g.rows.length} variations`,
+      bundle: `a bundle made up of ${(g.rows[0]?.bundleItems || []).length || 'multiple'} products`,
+    }[g.type] || 'a catalog product'
+  return (
+    `${g.name} is ${typeLine} in the ${g.cat} category, managed in the owner catalog and available across all stores. ` +
+    `Stock, pricing and barcode details are maintained per variant so every unit can be tracked, scanned and reordered accurately.`
+  )
+}
+
+// Stable EAN-13-style barcode for display (mock). Prefers a stored barcode;
+// otherwise derives a consistent number from the SKU so the UI looks complete.
+export function pmBarcode(row) {
+  if (row && row.barcode) return row.barcode
+  const sku = (row && row.sku) || ''
+  if (!sku) return ''
+  let h = 0
+  for (let i = 0; i < sku.length; i++) h = (h * 31 + sku.charCodeAt(i)) >>> 0
+  return '890' + String(1000000000 + (h % 9000000000)) // 13 digits, PK prefix
+}
+
 // Owner catalog — SKU-level rows (variants grouped by name into products).
 export const INV_DATA = [
   { name: 'Nestle Pure Life 1.5L', variant: 'Bottle', sku: 'NES-PL-15', cat: 'Beverages', price: 80, onHand: 240, reserved: 20, reorder: 100, barcode: '8964000112501', batch: false },

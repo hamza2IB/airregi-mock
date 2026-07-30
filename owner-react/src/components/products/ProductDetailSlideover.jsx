@@ -1,6 +1,7 @@
+import { useEffect, useState } from 'react'
 import Icon from '../Icon'
 import Slideover from '../Slideover'
-import { pmColorPair, pmTypeIcon, PM_TYPE_BADGE, PM_STATUS_BADGE, cap, money } from '../../data/productData'
+import { pmColorPair, pmTypeIcon, pmImages, pmDescription, pmBarcode, PM_TYPE_BADGE, PM_STATUS_BADGE, cap, money } from '../../data/productData'
 
 // Section wrapper (admin-style) used inside the detail body.
 function Section({ title, icon, children }) {
@@ -34,6 +35,11 @@ function Body({ g, onClose, onEdit }) {
   const statusCls = PM_STATUS_BADGE[g.status] || 'text-gray-500 bg-gray-100'
   const typeCls = PM_TYPE_BADGE[g.type] || 'text-gray-500 bg-gray-100'
 
+  const imgs = pmImages(g)
+  const [mainImg, setMainImg] = useState(imgs[0])
+  const [imgFailed, setImgFailed] = useState(false)
+  useEffect(() => { setMainImg(imgs[0]); setImgFailed(false) }, [g.name])
+
   let priceDisplay = money(r0.price)
   if (g.type === 'variant') {
     const prices = g.rows.map((r) => +r.price || 0).filter(Boolean)
@@ -45,26 +51,42 @@ function Body({ g, onClose, onEdit }) {
 
   return (
     <>
-      {/* Hero */}
-      <div className="relative shrink-0">
-        <div className="h-24 w-full relative overflow-hidden" style={{ background: `linear-gradient(135deg,${c0} 0%,${c1} 100%)` }}>
-          <div style={{ position: 'absolute', top: -24, right: -24, width: 110, height: 110, borderRadius: '50%', background: 'rgba(255,255,255,0.13)' }}></div>
-          <div style={{ position: 'absolute', bottom: -36, left: 24, width: 130, height: 130, borderRadius: '50%', background: 'rgba(0,0,0,0.10)' }}></div>
-          <div style={{ position: 'absolute', bottom: 10, right: 14, display: 'flex', alignItems: 'center', gap: 5 }}>
-            <Icon name={typeIcon} size={11} style={{ color: 'rgba(255,255,255,0.7)' }} />
-            <span style={{ fontSize: '10.5px', fontWeight: 600, color: 'rgba(255,255,255,0.85)' }}>{cap(g.type)} Product</span>
+      {/* Hero (real product image) */}
+      <div className="relative shrink-0 bg-gray-100" style={{ height: 240 }}>
+        {imgFailed ? (
+          <div className="w-full h-full flex items-center justify-center" style={{ background: `linear-gradient(135deg,${c0},${c1})` }}>
+            <span style={{ fontSize: '52px', fontWeight: 800, color: '#fff' }}>{initial}</span>
           </div>
+        ) : (
+          <img src={mainImg} alt={g.name} className="w-full h-full object-cover" onError={() => setImgFailed(true)} />
+        )}
+        <div className="absolute inset-x-0 bottom-0 pointer-events-none" style={{ height: 96, background: 'linear-gradient(to top,rgba(10,21,53,0.78),rgba(10,21,53,0))' }}></div>
+        <div className="absolute inset-x-0 top-0 pointer-events-none" style={{ height: 64, background: 'linear-gradient(to bottom,rgba(10,21,53,0.35),rgba(10,21,53,0))' }}></div>
+        <div className="absolute bottom-3.5 left-5 flex items-center gap-1.5">
+          <Icon name={typeIcon} size={13} style={{ color: 'rgba(255,255,255,0.92)' }} />
+          <span style={{ fontSize: '11px', fontWeight: 700, color: '#fff', letterSpacing: '.2px' }}>{cap(g.type)} Product</span>
         </div>
-        <div className="absolute left-5 bottom-0 translate-y-1/2 w-16 h-16 rounded-2xl border-4 border-white shadow-lg flex items-center justify-center text-[22px] font-extrabold text-white" style={{ background: `linear-gradient(135deg,${c0},${c1})` }}>
-          {initial}
-        </div>
-        <button onClick={onClose} className="absolute top-3 right-3 w-8 h-8 rounded-xl flex items-center justify-center text-white transition" style={{ background: 'rgba(0,0,0,0.22)' }}>
+        <button onClick={onClose} className="absolute top-3 right-3 w-8 h-8 rounded-xl flex items-center justify-center text-white transition" style={{ background: 'rgba(0,0,0,0.35)' }}>
           <Icon name="close-outline" size={18} />
         </button>
       </div>
 
+      {/* Thumbnail strip */}
+      <div className="px-5 py-3 border-b border-border shrink-0 flex gap-2 overflow-x-auto thin-scroll">
+        {imgs.map((u, i) => (
+          <button
+            key={i}
+            onClick={() => { setMainImg(u); setImgFailed(false) }}
+            className={`pd-thumb rounded-lg overflow-hidden border border-border shrink-0 ${mainImg === u ? 'pd-thumb-active' : ''}`}
+            style={{ width: 56, height: 56 }}
+          >
+            <img src={u} alt="" className="w-full h-full object-cover" onError={(e) => { e.currentTarget.parentElement.style.display = 'none' }} />
+          </button>
+        ))}
+      </div>
+
       {/* Identity */}
-      <div className="px-5 pt-11 pb-4 border-b border-border shrink-0">
+      <div className="px-5 pt-4 pb-4 border-b border-border shrink-0">
         <div className="flex items-center gap-1.5 flex-wrap mb-2">
           <span className={`text-[9.5px] font-bold px-2 py-0.5 rounded-full ${typeCls}`}>{cap(g.type)}</span>
           <span className={`text-[9.5px] font-bold px-2 py-0.5 rounded-full ${statusCls}`}>{cap(g.status)}</span>
@@ -93,6 +115,19 @@ function Body({ g, onClose, onEdit }) {
 
       {/* Body */}
       <div className="px-5 py-5">
+        {/* Description */}
+        <div className="mb-5">
+          <div className="flex items-center gap-2 mb-2.5">
+            <div className="w-5 h-5 rounded-md flex items-center justify-center shrink-0" style={{ background: 'rgba(45,211,111,0.14)' }}>
+              <Icon name="document-text-outline" size={11} style={{ color: '#16a34a' }} />
+            </div>
+            <p className="text-[11px] font-bold text-navy-dark uppercase tracking-[0.06em]">Description</p>
+          </div>
+          <div className="bg-white border border-border rounded-xl px-4 py-3">
+            <p className="text-[12.5px] text-gray-600 leading-relaxed">{pmDescription(g)}</p>
+          </div>
+        </div>
+
         <Section title="Overview" icon="information-circle-outline">
           <Field k="Category">{g.cat}</Field>
           <Field k="Product Type">{cap(g.type)}</Field>
@@ -114,20 +149,26 @@ function Body({ g, onClose, onEdit }) {
               </div>
               <p className="text-[11px] font-bold text-navy-dark uppercase tracking-[0.06em]">Variants · {g.rows.length}</p>
             </div>
-            <div className="border border-border rounded-xl overflow-hidden divide-y divide-gray-100">
-              {g.rows.map((v) => (
-                <div key={v.sku} className="flex items-center justify-between gap-3 px-3.5 py-2.5">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span className="w-1.5 h-1.5 rounded-full bg-brand-purple shrink-0"></span>
-                    <span className="text-[12px] font-semibold text-navy-dark truncate">{v.variant || '—'}</span>
+            <div className="border border-border rounded-xl overflow-hidden">
+              <div className="grid text-[9.5px] font-bold text-gray-400 uppercase tracking-[0.05em] px-3.5 py-2 bg-gray-50/70 border-b border-border" style={{ gridTemplateColumns: '1.3fr 1.1fr 1.2fr 0.6fr' }}>
+                <div>Variant</div>
+                <div>SKU</div>
+                <div>Barcode</div>
+                <div className="text-right">Stock</div>
+              </div>
+              <div className="divide-y divide-gray-100">
+                {g.rows.map((v) => (
+                  <div key={v.sku} className="grid items-center gap-2 px-3.5 py-2.5" style={{ gridTemplateColumns: '1.3fr 1.1fr 1.2fr 0.6fr' }}>
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="w-1.5 h-1.5 rounded-full bg-brand-purple shrink-0"></span>
+                      <span className="text-[12px] font-semibold text-navy-dark truncate">{v.variant || '—'}</span>
+                    </div>
+                    <span className="text-[10.5px] font-mono text-gray-500 truncate">{v.sku}</span>
+                    <span className="text-[10.5px] font-mono text-gray-500 truncate">{pmBarcode(v)}</span>
+                    <span className={`text-[11px] font-bold text-right ${v.onHand ? 'text-navy-dark' : 'text-brand-red'}`}>{v.onHand || 0}</span>
                   </div>
-                  <div className="flex items-center gap-3 shrink-0">
-                    <span className="text-[10.5px] font-mono text-gray-400">{v.sku}</span>
-                    <span className="text-[11.5px] font-bold text-navy-dark">{money(v.price)}</span>
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${v.onHand ? 'bg-navy/8 text-navy' : 'bg-brand-red/10 text-brand-red'}`}>{v.onHand || 0} pcs</span>
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
         )}
@@ -157,7 +198,7 @@ function Body({ g, onClose, onEdit }) {
         <Section title="Pricing & Inventory" icon="pricetag-outline">
           <Field k={g.type === 'bundle' ? 'Bundle Price' : g.type === 'variant' ? 'Price Range' : 'Selling Price'}>{priceDisplay}</Field>
           <Field k="Total Stock">{`${g.stock.toLocaleString()} units`}</Field>
-          {g.type !== 'variant' && <Field k="Barcode">{r0.barcode ? <span className="font-mono">{r0.barcode}</span> : '—'}</Field>}
+          {g.type !== 'variant' && <Field k="Barcode"><span className="font-mono">{pmBarcode(r0)}</span></Field>}
           <Field k="Reorder At">{r0.reorder ? r0.reorder + ' units' : '—'}</Field>
         </Section>
       </div>

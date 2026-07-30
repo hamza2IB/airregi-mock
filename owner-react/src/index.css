@@ -91,6 +91,23 @@ textarea:focus {
   border-radius: 99px;
 }
 
+/* ── Product detail image thumbnails ── */
+.pd-thumb {
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 0.15s, box-shadow 0.15s, border-color 0.15s;
+}
+
+.pd-thumb:hover {
+  opacity: 1;
+}
+
+.pd-thumb-active {
+  opacity: 1;
+  border-color: #1a2d6b;
+  box-shadow: 0 0 0 2px rgba(26, 45, 107, 0.25);
+}
+
 /* ── Product wizard form input ── */
 .inp {
   width: 100%;
@@ -487,4 +504,23 @@ select.inp,
   border-color: #1a2d6b;
   box-shadow: 0 0 0 2px rgba(26, 45, 107, 0.1);
   outline: none;
+}
+
+/* ── Barcode print sheet (rendered via portal into <body>) ── */
+#bc-print-sheet {
+  display: none;
+}
+
+@media print {
+  #root {
+    display: none !important;
+  }
+
+  #bc-print-sheet {
+    display: block !important;
+    position: fixed;
+    inset: 0;
+    padding: 8mm;
+    background: #fff;
+  }
 }

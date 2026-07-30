@@ -10,6 +10,8 @@ const NAV_GROUPS = [
       { key: 'stores', icon: 'storefront-outline', label: 'Stores' },
       { key: 'products', icon: 'cube-outline', label: 'Products' },
       { key: 'categories', icon: 'list-outline', label: 'Categories' },
+      { key: 'barcodes', icon: 'barcode-outline', label: 'Barcodes' },
+      { key: 'scan', icon: 'scan-outline', label: 'Scan to Check' },
     ],
   },
   {

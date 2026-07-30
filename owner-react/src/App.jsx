@@ -7,6 +7,8 @@ import Stores from './pages/Stores'
 import StoreDetail from './pages/StoreDetail'
 import Products from './pages/Products'
 import Categories from './pages/Categories'
+import Barcodes from './pages/Barcodes'
+import ScanStock from './pages/ScanStock'
 import UsersStaff from './pages/UsersStaff'
 import Subscription from './pages/Subscription'
 import PaymentHistory from './pages/PaymentHistory'
@@ -31,6 +33,8 @@ function Shell() {
         <Route path="/stores/:storeId" element={<StoreDetail stores={stores} setStores={setStores} />} />
         <Route path="/products" element={<Products />} />
         <Route path="/categories" element={<Categories />} />
+        <Route path="/barcodes" element={<Barcodes />} />
+        <Route path="/scan" element={<ScanStock />} />
         <Route path="/users" element={<UsersStaff />} />
         <Route path="/subscription" element={<Subscription payments={payments} setPayments={setPayments} />} />
         <Route path="/subscription/payments" element={<PaymentHistory payments={payments} setPayments={setPayments} />} />
