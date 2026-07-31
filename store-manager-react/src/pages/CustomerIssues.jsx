@@ -97,7 +97,7 @@ export default function CustomerIssues({ issues, patchIssue }) {
           <div className="min-w-[820px]">
             <div className="grid text-[10px] font-semibold text-gray-400 uppercase tracking-[0.08em] px-5 py-2.5 border-b border-border bg-gray-50/60" style={{ gridTemplateColumns: COLS }}>
               <div>Issue #</div><div>Order #</div><div>Customer</div><div>Reason</div><div>Date</div>
-              <div className="text-center">Status</div><div className="text-right">Action</div>
+              <div className="text-center">Status</div><div className="text-right">Actions</div>
             </div>
             {filtered.length === 0 ? (
               <div className="py-16 text-center">
@@ -116,7 +116,11 @@ export default function CustomerIssues({ issues, patchIssue }) {
                       <div className="text-gray-600 truncate">{i.reason}</div>
                       <div className="text-gray-400 text-[11px]">{i.date.split(',')[0]}</div>
                       <div className="text-center"><span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${s.cls}`}>{s.label}</span></div>
-                      <div className="text-right"><button onClick={() => setSelected(i)} className="text-[11px] font-semibold text-brand-blue hover:underline">View</button></div>
+                      <div className="flex items-center gap-1.5 justify-end">
+                        <button onClick={() => setSelected(i)} className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold border border-border bg-white text-gray-500 hover:text-navy hover:border-navy/30 hover:bg-gray-50 transition shrink-0 whitespace-nowrap">
+                          <Icon name="eye-outline" style={{ fontSize: '12px' }} />View
+                        </button>
+                      </div>
                     </div>
                   )
                 })}

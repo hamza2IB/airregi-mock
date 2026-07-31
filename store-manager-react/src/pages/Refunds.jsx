@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import Icon from '../components/Icon'
 import { useToast } from '../components/Toast'
-import OrderDetailSlideover from '../components/orders/OrderDetailSlideover'
+import RefundDetailSlideover from '../components/orders/RefundDetailSlideover'
 import RefundConfirmModal from '../components/orders/RefundConfirmModal'
 
 const COLS = '0.9fr 1.2fr 1.6fr 0.9fr 0.9fr 0.85fr 1.1fr'
@@ -32,7 +32,7 @@ export default function Refunds({ orders, patchRefund }) {
   const [filter, setFilter] = useState('all')
   const [search, setSearch] = useState('')
   const [processFor, setProcessFor] = useState(null) // { order, refund, idx }
-  const [viewOrder, setViewOrder] = useState(null) // read-only order detail
+  const [viewRefund, setViewRefund] = useState(null) // { order, refund, idx }
 
   // Flatten refunds off orders — pending first.
   const allRefunds = useMemo(() => {
@@ -109,7 +109,7 @@ export default function Refunds({ orders, patchRefund }) {
                   const isPending = r.status === 'pending'
                   return (
                     <div key={`${o.id}-${idx}`} className="grid items-center px-5 py-3.5 hover:bg-gray-50/50 transition" style={{ gridTemplateColumns: COLS }}>
-                      <button onClick={() => setViewOrder(o)} className="text-[12px] font-mono font-semibold text-brand-blue hover:underline text-left">{o.id}</button>
+                      <button onClick={() => setViewRefund({ order: o, refund: r, idx })} className="text-[12px] font-mono font-semibold text-brand-blue hover:underline text-left">{o.id}</button>
                       <div className="min-w-0">
                         <p className="text-[12px] font-semibold text-navy-dark truncate">{o.customer}</p>
                         <p className="text-[10px] text-gray-400 truncate">{o.area}</p>
@@ -128,7 +128,7 @@ export default function Refunds({ orders, patchRefund }) {
                         {!isPending && r.refId && <p className="text-[9px] text-gray-400 font-mono mt-1">{r.refId}</p>}
                       </div>
                       <div className="flex items-center gap-1.5 justify-end">
-                        <button onClick={() => setViewOrder(o)} className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold border border-border bg-white text-gray-500 hover:text-navy hover:border-navy/30 hover:bg-gray-50 transition shrink-0 whitespace-nowrap">
+                        <button onClick={() => setViewRefund({ order: o, refund: r, idx })} className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold border border-border bg-white text-gray-500 hover:text-navy hover:border-navy/30 hover:bg-gray-50 transition shrink-0 whitespace-nowrap">
                           <Icon name="eye-outline" style={{ fontSize: '12px' }} />View
                         </button>
                         {isPending && (
@@ -146,11 +146,10 @@ export default function Refunds({ orders, patchRefund }) {
         </div>
       </div>
 
-      <OrderDetailSlideover
-        order={viewOrder ? orders.find((o) => o.id === viewOrder.id) || viewOrder : null}
-        onClose={() => setViewOrder(null)}
-        onProcessRefund={(o, r, idx) => setProcessFor({ order: o, refund: r, idx })}
-        readOnly
+      <RefundDetailSlideover
+        entry={viewRefund}
+        onClose={() => setViewRefund(null)}
+        onProcess={(e) => { setViewRefund(null); setProcessFor(e) }}
       />
       <RefundConfirmModal state={processFor} onClose={() => setProcessFor(null)} onConfirm={processRefund} />
     </div>

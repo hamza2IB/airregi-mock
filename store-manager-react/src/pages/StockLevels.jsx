@@ -1,26 +1,35 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Icon from '../components/Icon'
 import { useToast } from '../components/Toast'
-import AdjustStockModal from '../components/inventory/AdjustStockModal'
+import ReceiveStockSlideover from '../components/inventory/ReceiveStockSlideover'
+import AdjustStockSlideover from '../components/inventory/AdjustStockSlideover'
 import StockHistorySlideover from '../components/inventory/StockHistorySlideover'
-import NewStockRequestModal from '../components/inventory/NewStockRequestModal'
-import { smInvStatus, SM_INV_CATS } from '../data/inventoryData'
+import { INV_DATA } from '../data/warehouseData'
+import { invGroupStatus } from '../data/inventoryData'
+import { pmGroups, pmColorPair, pmTypeIcon } from '../data/productData'
 
-const COLS = '1.8fr 0.9fr 0.9fr 1fr 0.75fr 0.8fr 0.9fr 1.1fr'
-const PAGE_SIZE = 10
+const INV_PAGE = 10
+const COLS = '52px 1.9fr 1fr 1fr 0.7fr 0.9fr 0.8fr 0.8fr 0.9fr 210px'
 
-const TABS = [
-  { key: 'all', label: 'All' },
-  { key: 'low', label: 'Low' },
-  { key: 'out', label: 'Out' },
-  { key: 'ok', label: 'In Stock' },
-]
-
-function Kpi({ icon, iconBg, iconColor, value, valueCls, label, onClick }) {
+// Product thumbnail (matches Product Master).
+function Thumb({ name, type }) {
+  const [c0, c1] = pmColorPair(name)
+  const initial = (name.trim()[0] || '?').toUpperCase()
   return (
-    <div onClick={onClick} className={`bg-white rounded-xl border border-border px-4 py-3.5 flex items-center gap-3 ${onClick ? 'cursor-pointer hover:shadow-sm transition' : ''}`}>
+    <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 relative" style={{ background: `linear-gradient(135deg,${c0},${c1})` }}>
+      <span className="text-white font-extrabold text-[15px]">{initial}</span>
+      <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-md bg-white flex items-center justify-center shadow-sm">
+        <Icon name={pmTypeIcon(type)} size={9} style={{ color: c0 }} />
+      </div>
+    </div>
+  )
+}
+
+function KpiCard({ icon, iconBg, iconColor, value, valueCls, label, onClick }) {
+  return (
+    <div className={`bg-white rounded-xl border border-border px-4 py-3.5 flex items-center gap-3 ${onClick ? 'cursor-pointer' : ''}`} onClick={onClick}>
       <div className={`w-9 h-9 rounded-lg ${iconBg} flex items-center justify-center shrink-0`}>
-        <Icon name={icon} className={iconColor} style={{ fontSize: '18px' }} />
+        <Icon name={icon} className={iconColor} size={18} />
       </div>
       <div>
         <p className={`text-[22px] font-extrabold leading-none ${valueCls}`}>{value}</p>
@@ -30,154 +39,291 @@ function Kpi({ icon, iconBg, iconColor, value, valueCls, label, onClick }) {
   )
 }
 
-export default function StockLevels({ inv, movements, setStockOnHand, addMovements, submitStockRequest }) {
+const TABS = [
+  { k: 'all', label: 'All' },
+  { k: 'low', label: 'Low' },
+  { k: 'out', label: 'Out' },
+  { k: 'ok', label: 'In Stock' },
+]
+
+export default function StockLevels({ onNavigate, initialAction, onConsumeAction }) {
   const showToast = useToast()
-  const [filter, setFilter] = useState('all')
+  const [inv, setInv] = useState(INV_DATA)
+  const [movements, setMovements] = useState([])
   const [search, setSearch] = useState('')
+  const [filter, setFilter] = useState('all')
   const [cat, setCat] = useState('')
   const [page, setPage] = useState(1)
-  const [adjustFor, setAdjustFor] = useState(null)
-  const [historyFor, setHistoryFor] = useState(null)
-  const [requestFor, setRequestFor] = useState(null) // { sku? } drives the New Stock Request modal
 
-  const kpiTotal = inv.length
-  const kpiUnits = inv.reduce((s, i) => s + (i.onHand || 0), 0)
-  const kpiLow = inv.filter((i) => i.onHand > 0 && i.onHand <= i.reorder).length
-  const kpiOut = inv.filter((i) => i.onHand === 0).length
+  const [receiveSession, setReceiveSession] = useState(null)
+  const [adjustSession, setAdjustSession] = useState(null)
+  const [historyItem, setHistoryItem] = useState(null)
 
-  const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase()
-    return inv.filter((i) => {
-      const matchS = !q || i.name.toLowerCase().includes(q) || i.sku.toLowerCase().includes(q) || i.variant.toLowerCase().includes(q)
-      const matchC = !cat || i.cat === cat
-      let matchF = true
-      if (filter === 'low') matchF = i.onHand > 0 && i.onHand <= i.reorder
-      else if (filter === 'out') matchF = i.onHand === 0
-      else if (filter === 'ok') matchF = i.onHand > i.reorder
-      return matchS && matchC && matchF
-    })
-  }, [inv, search, cat, filter])
+  // Open the matching slideover when arriving from a product detail's stock action bar.
+  useEffect(() => {
+    if (!initialAction) return
+    const { action, sku } = initialAction
+    if (action === 'in') setReceiveSession({ sku })
+    else if (action === 'adjust') setAdjustSession({ sku })
+    else if (action === 'history') { const it = INV_DATA.find((x) => x.sku === sku); if (it) setHistoryItem(it) }
+    onConsumeAction?.()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialAction])
 
-  const total = filtered.length
-  const pages = Math.max(1, Math.ceil(total / PAGE_SIZE))
-  const curPage = Math.min(page, pages)
-  const pageItems = filtered.slice((curPage - 1) * PAGE_SIZE, curPage * PAGE_SIZE)
+  const categories = useMemo(() => [...new Set(inv.map((i) => i.cat))].sort(), [inv])
 
-  const setFilterReset = (f) => { setFilter(f); setPage(1) }
-
-  const saveAdjustment = (item, newQty, reason, note) => {
-    const delta = newQty - item.onHand
-    setStockOnHand(item.sku, newQty)
-    addMovements([{ sku: item.sku, type: 'adjustment', qty: delta, note: `${reason}${note ? ' — ' + note : ''}`, by: 'Nadia Hasan', date: 'Now' }])
-    setAdjustFor(null)
-    showToast(`${item.name} adjusted to ${newQty} units.`, 'success')
+  const kpis = {
+    total: inv.length,
+    units: inv.reduce((s, i) => s + (i.onHand || 0), 0),
+    low: inv.filter((i) => i.onHand > 0 && i.onHand <= i.reorder).length,
+    out: inv.filter((i) => i.onHand === 0).length,
   }
 
-  const submitRequest = (payload) => { submitStockRequest(payload); setRequestFor(null) }
+  // Group into products (same shape as Product Master) and roll up stock figures.
+  const groups = useMemo(
+    () =>
+      pmGroups(inv).map((g) => {
+        const reserved = g.rows.reduce((s, r) => s + (r.reserved || 0), 0)
+        return { ...g, reserved, available: g.stock - reserved }
+      }),
+    [inv],
+  )
+
+  const data = useMemo(() => {
+    const q = search.toLowerCase()
+    return groups.filter((g) => {
+      const matchS = !q || g.name.toLowerCase().includes(q) || g.rows.some((r) => r.sku.toLowerCase().includes(q) || (r.variant || '').toLowerCase().includes(q))
+      const matchC = !cat || g.cat === cat
+      let matchF = true
+      if (filter === 'low') matchF = g.stock > 0 && g.stock <= g.reorder
+      else if (filter === 'out') matchF = g.stock === 0
+      else if (filter === 'ok') matchF = g.stock > g.reorder
+      return matchS && matchC && matchF
+    })
+  }, [groups, search, cat, filter])
+
+  const total = data.length
+  const pages = Math.ceil(total / INV_PAGE) || 1
+  const curPage = Math.min(page, pages)
+  const items = data.slice((curPage - 1) * INV_PAGE, curPage * INV_PAGE)
+
+  const pills = useMemo(() => {
+    const maxPills = 5
+    let start = Math.max(1, curPage - Math.floor(maxPills / 2))
+    let end = Math.min(pages, start + maxPills - 1)
+    if (end - start < maxPills - 1) start = Math.max(1, end - maxPills + 1)
+    const arr = []
+    for (let i = start; i <= end; i++) arr.push(i)
+    return arr
+  }, [curPage, pages])
+
+  const resetPage = () => setPage(1)
+  const setTab = (k) => { setFilter(k); resetPage() }
+
+  // Prepend a movement to the log.
+  const logMovement = (sku, type, qty, note, balance) =>
+    setMovements((prev) => [{ sku, type, qty, note: note || '', by: 'Nadia Hasan', date: 'Jul 21, 2026', balance }, ...prev])
+
+  // ── Receive stock (one delivery / GRN, multiple products) ──
+  const handleReceive = ({ lines, ref, supplier, note }) => {
+    const bySku = {}
+    lines.forEach((l) => { bySku[l.sku] = l })
+    let totalUnits = 0
+    const moves = []
+    const nextInv = inv.map((it) => {
+      const r = bySku[it.sku]
+      if (!r) return it
+      const nextOnHand = (it.onHand || 0) + r.qty
+      totalUnits += r.qty
+      const parts = []
+      if (supplier) parts.push(supplier)
+      if (ref) parts.push('Ref ' + ref)
+      if (r.batch) parts.push('Batch ' + r.batch)
+      if (r.expiry) parts.push('Exp ' + r.expiry)
+      if (note) parts.push(note)
+      moves.push({ sku: r.sku, type: 'received', qty: r.qty, note: 'Supplier stock received' + (parts.length ? ' · ' + parts.join(' · ') : ''), balance: nextOnHand })
+      return { ...it, onHand: nextOnHand }
+    })
+    setInv(nextInv)
+    setMovements((prev) => [...moves.reverse().map((m) => ({ ...m, by: 'Nadia Hasan', date: 'Jul 21, 2026' })), ...prev])
+    setReceiveSession(null)
+    const productCount = new Set(lines.map((l) => l.name)).size
+    showToast(`Received ${totalUnits.toLocaleString()} units across ${lines.length} line${lines.length > 1 ? 's' : ''} (${productCount} product${productCount > 1 ? 's' : ''}).`, 'success')
+  }
+
+  // ── Adjust stock ──
+  const handleAdjust = ({ sku, label, newQty, delta, reason, note }) => {
+    setInv((prev) => prev.map((it) => (it.sku === sku ? { ...it, onHand: newQty } : it)))
+    logMovement(sku, 'adjustment', delta, reason + (note ? ' — ' + note : ''), newQty)
+    setAdjustSession(null)
+    showToast(`Stock adjusted for ${label} (${delta > 0 ? '+' : ''}${delta}). New physical stock: ${newQty}.`, 'success')
+  }
+
+  // History footer shortcuts.
+  const historyAddStock = (sku) => { setHistoryItem(null); setReceiveSession({ sku }) }
+  const historyAdjust = (sku) => { setHistoryItem(null); setAdjustSession({ sku }) }
 
   return (
-    <div className="p-4 sm:p-6 md:p-8">
+    <div className="p-8 max-md:p-3.5">
       {/* Purpose banner */}
       <div className="flex items-start gap-2.5 bg-brand-blue/5 border border-brand-blue/15 rounded-xl px-4 py-3 mb-6">
-        <Icon name="information-circle-outline" style={{ fontSize: '15px', color: '#3366cc', flexShrink: 0, marginTop: '1px' }} />
+        <Icon name="information-circle-outline" size={15} style={{ color: '#3366cc', flexShrink: 0, marginTop: 1 }} />
         <p className="text-[11px] text-gray-600 leading-relaxed">
-          <strong className="text-navy-dark">This is the stock held at your branch.</strong> Track what's on the shelf, reserved for online orders, and available to sell. Running low? Raise a{' '}
-          <button onClick={() => setRequestFor({})} className="text-brand-blue font-semibold hover:underline">Stock Request</button> to replenish from the warehouse.
+          <strong className="text-navy-dark">This is the stock held at your branch.</strong> Add received stock, correct counts, and review the full movement history for every SKU below. Running low? Raise a{' '}
+          <button onClick={() => onNavigate?.('requests')} className="text-brand-blue font-semibold hover:underline">Stock Request</button> to replenish from the warehouse.
         </p>
       </div>
 
       {/* KPI strip */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-        <Kpi icon="cube-outline" iconBg="bg-navy/10" iconColor="text-navy" value={kpiTotal} valueCls="text-navy-dark" label="Stocked SKUs" />
-        <Kpi icon="layers-outline" iconBg="bg-brand-blue/10" iconColor="text-brand-blue" value={kpiUnits.toLocaleString()} valueCls="text-brand-blue" label="Total Physical Stock" />
-        <Kpi icon="alert-circle-outline" iconBg="bg-brand-orange/10" iconColor="text-brand-orange" value={kpiLow} valueCls="text-brand-orange" label="Low Stock" onClick={() => setFilterReset('low')} />
-        <Kpi icon="close-circle-outline" iconBg="bg-brand-red/10" iconColor="text-brand-red" value={kpiOut} valueCls="text-brand-red" label="Out of Stock" onClick={() => setFilterReset('out')} />
+      <div className="grid grid-cols-4 gap-3 mb-6 max-md:grid-cols-2">
+        <KpiCard icon="cube-outline" iconBg="bg-navy/10" iconColor="text-navy" value={kpis.total} valueCls="text-navy-dark" label="Stocked SKUs" />
+        <KpiCard icon="layers-outline" iconBg="bg-brand-blue/10" iconColor="text-brand-blue" value={kpis.units.toLocaleString()} valueCls="text-brand-blue" label="Total Physical Stock" />
+        <KpiCard icon="alert-circle-outline" iconBg="bg-brand-orange/10" iconColor="text-brand-orange" value={kpis.low} valueCls="text-brand-orange" label="Low Stock" onClick={() => setTab('low')} />
+        <KpiCard icon="close-circle-outline" iconBg="bg-brand-red/10" iconColor="text-brand-red" value={kpis.out} valueCls="text-brand-red" label="Out of Stock" onClick={() => setTab('out')} />
       </div>
 
       {/* Table card */}
       <div className="bg-white rounded-xl border border-border overflow-hidden">
-        {/* Toolbar */}
         <div className="flex items-center gap-3 px-5 py-4 border-b border-border flex-wrap">
           <div className="flex items-center gap-2 bg-page rounded-lg px-3 py-2 border border-border flex-1 min-w-[200px] max-w-xs">
-            <Icon name="search-outline" style={{ fontSize: '15px', color: '#94a3b8', flexShrink: 0 }} />
-            <input value={search} onChange={(e) => { setSearch(e.target.value); setPage(1) }} type="text" placeholder="Search product, SKU, variant…" className="bg-transparent text-[12px] text-navy-dark placeholder-gray-400 flex-1 border-none outline-none" />
+            <Icon name="search-outline" size={15} style={{ color: '#94a3b8', flexShrink: 0 }} />
+            <input
+              type="text"
+              placeholder="Search product, SKU, variant…"
+              value={search}
+              onChange={(e) => { setSearch(e.target.value); resetPage() }}
+              className="bg-transparent text-[12px] text-navy-dark placeholder-gray-400 flex-1 border-none outline-none"
+            />
           </div>
           <div className="flex bg-page border border-border rounded-lg overflow-hidden">
             {TABS.map((t) => (
-              <button key={t.key} onClick={() => setFilterReset(t.key)} className={`px-3 py-1.5 text-[11px] transition ${filter === t.key ? 'font-semibold bg-navy text-white' : 'font-medium text-gray-500 hover:bg-white/60'}`}>{t.label}</button>
+              <button
+                key={t.k}
+                onClick={() => setTab(t.k)}
+                className={`px-3 py-1.5 text-[11px] transition ${filter === t.k ? 'font-semibold bg-navy text-white' : 'font-medium text-gray-500 hover:bg-white/60'}`}
+              >
+                {t.label}
+              </button>
             ))}
           </div>
-          <select value={cat} onChange={(e) => { setCat(e.target.value); setPage(1) }} className="text-[11px] font-medium text-gray-600 bg-page border border-border rounded-lg px-3 py-2 cursor-pointer">
+          <select
+            value={cat}
+            onChange={(e) => { setCat(e.target.value); resetPage() }}
+            className="text-[11px] font-medium text-gray-600 bg-page border border-border rounded-lg px-3 py-2 cursor-pointer"
+          >
             <option value="">All Categories</option>
-            {SM_INV_CATS.map((c) => <option key={c} value={c}>{c}</option>)}
+            {categories.map((c) => (
+              <option key={c}>{c}</option>
+            ))}
           </select>
           <div className="ml-auto flex items-center gap-2 shrink-0">
-            <button onClick={() => setRequestFor({})} className="flex items-center gap-1.5 text-[12px] font-semibold text-white bg-navy px-4 py-2.5 rounded-xl hover:bg-navy-light transition">
-              <Icon name="paper-plane-outline" style={{ fontSize: '16px' }} /> New Stock Request
+            <button onClick={() => setAdjustSession({})} className="flex items-center gap-1.5 text-[12px] font-semibold text-white bg-navy px-4 py-2.5 rounded-xl hover:bg-navy-light transition">
+              <Icon name="create-outline" size={16} /> Adjust Stock
+            </button>
+            <button onClick={() => setReceiveSession({})} className="flex items-center gap-1.5 text-[12px] font-semibold text-white bg-navy px-4 py-2.5 rounded-xl hover:bg-navy-light transition">
+              <Icon name="arrow-down-circle-outline" size={16} /> Add Stock
             </button>
           </div>
         </div>
 
-        {/* Table */}
-        <div className="overflow-x-auto thin-scroll">
-          <div className="min-w-[820px]">
-            <div className="grid text-[10px] font-semibold text-gray-400 uppercase tracking-[0.08em] px-5 py-2.5 border-b border-border bg-gray-50/60" style={{ gridTemplateColumns: COLS }}>
-              <div>Product</div><div>SKU</div><div>Category</div>
-              <div className="text-right whitespace-nowrap">Physical Stock</div>
-              <div className="text-right">Reserved</div><div className="text-right">Available</div>
-              <div className="text-center">Status</div><div className="text-center">Actions</div>
-            </div>
-            <div className="divide-y divide-gray-100">
-              {pageItems.length === 0 ? (
-                <div className="py-16 text-center">
-                  <Icon name="cube-outline" size={30} style={{ color: '#cbd5e1' }} />
-                  <p className="text-[13px] text-gray-400 mt-2">No stock items found</p>
-                </div>
-              ) : (
-                pageItems.map((i) => {
-                  const st = smInvStatus(i)
-                  const avail = i.onHand - i.reserved
-                  return (
-                    <div key={i.sku} className="grid items-center px-5 py-3 hover:bg-gray-50/50 transition" style={{ gridTemplateColumns: COLS }}>
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="w-9 h-9 rounded-lg bg-navy/[0.08] flex items-center justify-center shrink-0"><Icon name="cube-outline" className="text-navy" style={{ fontSize: '16px' }} /></div>
-                        <div className="min-w-0"><p className="text-[12.5px] font-semibold text-navy-dark truncate">{i.name}</p><p className="text-[10px] text-gray-400 truncate">{i.variant}</p></div>
-                      </div>
-                      <p className="text-[11px] text-gray-500 font-mono truncate pr-2">{i.sku}</p>
-                      <p className="text-[11px] text-gray-500 truncate pr-2">{i.cat}</p>
-                      <p className="text-[13px] font-bold text-navy-dark text-right">{i.onHand}</p>
-                      <p className="text-[12px] text-gray-500 text-right">{i.reserved}</p>
-                      <p className={`text-[13px] font-semibold text-right ${avail <= 0 ? 'text-brand-red' : 'text-navy-dark'}`}>{avail}</p>
-                      <div className="text-center"><span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${st.cls}`}>{st.label}</span></div>
-                      <div className="flex items-center justify-center gap-1">
-                        <button onClick={() => setRequestFor({ sku: i.sku })} title="Request stock" className="w-7 h-7 rounded-lg border border-border flex items-center justify-center text-gray-400 hover:text-navy hover:border-navy/40 transition"><Icon name="paper-plane-outline" style={{ fontSize: '14px' }} /></button>
-                        <button onClick={() => setAdjustFor(i)} title="Adjust stock" className="w-7 h-7 rounded-lg border border-border flex items-center justify-center text-gray-400 hover:text-brand-orange hover:border-brand-orange/40 transition"><Icon name="create-outline" style={{ fontSize: '14px' }} /></button>
-                        <button onClick={() => setHistoryFor({ item: i, movements: movements.filter((m) => m.sku === i.sku) })} title="Stock history" className="w-7 h-7 rounded-lg border border-border flex items-center justify-center text-gray-400 hover:text-brand-blue hover:border-brand-blue/40 transition"><Icon name="time-outline" style={{ fontSize: '14px' }} /></button>
-                      </div>
-                    </div>
-                  )
-                })
-              )}
-            </div>
-          </div>
+        {/* Header */}
+        <div className="grid text-[10px] font-semibold text-gray-400 uppercase tracking-[0.08em] px-5 py-2.5 border-b border-border bg-gray-50/60 max-md:hidden" style={{ gridTemplateColumns: COLS }}>
+          <div></div>
+          <div>Product</div>
+          <div>SKU</div>
+          <div>Category</div>
+          <div className="text-center">Variants</div>
+          <div className="text-right whitespace-nowrap">Stock On Hand</div>
+          <div className="text-right">Reserved</div>
+          <div className="text-right">Available</div>
+          <div className="text-center">Status</div>
+          <div className="text-right">Actions</div>
         </div>
 
-        {/* Pagination */}
+        {/* Rows */}
+        <div className="divide-y divide-gray-100">
+          {items.length === 0 ? (
+            <div className="py-16 text-center">
+              <Icon name="cube-outline" size={30} style={{ color: '#cbd5e1' }} />
+              <p className="text-[13px] text-gray-400 mt-2">No stock items found</p>
+            </div>
+          ) : (
+            items.map((g) => {
+              const st = invGroupStatus(g.stock, g.reorder)
+              const avail = g.available
+              const repRow = g.rows[0] || {}
+              const lowStock = g.stock === 0 || (g.reorder > 0 && g.stock <= g.reorder)
+              return (
+                <div key={g.name} className="grid items-center px-5 py-3 hover:bg-gray-50/50 transition max-md:grid-cols-[52px_1fr_auto] max-md:gap-2" style={{ gridTemplateColumns: COLS }}>
+                  <Thumb name={g.name} type={g.type} />
+                  <div className="min-w-0 pr-2">
+                    <p className="text-[12.5px] font-semibold text-navy-dark truncate">{g.name}</p>
+                    <p className="text-[10px] text-gray-400 truncate">{g.type === 'variant' ? `${g.rows.length} variants` : ''}</p>
+                  </div>
+                  <div className="min-w-0 pr-2 max-md:hidden">
+                    {g.type === 'variant' ? (
+                      <span className="text-[10px] font-semibold text-gray-400">{g.rows.length} SKUs</span>
+                    ) : (
+                      <span className="text-[11px] text-gray-500 font-mono truncate">{repRow.sku || '—'}</span>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-gray-500 truncate pr-2 max-md:hidden">{g.cat}</p>
+                  <div className="text-center max-md:hidden">
+                    {g.type === 'variant' ? (
+                      <span className="text-[11px] font-bold text-brand-purple bg-brand-purple/10 px-2 py-0.5 rounded-full">{g.rows.length}</span>
+                    ) : (
+                      <span className="text-[11px] text-gray-300">—</span>
+                    )}
+                  </div>
+                  <p className={`text-[13px] font-bold text-right max-md:hidden ${lowStock ? 'text-brand-orange' : 'text-navy-dark'}`}>{g.stock.toLocaleString()}</p>
+                  <p className="text-[12px] text-gray-500 text-right max-md:hidden">{g.reserved}</p>
+                  <p className={`text-[13px] font-semibold text-right max-md:hidden ${avail <= 0 ? 'text-brand-red' : 'text-navy-dark'}`}>{avail}</p>
+                  <div className="text-center max-md:hidden"><span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${st.cls}`}>{st.label}</span></div>
+                  <div className="flex items-center justify-end gap-1.5">
+                    <button onClick={() => setReceiveSession({ sku: repRow.sku })} className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold border border-brand-green/30 bg-brand-green/10 text-brand-green hover:bg-brand-green/20 transition shrink-0 whitespace-nowrap">
+                      <Icon name="add-outline" size={12} />Add
+                    </button>
+                    <button onClick={() => setAdjustSession({ sku: repRow.sku })} className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold border border-brand-orange/30 bg-brand-orange/10 text-brand-orange hover:bg-brand-orange/20 transition shrink-0 whitespace-nowrap">
+                      <Icon name="create-outline" size={12} />Adjust
+                    </button>
+                    <button onClick={() => setHistoryItem(repRow)} className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold border border-brand-blue/30 bg-brand-blue/10 text-brand-blue hover:bg-brand-blue/20 transition shrink-0 whitespace-nowrap">
+                      <Icon name="time-outline" size={12} />History
+                    </button>
+                  </div>
+                </div>
+              )
+            })
+          )}
+        </div>
+
+        {/* Footer / pagination */}
         <div className="flex items-center justify-between px-5 py-3.5 border-t border-border bg-gray-50/40">
-          <p className="text-[11px] text-gray-400">{total ? `Showing ${(curPage - 1) * PAGE_SIZE + 1}–${Math.min(curPage * PAGE_SIZE, total)} of ${total}` : 'Showing 0 of 0'}</p>
+          <p className="text-[11px] text-gray-400">
+            {total ? `Showing ${Math.min((curPage - 1) * INV_PAGE + 1, total)}–${Math.min(curPage * INV_PAGE, total)} of ${total}` : 'Showing 0 of 0'}
+          </p>
           <div className="flex items-center gap-1">
-            <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={curPage === 1} className="w-7 h-7 rounded-lg border border-border bg-white flex items-center justify-center text-gray-400 hover:text-navy hover:border-navy/30 transition disabled:opacity-40"><Icon name="chevron-back-outline" style={{ fontSize: '13px' }} /></button>
-            {Array.from({ length: pages }, (_, idx) => idx + 1).map((p) => (
-              <button key={p} onClick={() => setPage(p)} className={`w-7 h-7 rounded-lg text-[11px] font-semibold flex items-center justify-center transition ${p === curPage ? 'bg-navy text-white' : 'border border-border bg-white text-gray-500 hover:text-navy hover:border-navy/30'}`}>{p}</button>
+            <button onClick={() => setPage((p) => Math.max(1, p - 1))} className="w-7 h-7 rounded-lg border border-border bg-white flex items-center justify-center text-gray-400 hover:text-navy hover:border-navy/30 transition">
+              <Icon name="chevron-back-outline" size={13} />
+            </button>
+            {pills.map((i) => (
+              <button
+                key={i}
+                onClick={() => setPage(i)}
+                className={`w-7 h-7 rounded-lg border text-[11px] font-semibold transition ${i === curPage ? 'bg-navy text-white border-navy' : 'border-border bg-white text-gray-500 hover:border-navy/30 hover:text-navy'}`}
+              >
+                {i}
+              </button>
             ))}
-            <button onClick={() => setPage((p) => Math.min(pages, p + 1))} disabled={curPage === pages} className="w-7 h-7 rounded-lg border border-border bg-white flex items-center justify-center text-gray-400 hover:text-navy hover:border-navy/30 transition disabled:opacity-40"><Icon name="chevron-forward-outline" style={{ fontSize: '13px' }} /></button>
+            <button onClick={() => setPage((p) => Math.min(pages, p + 1))} className="w-7 h-7 rounded-lg border border-border bg-white flex items-center justify-center text-gray-400 hover:text-navy hover:border-navy/30 transition">
+              <Icon name="chevron-forward-outline" size={13} />
+            </button>
           </div>
         </div>
       </div>
 
-      <AdjustStockModal item={adjustFor} onClose={() => setAdjustFor(null)} onSave={saveAdjustment} />
-      <StockHistorySlideover state={historyFor} onClose={() => setHistoryFor(null)} />
-      <NewStockRequestModal state={requestFor} onClose={() => setRequestFor(null)} onSubmit={submitRequest} />
+      <ReceiveStockSlideover session={receiveSession} inv={inv} onClose={() => setReceiveSession(null)} onReceive={handleReceive} />
+      <AdjustStockSlideover session={adjustSession} inv={inv} onClose={() => setAdjustSession(null)} onAdjust={handleAdjust} />
+      <StockHistorySlideover item={historyItem} movements={movements} onClose={() => setHistoryItem(null)} onAddStock={historyAddStock} onAdjust={historyAdjust} />
     </div>
   )
 }

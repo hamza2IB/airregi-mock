@@ -67,6 +67,14 @@ import {
   IoPersonOutline,
   IoStar,
   IoChatboxEllipsesOutline,
+  IoBarcodeOutline,
+  IoDocumentTextOutline,
+  IoScanOutline,
+  IoFlaskOutline,
+  IoAlbumsOutline,
+  IoFileTrayOutline,
+  IoEllipsisHorizontalOutline,
+  IoCameraOutline,
 } from 'react-icons/io5'
 
 const ICONS = {
@@ -138,6 +146,14 @@ const ICONS = {
   'person-outline': IoPersonOutline,
   star: IoStar,
   'chatbox-ellipses-outline': IoChatboxEllipsesOutline,
+  'barcode-outline': IoBarcodeOutline,
+  'document-text-outline': IoDocumentTextOutline,
+  'scan-outline': IoScanOutline,
+  'flask-outline': IoFlaskOutline,
+  'albums-outline': IoAlbumsOutline,
+  'file-tray-outline': IoFileTrayOutline,
+  'ellipsis-horizontal-outline': IoEllipsisHorizontalOutline,
+  'camera-outline': IoCameraOutline,
 }
 
 export default function Icon({ name, size, className = '', style = {}, ...rest }) {

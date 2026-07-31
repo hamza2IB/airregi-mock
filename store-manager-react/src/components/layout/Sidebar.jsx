@@ -2,7 +2,14 @@ import Icon from '../Icon'
 
 const NAV_GROUPS = [
   { label: 'Overview', items: [{ key: 'dashboard', icon: 'grid-outline', label: 'Dashboard' }] },
-  { label: 'Inventory', items: [{ key: 'inventory', icon: 'cube-outline', label: 'Stock Levels' }] },
+  {
+    label: 'Inventory',
+    items: [
+      { key: 'inventory', icon: 'cube-outline', label: 'Stock Levels' },
+      { key: 'movements', icon: 'swap-vertical-outline', label: 'Stock Movements' },
+      { key: 'scanstock', icon: 'scan-outline', label: 'Scan to Check' },
+    ],
+  },
   { label: 'Replenishment', items: [{ key: 'requests', icon: 'swap-horizontal-outline', label: 'Stock Transfers' }] },
   {
     label: 'Orders',

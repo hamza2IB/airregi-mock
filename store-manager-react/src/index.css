@@ -103,13 +103,59 @@ textarea:focus {
 
 .inp:focus {
   border-color: #1a2d6b;
+  box-shadow: 0 0 0 3px rgba(26, 45, 107, 0.1);
 }
 
-select.inp {
+select.inp,
+.select-inp {
   appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%236b7280'%3E%3Cpath fill-rule='evenodd' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 10px center;
   background-size: 16px;
   padding-right: 32px;
+}
+
+/* ── Shared form helpers (ported from warehouse for Stock Levels modals) ── */
+.pc-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: #475569;
+  margin-bottom: 6px;
+}
+
+.pc-preset-chip {
+  font-size: 11px;
+  font-weight: 600;
+  color: #475569;
+  background: #f1f5f9;
+  border: 1px solid #e8ecf1;
+  padding: 5px 12px;
+  border-radius: 999px;
+  transition: all 0.15s;
+}
+
+.pc-preset-chip:hover {
+  background: #fff;
+  border-color: #1a2d6b;
+  color: #1a2d6b;
+}
+
+.pc-mini-inp {
+  width: 100%;
+  border: 1px solid #e2e8f0;
+  border-radius: 7px;
+  padding: 5px 8px;
+  font-size: 11px;
+  color: #0a1535;
+  background: #fff;
+  box-sizing: border-box;
+  transition: border-color 0.12s, box-shadow 0.12s;
+}
+
+.pc-mini-inp:focus {
+  border-color: #1a2d6b;
+  box-shadow: 0 0 0 2px rgba(26, 45, 107, 0.1);
+  outline: none;
 }

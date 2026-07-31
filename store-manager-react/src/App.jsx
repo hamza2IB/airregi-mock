@@ -2,6 +2,8 @@ import { useState } from 'react'
 import StoreLayout from './components/layout/StoreLayout'
 import Dashboard from './pages/Dashboard'
 import StockLevels from './pages/StockLevels'
+import StockMovements from './pages/StockMovements'
+import ScanStock from './pages/ScanStock'
 import StockTransfers from './pages/StockTransfers'
 import OnlineOrders from './pages/OnlineOrders'
 import Refunds from './pages/Refunds'
@@ -49,6 +51,8 @@ function Shell() {
   const [orders, setOrders] = useState(() => seedOrderRefunds(SM_ORDERS))
   const [shifts] = useState(SM_SHIFTS)
   const [issues, setIssues] = useState(SM_ISSUES)
+  // Pending stock operation requested from another page (e.g. Stock Movements → View SKU).
+  const [invAction, setInvAction] = useState(null)
 
   const patchIssue = (id, patch) => setIssues((prev) => prev.map((i) => (i.id === id ? { ...i, ...patch } : i)))
   const openIssues = issues.filter((i) => i.status !== 'resolved').length
@@ -81,6 +85,9 @@ function Shell() {
 
   const handleNavigate = (page) => { setActivePage(page); window.scrollTo(0, 0) }
 
+  // Open Stock Levels with a pending action (mirrors the warehouse flow).
+  const handleStockAction = (action, sku) => { setInvAction({ action, sku }); handleNavigate('inventory') }
+
   const shared = { inv, movements, transfers, orders, patchOrder, patchTransfer, adjustStock, setStockOnHand, addMovements, submitStockRequest }
 
   return (
@@ -95,7 +102,11 @@ function Shell() {
       {activePage === 'dashboard' ? (
         <Dashboard onNavigate={handleNavigate} {...shared} />
       ) : activePage === 'inventory' ? (
-        <StockLevels onNavigate={handleNavigate} {...shared} />
+        <StockLevels onNavigate={handleNavigate} initialAction={invAction} onConsumeAction={() => setInvAction(null)} />
+      ) : activePage === 'movements' ? (
+        <StockMovements onNavigate={handleNavigate} onViewSku={(sku) => handleStockAction('history', sku)} />
+      ) : activePage === 'scanstock' ? (
+        <ScanStock onNavigate={handleNavigate} />
       ) : activePage === 'requests' ? (
         <StockTransfers onNavigate={handleNavigate} {...shared} />
       ) : activePage === 'orders' ? (
