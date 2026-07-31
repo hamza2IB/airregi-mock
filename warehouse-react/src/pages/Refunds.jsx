@@ -1,9 +1,8 @@
 import { useMemo, useState } from 'react'
 import Icon from '../components/Icon'
 import { useToast } from '../components/Toast'
-import OrderDetailSlideover from '../components/orders/OrderDetailSlideover'
+import RefundDetailSlideover from '../components/refunds/RefundDetailSlideover'
 import RefundConfirmModal from '../components/refunds/RefundConfirmModal'
-import { ORD_NEXT } from '../data/warehouseData'
 
 function KpiCard({ icon, iconBg, iconColor, value, valueCls, label }) {
   return (
@@ -26,10 +25,8 @@ export default function Refunds({ orders, setOrders }) {
   const showToast = useToast()
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState('all')
-  const [viewOrder, setViewOrder] = useState(null)
+  const [viewRefund, setViewRefund] = useState(null) // { order, refund, idx }
   const [processState, setProcessState] = useState(null) // { order, refund, idx }
-
-  const patchOrder = (id, patch) => setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, ...patch } : o)))
 
   // Flatten refunds across all orders; pending first.
   const allRefunds = useMemo(() => {
@@ -57,15 +54,6 @@ export default function Refunds({ orders, setOrders }) {
       return ms && mf
     })
   }, [allRefunds, search, filter])
-
-  // ── Order detail actions (View) ──
-  const advanceOrder = (o) => {
-    const nf = ORD_NEXT[o.status]
-    if (!nf) return
-    patchOrder(o.id, { status: nf.next })
-    setViewOrder(null)
-    showToast(`${o.id} → ${nf.next}. Customer notified.`, 'success')
-  }
 
   const processRefund = (refId) => {
     const { order, idx } = processState
@@ -149,7 +137,7 @@ export default function Refunds({ orders, setOrders }) {
                   const isPending = r.status === 'pending'
                   return (
                     <div key={`${o.id}-${idx}`} className="grid items-center px-5 py-3.5 hover:bg-gray-50/50 transition" style={{ gridTemplateColumns: COLS }}>
-                      <p className="text-[12px] font-mono font-semibold text-brand-blue cursor-pointer hover:underline" onClick={() => setViewOrder(o)}>{o.id}</p>
+                      <p className="text-[12px] font-mono font-semibold text-brand-blue cursor-pointer hover:underline" onClick={() => setViewRefund({ order: o, refund: r, idx })}>{o.id}</p>
                       <div className="min-w-0">
                         <p className="text-[12px] font-semibold text-navy-dark truncate">{o.customer}</p>
                         <p className="text-[10px] text-gray-400">{o.area}</p>
@@ -168,7 +156,7 @@ export default function Refunds({ orders, setOrders }) {
                         {!isPending && r.refId && <p className="text-[9px] text-gray-400 font-mono mt-1">{r.refId}</p>}
                       </div>
                       <div className="flex items-center gap-1.5 justify-end">
-                        <button onClick={() => setViewOrder(o)} className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold border border-border bg-white text-gray-500 hover:text-navy hover:border-navy/30 hover:bg-gray-50 transition shrink-0 whitespace-nowrap">
+                        <button onClick={() => setViewRefund({ order: o, refund: r, idx })} className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold border border-border bg-white text-gray-500 hover:text-navy hover:border-navy/30 hover:bg-gray-50 transition shrink-0 whitespace-nowrap">
                           <Icon name="eye-outline" size={12} />View
                         </button>
                         {isPending && (
@@ -186,7 +174,7 @@ export default function Refunds({ orders, setOrders }) {
         </div>
       </div>
 
-      <OrderDetailSlideover order={viewOrder} onClose={() => setViewOrder(null)} onAccept={() => {}} onReject={() => {}} onAdvance={advanceOrder} />
+      <RefundDetailSlideover entry={viewRefund} onClose={() => setViewRefund(null)} onProcess={(e) => { setViewRefund(null); setProcessState(e) }} />
       <RefundConfirmModal state={processState} onClose={() => setProcessState(null)} onConfirm={processRefund} />
     </div>
   )
