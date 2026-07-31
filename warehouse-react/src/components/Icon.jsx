@@ -62,6 +62,11 @@ import {
   IoScanOutline,
   IoCameraOutline,
   IoFlaskOutline,
+  IoSwapVerticalOutline,
+  IoTrendingUpOutline,
+  IoDownloadOutline,
+  IoFileTrayOutline,
+  IoEllipsisHorizontalOutline,
 } from 'react-icons/io5'
 
 const ICONS = {
@@ -128,6 +133,11 @@ const ICONS = {
   'scan-outline': IoScanOutline,
   'camera-outline': IoCameraOutline,
   'flask-outline': IoFlaskOutline,
+  'swap-vertical-outline': IoSwapVerticalOutline,
+  'trending-up-outline': IoTrendingUpOutline,
+  'download-outline': IoDownloadOutline,
+  'file-tray-outline': IoFileTrayOutline,
+  'ellipsis-horizontal-outline': IoEllipsisHorizontalOutline,
 }
 
 export default function Icon({ name, size, className = '', style = {}, ...rest }) {

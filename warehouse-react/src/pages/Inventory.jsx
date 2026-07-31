@@ -9,7 +9,7 @@ import { invGroupStatus } from '../data/inventoryData'
 import { pmGroups, pmColorPair, pmTypeIcon } from '../data/productData'
 
 const INV_PAGE = 10
-const COLS = '52px 2fr 1fr 1fr 0.7fr 0.9fr 0.8fr 0.8fr 0.9fr 1.1fr'
+const COLS = '52px 1.9fr 1fr 1fr 0.7fr 0.9fr 0.8fr 0.8fr 0.9fr 210px'
 
 // Product thumbnail (matches Product Master).
 function Thumb({ name, type }) {
@@ -124,29 +124,31 @@ export default function Inventory({ onNavigate, initialAction, onConsumeAction }
   const logMovement = (sku, type, qty, note, balance) =>
     setMovements((prev) => [{ sku, type, qty, note: note || '', by: 'Zain Khan', date: 'Jul 21, 2026', balance }, ...prev])
 
-  // ── Receive stock ──
-  const handleReceive = ({ name, rows, ref, supplier, note }) => {
+  // ── Receive stock (one delivery / GRN, multiple products) ──
+  const handleReceive = ({ lines, ref, supplier, note }) => {
+    const bySku = {}
+    lines.forEach((l) => { bySku[l.sku] = l })
     let totalUnits = 0
     const moves = []
-    setInv((prev) =>
-      prev.map((it) => {
-        const r = rows.find((x) => x.sku === it.sku)
-        if (!r) return it
-        const nextOnHand = (it.onHand || 0) + r.qty
-        totalUnits += r.qty
-        const parts = []
-        if (supplier) parts.push(supplier)
-        if (ref) parts.push('Ref ' + ref)
-        if (r.batch) parts.push('Batch ' + r.batch)
-        if (r.expiry) parts.push('Exp ' + r.expiry)
-        if (note) parts.push(note)
-        moves.push({ sku: r.sku, type: 'received', qty: r.qty, note: 'Supplier stock received' + (parts.length ? ' · ' + parts.join(' · ') : ''), balance: nextOnHand })
-        return { ...it, onHand: nextOnHand }
-      }),
-    )
+    const nextInv = inv.map((it) => {
+      const r = bySku[it.sku]
+      if (!r) return it
+      const nextOnHand = (it.onHand || 0) + r.qty
+      totalUnits += r.qty
+      const parts = []
+      if (supplier) parts.push(supplier)
+      if (ref) parts.push('Ref ' + ref)
+      if (r.batch) parts.push('Batch ' + r.batch)
+      if (r.expiry) parts.push('Exp ' + r.expiry)
+      if (note) parts.push(note)
+      moves.push({ sku: r.sku, type: 'received', qty: r.qty, note: 'Supplier stock received' + (parts.length ? ' · ' + parts.join(' · ') : ''), balance: nextOnHand })
+      return { ...it, onHand: nextOnHand }
+    })
+    setInv(nextInv)
     setMovements((prev) => [...moves.reverse().map((m) => ({ ...m, by: 'Zain Khan', date: 'Jul 21, 2026' })), ...prev])
     setReceiveSession(null)
-    showToast(`Received ${totalUnits.toLocaleString()} units of ${name} across ${rows.length} variant${rows.length > 1 ? 's' : ''}.`, 'success')
+    const productCount = new Set(lines.map((l) => l.name)).size
+    showToast(`Received ${totalUnits.toLocaleString()} units across ${lines.length} line${lines.length > 1 ? 's' : ''} (${productCount} product${productCount > 1 ? 's' : ''}).`, 'success')
   }
 
   // ── Adjust stock ──
@@ -235,7 +237,7 @@ export default function Inventory({ onNavigate, initialAction, onConsumeAction }
           <div className="text-right">Reserved</div>
           <div className="text-right">Available</div>
           <div className="text-center">Status</div>
-          <div className="text-center">Actions</div>
+          <div className="text-right">Actions</div>
         </div>
 
         {/* Rows */}
@@ -277,15 +279,15 @@ export default function Inventory({ onNavigate, initialAction, onConsumeAction }
                   <p className="text-[12px] text-gray-500 text-right max-md:hidden">{g.reserved}</p>
                   <p className={`text-[13px] font-semibold text-right max-md:hidden ${avail <= 0 ? 'text-brand-red' : 'text-navy-dark'}`}>{avail}</p>
                   <div className="text-center max-md:hidden"><span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${st.cls}`}>{st.label}</span></div>
-                  <div className="flex items-center justify-center gap-1">
-                    <button onClick={() => setReceiveSession({ sku: repRow.sku })} title="Add stock" className="w-7 h-7 rounded-lg border border-border flex items-center justify-center text-gray-400 hover:text-brand-green hover:border-brand-green/40 transition">
-                      <Icon name="add-outline" size={15} />
+                  <div className="flex items-center justify-end gap-1.5">
+                    <button onClick={() => setReceiveSession({ sku: repRow.sku })} className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold border border-brand-green/30 bg-brand-green/10 text-brand-green hover:bg-brand-green/20 transition shrink-0 whitespace-nowrap">
+                      <Icon name="add-outline" size={12} />Add
                     </button>
-                    <button onClick={() => setAdjustSession({ sku: repRow.sku })} title="Adjust stock" className="w-7 h-7 rounded-lg border border-border flex items-center justify-center text-gray-400 hover:text-brand-orange hover:border-brand-orange/40 transition">
-                      <Icon name="create-outline" size={14} />
+                    <button onClick={() => setAdjustSession({ sku: repRow.sku })} className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold border border-brand-orange/30 bg-brand-orange/10 text-brand-orange hover:bg-brand-orange/20 transition shrink-0 whitespace-nowrap">
+                      <Icon name="create-outline" size={12} />Adjust
                     </button>
-                    <button onClick={() => setHistoryItem(repRow)} title="Stock history" className="w-7 h-7 rounded-lg border border-border flex items-center justify-center text-gray-400 hover:text-brand-blue hover:border-brand-blue/40 transition">
-                      <Icon name="time-outline" size={14} />
+                    <button onClick={() => setHistoryItem(repRow)} className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold border border-brand-blue/30 bg-brand-blue/10 text-brand-blue hover:bg-brand-blue/20 transition shrink-0 whitespace-nowrap">
+                      <Icon name="time-outline" size={12} />History
                     </button>
                   </div>
                 </div>

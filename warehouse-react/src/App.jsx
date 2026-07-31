@@ -3,6 +3,7 @@ import WarehouseLayout from './components/layout/WarehouseLayout'
 import Dashboard from './pages/Dashboard'
 import Products from './pages/Products'
 import Inventory from './pages/Inventory'
+import StockMovements from './pages/StockMovements'
 import StoreStock from './pages/StoreStock'
 import Transfers from './pages/Transfers'
 import Barcodes from './pages/Barcodes'
@@ -73,6 +74,8 @@ function Shell() {
         <Products onStockAction={handleStockAction} />
       ) : activePage === 'inventory' ? (
         <Inventory onNavigate={handleNavigate} initialAction={invAction} onConsumeAction={() => setInvAction(null)} />
+      ) : activePage === 'movements' ? (
+        <StockMovements onNavigate={handleNavigate} onViewSku={(sku) => handleStockAction('history', sku)} />
       ) : activePage === 'storestock' ? (
         <StoreStock onNavigate={handleNavigate} />
       ) : activePage === 'transfers' ? (

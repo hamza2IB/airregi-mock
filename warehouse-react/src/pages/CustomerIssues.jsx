@@ -116,7 +116,7 @@ export default function CustomerIssues({ issues, patchIssue }) {
                       <div className="text-gray-600 truncate">{i.reason}</div>
                       <div className="text-gray-400 text-[11px]">{i.date.split(',')[0]}</div>
                       <div className="text-center"><span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${s.cls}`}>{s.label}</span></div>
-                      <div className="text-right"><button onClick={() => setSelected(i)} className="text-[11px] font-semibold text-brand-blue hover:underline">View</button></div>
+                      <div className="flex justify-end"><button onClick={() => setSelected(i)} className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold border border-border bg-white text-gray-500 hover:text-navy hover:border-navy/30 hover:bg-gray-50 transition shrink-0 whitespace-nowrap"><Icon name="eye-outline" size={12} />View</button></div>
                     </div>
                   )
                 })}

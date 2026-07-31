@@ -16,7 +16,7 @@ import {
 } from '../data/productData'
 
 const PM_PAGE = 8
-const COLS = '52px 2fr 1fr 1fr 0.9fr 0.7fr 0.9fr 0.9fr 0.9fr 1fr'
+const COLS = '52px 1.9fr 1fr 1fr 0.9fr 0.7fr 0.9fr 0.9fr 0.9fr 200px'
 
 function KpiCard({ icon, iconBg, iconColor, value, valueCls, label }) {
   return (
@@ -205,7 +205,7 @@ export default function Products({ onStockAction }) {
           <div className="text-right">Physical Stock</div>
           <div className="text-right">Reorder at</div>
           <div className="text-center">Status</div>
-          <div className="text-center">Action</div>
+          <div className="text-right">Actions</div>
         </div>
 
         {/* Rows */}
@@ -244,15 +244,15 @@ export default function Products({ onStockAction }) {
                   <p className={`text-[13px] font-bold text-right max-md:hidden ${lowStock ? 'text-brand-orange' : 'text-navy-dark'}`}>{g.stock.toLocaleString()}</p>
                   <p className="text-[12px] font-semibold text-gray-400 text-right max-md:hidden">{g.reorder ? g.reorder.toLocaleString() : '—'}</p>
                   <div className="text-center max-md:hidden"><StatusBadge status={g.status} /></div>
-                  <div className="flex items-center justify-center gap-1">
-                    <button onClick={() => openView(g)} title="View" className="w-7 h-7 rounded-lg border border-border flex items-center justify-center text-gray-400 hover:text-brand-blue hover:border-brand-blue/40 transition">
-                      <Icon name="eye-outline" size={14} />
+                  <div className="flex items-center justify-end gap-1.5">
+                    <button onClick={() => openView(g)} className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold border border-border bg-white text-gray-500 hover:text-navy hover:border-navy/30 hover:bg-gray-50 transition shrink-0 whitespace-nowrap">
+                      <Icon name="eye-outline" size={12} />View
                     </button>
-                    <button onClick={() => openEdit(g.name)} title="Edit" className="w-7 h-7 rounded-lg border border-border flex items-center justify-center text-gray-400 hover:text-navy hover:border-navy/40 transition">
-                      <Icon name="create-outline" size={14} />
+                    <button onClick={() => openEdit(g.name)} className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold border border-navy/30 bg-navy/10 text-navy hover:bg-navy/20 transition shrink-0 whitespace-nowrap">
+                      <Icon name="create-outline" size={12} />Edit
                     </button>
-                    <button onClick={() => doDelete(g)} title="Delete" className="w-7 h-7 rounded-lg border border-border flex items-center justify-center text-gray-400 hover:text-brand-red hover:border-brand-red/40 transition">
-                      <Icon name="trash-outline" size={14} />
+                    <button onClick={() => doDelete(g)} className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold border border-brand-red/30 bg-brand-red/10 text-brand-red hover:bg-brand-red/20 transition shrink-0 whitespace-nowrap">
+                      <Icon name="trash-outline" size={12} />Delete
                     </button>
                   </div>
                 </div>

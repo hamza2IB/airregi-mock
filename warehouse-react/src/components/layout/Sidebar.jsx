@@ -3,7 +3,13 @@ import Icon from '../Icon'
 const NAV_GROUPS = [
   { label: 'Overview', items: [{ key: 'dashboard', icon: 'grid-outline', label: 'Dashboard' }] },
   { label: 'Catalog', items: [{ key: 'products', icon: 'pricetags-outline', label: 'Product Master' }] },
-  { label: 'Inventory', items: [{ key: 'inventory', icon: 'cube-outline', label: 'Stock Levels' }] },
+  {
+    label: 'Inventory',
+    items: [
+      { key: 'inventory', icon: 'cube-outline', label: 'Stock Levels' },
+      { key: 'movements', icon: 'swap-vertical-outline', label: 'Stock Movements' },
+    ],
+  },
   { label: 'Stores', items: [{ key: 'storestock', icon: 'storefront-outline', label: 'Store Stock' }] },
   { label: 'Transfers', items: [{ key: 'transfers', icon: 'swap-horizontal-outline', label: 'Stock Transfers' }] },
   {

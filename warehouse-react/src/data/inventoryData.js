@@ -27,6 +27,18 @@ export function shSeed(item) {
 
 export const ADJ_REASONS = ['Physical Count Correction', 'Damage', 'Theft / Loss', 'Expiry Write-off', 'Found / Extra Stock', 'Other']
 
+// Reason badge styling + icon for the Stock Adjustments history screen.
+export const ADJ_REASON_META = {
+  'Physical Count Correction': { cls: 'text-brand-blue bg-brand-blue/10', icon: 'create-outline' },
+  Damage: { cls: 'text-brand-orange bg-brand-orange/10', icon: 'alert-circle-outline' },
+  'Theft / Loss': { cls: 'text-brand-red bg-brand-red/10', icon: 'warning-outline' },
+  'Expiry Write-off': { cls: 'text-brand-red bg-brand-red/10', icon: 'time-outline' },
+  'Found / Extra Stock': { cls: 'text-brand-green bg-brand-green/10', icon: 'add-circle-outline' },
+  Other: { cls: 'text-gray-500 bg-gray-100', icon: 'ellipsis-horizontal-outline' },
+}
+
+export const adjReasonMeta = (reason) => ADJ_REASON_META[reason] || ADJ_REASON_META.Other
+
 // Group-level stock status (mirrors invStatus but for a rolled-up product).
 export function invGroupStatus(onHand, reorder) {
   if (onHand === 0) return { label: 'Out of Stock', cls: 'text-brand-red bg-brand-red/10' }

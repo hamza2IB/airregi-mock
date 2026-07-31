@@ -1,25 +1,47 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Icon from '../Icon'
 import Slideover from '../Slideover'
 import { useToast } from '../Toast'
 import { ADJ_REASONS } from '../../data/inventoryData'
+import { pmBarcode } from '../../data/productData'
 
 function Body({ session, inv, onClose, onAdjust }) {
   const showToast = useToast()
   const [prod, setProd] = useState(null)
   const [query, setQuery] = useState('')
   const [dropOpen, setDropOpen] = useState(false)
+  const [notFound, setNotFound] = useState('')
   const [newQty, setNewQty] = useState('')
   const [reason, setReason] = useState('')
   const [note, setNote] = useState('')
 
+  // A few quick-pick products (scan-style samples).
+  const samples = useMemo(() => inv.slice(0, 3), [inv])
+
   const selectProd = (p) => {
     setProd(p)
     setQuery(`${p.name} — ${p.variant}`)
+    setNotFound('')
     setNewQty('') // leave "actual counted" empty for the user to fill
     setReason('')
     setNote('')
     setDropOpen(false)
+  }
+
+  // Resolve a scanned barcode / typed SKU / product name to a stock row.
+  const resolve = (raw) => {
+    const v = (typeof raw === 'string' ? raw : query).trim()
+    if (!v) return
+    const lv = v.toLowerCase()
+    const row =
+      inv.find((r) => pmBarcode(r) === v) ||
+      inv.find((r) => (r.sku || '').toLowerCase() === lv) ||
+      inv.find((r) => (r.name || '').toLowerCase().includes(lv) || (r.variant || '').toLowerCase().includes(lv))
+    if (!row) {
+      setNotFound(`Nothing in the catalog matches “${v}”.`)
+      return
+    }
+    selectProd(row)
   }
 
   // Live difference between counted qty and system stock (never ask the user for "-3").
@@ -29,6 +51,7 @@ function Body({ session, inv, onClose, onAdjust }) {
   useEffect(() => {
     setProd(null)
     setQuery('')
+    setNotFound('')
     setNewQty('')
     setReason('')
     setNote('')
@@ -40,13 +63,10 @@ function Body({ session, inv, onClose, onAdjust }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session])
 
-  const results = inv
-    .filter((p) => !query || p.name.toLowerCase().includes(query.toLowerCase()) || p.sku.toLowerCase().includes(query.toLowerCase()) || p.variant.toLowerCase().includes(query.toLowerCase()))
-    .slice(0, 20)
-
   const clearProd = () => {
     setProd(null)
     setQuery('')
+    setNotFound('')
     setNewQty('')
     setReason('')
     setNote('')
@@ -91,37 +111,40 @@ function Body({ session, inv, onClose, onAdjust }) {
 
         <div>
           <label className="pc-label">Product / Variant</label>
-          <div className="relative mb-2">
-            <div className="flex items-center gap-2 bg-white border-[1.5px] border-border rounded-lg px-3 py-2.5">
-              <Icon name="search-outline" size={15} style={{ color: '#94a3b8', flexShrink: 0 }} />
-              <input
-                type="text"
-                placeholder="Search product to adjust…"
-                value={query}
-                onChange={(e) => { setQuery(e.target.value); setDropOpen(true) }}
-                onFocus={() => setDropOpen(true)}
-                className="flex-1 text-[12px] text-navy-dark placeholder-gray-400 border-none outline-none bg-transparent"
-              />
-            </div>
-            {dropOpen && !prod && (
-              <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-border rounded-xl shadow-lg z-50 overflow-y-auto thin-scroll" style={{ maxHeight: 240 }}>
-                {results.length === 0 ? (
-                  <p className="text-[11px] text-gray-400 text-center py-4">{query ? 'No products match.' : 'Type to search products.'}</p>
-                ) : (
-                  results.map((p) => (
-                    <button key={p.sku} type="button" onClick={() => selectProd(p)} className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-gray-50 transition text-left border-b border-gray-100 last:border-0">
-                      <div className="w-7 h-7 rounded-lg bg-navy/8 flex items-center justify-center shrink-0"><Icon name="cube-outline" className="text-navy" size={13} /></div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-[12px] font-semibold text-navy-dark truncate">{p.name} <span className="text-gray-400 font-normal">— {p.variant}</span></p>
-                        <p className="text-[10px] text-gray-400 truncate">{p.sku} · {p.onHand} in stock</p>
-                      </div>
-                      <Icon name="arrow-forward-outline" className="text-gray-300 shrink-0" size={14} />
-                    </button>
-                  ))
-                )}
+          {!prod && (
+            <>
+              <div className="flex items-center gap-2 bg-white border-[1.5px] border-navy/30 rounded-lg px-3 py-2.5 focus-within:border-navy transition">
+                <Icon name="barcode-outline" size={18} style={{ color: '#1a2d6b', flexShrink: 0 }} />
+                <input
+                  type="text"
+                  autoComplete="off"
+                  placeholder="Scan barcode / QR or type SKU, then Enter…"
+                  value={query}
+                  onChange={(e) => { setQuery(e.target.value); setNotFound('') }}
+                  onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); resolve() } }}
+                  className="flex-1 text-[12px] text-navy-dark placeholder-gray-400 border-none outline-none bg-transparent"
+                />
+                <button type="button" onClick={() => resolve()} className="text-[12px] font-semibold text-white bg-navy px-3 py-1.5 rounded-lg hover:bg-navy-light transition shrink-0">Check</button>
               </div>
-            )}
-          </div>
+              <p className="text-[10.5px] text-gray-400 mt-1.5">Point a USB/Bluetooth scanner here, or type a SKU / product name.</p>
+              {notFound && (
+                <div className="flex items-center gap-2 mt-2 text-[11px] text-brand-red bg-brand-red/5 border border-brand-red/20 rounded-lg px-3 py-2">
+                  <Icon name="alert-circle-outline" size={14} style={{ color: '#eb445a', flexShrink: 0 }} />
+                  {notFound}
+                </div>
+              )}
+              <div className="mt-3">
+                <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-[0.06em] mb-1.5">Try a sample</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {samples.map((p) => (
+                    <button key={p.sku} type="button" onClick={() => resolve(pmBarcode(p))} className="pc-preset-chip flex items-center gap-1">
+                      <Icon name="barcode-outline" size={12} />{p.name} · {p.variant}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
           {prod && (
             <div className="mt-2 flex items-center gap-3 px-4 py-3 bg-white border border-border rounded-xl">
               <div className="w-9 h-9 rounded-lg bg-navy/8 flex items-center justify-center shrink-0"><Icon name="cube-outline" className="text-navy" size={17} /></div>
