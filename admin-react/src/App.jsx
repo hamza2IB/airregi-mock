@@ -44,7 +44,7 @@ export default function App() {
           <Route path="/payments" element={<PaymentVerification />} />
           <Route path="/platform-users" element={<PlatformUsers />} />
           <Route path="/packages" element={<Packages />} />
-          <Route path="/categories" element={<Industries />} />
+          <Route path="/industries" element={<Industries />} />
           <Route path="/revenue" element={<Revenue />} />
           <Route path="/settings" element={<PlatformSettings />} />
         </Route>

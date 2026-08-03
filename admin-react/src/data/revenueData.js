@@ -97,7 +97,7 @@ export const navMeta = {
   payments: { title: 'Payment Verification', section: 'Businesses', heading: 'Payment Verification Queue' },
   'platform-users': { title: 'Platform Users', section: 'Businesses', heading: 'Platform Users' },
   packages: { title: 'Packages', section: 'Platform', heading: 'Subscription Packages' },
-  categories: { title: 'Industries', section: 'Platform', heading: 'Platform Industries' },
+  industries: { title: 'Industries', section: 'Platform', heading: 'Platform Industries' },
   revenue: { title: 'Revenue', section: 'Reports', heading: 'Revenue Report' },
   settings: { title: 'Platform Settings', section: 'Admin', heading: 'Platform Settings' },
 }

@@ -18,7 +18,7 @@ const navGroups = [
     label: 'Platform',
     items: [
       { key: 'packages', icon: 'layers-outline', label: 'Packages' },
-      { key: 'categories', icon: 'list-outline', label: 'Industries' },
+      { key: 'industries', icon: 'list-outline', label: 'Industries' },
     ],
   },
   {
